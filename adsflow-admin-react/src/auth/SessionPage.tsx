@@ -1,3 +1,4 @@
+import { isAdminSite, siteTitle } from './site';
 import { useEffect, useRef, useState } from 'react';
 import { multiFactor, sendEmailVerification, TotpMultiFactorGenerator, type TotpSecret } from 'firebase/auth';
 import { QRCodeSVG } from 'qrcode.react';
@@ -30,14 +31,14 @@ export default function SessionPage() {
   if (!ready) return <Container sx={{py:6}}><CircularProgress /></Container>;
   if (!user) return <Navigate to="/login" replace />;
   const run = async (action: () => Promise<void>) => { setBusy(true); setError(''); try { await action(); } catch (cause) { setError(authMessage(cause)); } finally { setBusy(false); } };
-  if (needsRegistration(sessionError)) return <CompleteRegistration />;
+  if (!isAdminSite && needsRegistration(sessionError)) return <CompleteRegistration />;
   if (!session && !sessionError) return <Container sx={{py:6}}><CircularProgress aria-label="正在检查账户" /></Container>;
   const options = [
-    ...(session?.customers || []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
-    ...(session?.staffScopes || []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),
+    ...(!isAdminSite ? session?.customers || [] : []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
+    ...(isAdminSite ? session?.staffScopes || [] : []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),
   ];
   return <Container maxWidth="md" sx={{ py: 5 }}><Stack spacing={3}>
-    <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">Moventra 工作台</Typography><Button onClick={signOut}>退出登录</Button></Stack>
+    <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">{siteTitle}</Typography><Button onClick={signOut}>退出登录</Button></Stack>
     <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
       <Typography>{user.email}</Typography>
       <Stack direction="row" spacing={1}><Chip label={user.emailVerified ? '邮箱已验证' : '邮箱待验证'} /><Chip label={session?.mfaVerified ? '本次登录已完成双重验证' : '本次登录未完成双重验证'} /></Stack>

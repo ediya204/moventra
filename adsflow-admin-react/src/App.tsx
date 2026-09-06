@@ -1,3 +1,4 @@
+import { isAdminSite } from './auth/site';
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth, usesFirebaseAuth } from './auth/AuthContext';
@@ -85,6 +86,12 @@ export default function App() {
 
     </Route></Route>
   <Route path="*" element={<StatusPage />} />
+  </Routes></Suspense>;
+  if (isAdminSite) return <Suspense fallback={<PageSkeleton />}><Routes>
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="/session" element={<SessionPage />} />
+    <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes></Suspense>;
   return (
     <Suspense fallback={<PageSkeleton />}>

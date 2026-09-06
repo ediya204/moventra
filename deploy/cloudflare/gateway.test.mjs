@@ -53,3 +53,25 @@ test('registration permits authenticated POST only and preserves its body', asyn
   });
   assert.equal(res.status,200);
 });
+test('deployment blocks the opposite API and admin registration before forwarding', async () => {
+  for (const [kind, path] of [['client', `/admin-api/v1/customers/${customer}/accounts`], ['admin', `/client-api/v1/customers/${customer}/transactions`], ['admin', '/api/v1/register']]) {
+    const res = await handle(new Request('https://web.invalid'+path, {headers:{Authorization:'Bearer fixture'}}), {...env,SITE_KIND:kind}, ()=>assert.fail('cross-site upstream'));
+    assert.equal(res.status,404);
+  }
+});
+test('identity discovery separates customer scopes, staff scopes and denies nonoperators', async () => {
+  const req = new Request('https://web.invalid/api/v1/me',{headers:{Authorization:'Bearer fixture'}});
+  const source = {id:'user', customers:[{id:customer}],operator:true,mfaVerified:true,requiresMfa:false,staffScopes:[{customerId:customer,permission:'accounts:read'}]};
+  for (const kind of ['admin','client']) {
+    const res = await handle(req,{...env,SITE_KIND:kind},async()=>Response.json({data:source}));
+    assert.equal(res.status,200);
+    const {data}=await res.json();
+    assert.equal(data.customers.length,kind==='admin'?0:1);
+    assert.equal(data.staffScopes.length,kind==='admin'?1:0);
+    assert.equal(data.operator,kind==='admin');
+  }
+  const denied=await handle(req,{...env,SITE_KIND:'admin'},async()=>Response.json({data:{...source,operator:false}}));
+  assert.equal(denied.status,403);
+  const pending=await handle(req,{...env,SITE_KIND:'admin'},async()=>Response.json({data:{...source,mfaVerified:false,requiresMfa:true}}));
+  assert.deepEqual((await pending.json()).data.staffScopes,[]);
+});

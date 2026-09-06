@@ -1,3 +1,5 @@
 firebase-debug.log*
 .firebase/
 *.private.json
+
+adsflow-admin-react/dist-admin/

@@ -1,3 +1,4 @@
+import { isAdminSite } from './site';
 import { getFirebaseAuth } from '../firebase';
 
 export type CustomerScope = { id: string; kind: 'personal' | 'business'; name: string };
@@ -9,6 +10,7 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
+  operator_required: '此账号没有运营后台权限，请使用客户端入口。',
   registration_required: '你尚未创建 Moventra 账户，请补充信息完成注册。',
   user_disabled: '账户已停用，请联系管理员。',
   invalid_registration: '请填写有效姓名（1–80 个字符）。',
@@ -49,6 +51,7 @@ export function authMessage(error: unknown): string {
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
 async function liveRequest<T>(path: string, body?: { name: string }): Promise<T> {
   if (body !== undefined ? path !== '/api/v1/register' : !/^\/api\/v1\/me$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
+  if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
   const token = await user.getIdToken();

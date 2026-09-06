@@ -1,3 +1,4 @@
+import { siteTitle } from '../auth/site';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
 import { Alert, Button, CircularProgress, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
@@ -27,7 +28,7 @@ export function LoginPage() {
     finally { setPassword(''); setCode(''); setBusy(false); }
   }}>
     <Typography variant="h4" component="h1">{challenge ? t('双重验证') : t('欢迎回来')}</Typography>
-    <Typography color="text.secondary">{challenge ? t('请输入验证器应用当前的六位验证码。') : t('登录 Moventra 工作台')}</Typography>
+    <Typography color="text.secondary">{challenge ? t('请输入验证器应用当前的六位验证码。') : siteTitle + '登录'}</Typography>
     {typeof location.state?.notice === 'string' && <Alert severity="info">{location.state.notice}</Alert>}
     {error && <Alert severity="error">{error}</Alert>}
     {usesFirebaseAuth && !challenge && <Button type="button" variant="outlined" size="large" disabled={busy} startIcon={<Icon icon="logos:google-icon" width={20} />} onClick={async () => {

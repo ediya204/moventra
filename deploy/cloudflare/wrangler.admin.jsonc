@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "moventra-admin",
+  "main": "gateway.mjs",
+  "compatibility_date": "2026-09-06",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../../adsflow-admin-react/dist-admin",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api",
+      "/api/*",
+      "/admin-api",
+      "/admin-api/*",
+      "/client-api",
+      "/client-api/*",
+      "/local-slash-demo",
+      "/local-slash-demo/*"
+    ]
+  },
+  "vars": {
+    "API_ORIGIN": "https://moventra-api-ejeq.onrender.com",
+    "SITE_KIND": "admin"
+  },
+  "account_id": "1159a5e57869211278b99f401f41321a",
+  "routes": [
+    {
+      "pattern": "admin.moventra.apexisnetworking.work",
+      "custom_domain": true
+    }
+  ]
+}

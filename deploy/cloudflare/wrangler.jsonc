@@ -37,7 +37,8 @@
       "workers_dev": false,
       "preview_urls": false,
       "vars": {
-        "API_ORIGIN": "https://moventra-api-ejeq.onrender.com"
+        "API_ORIGIN": "https://moventra-api-ejeq.onrender.com",
+        "SITE_KIND": "client"
       },
       "routes": [
         {

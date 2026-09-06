@@ -60,3 +60,25 @@ node adsflow-admin-react/tests/firebase-live.mjs
 本地 Vite 新契约 `/api/v1/`、`/client-api/v1/`、`/admin-api/v1/` 使用 `VITE_GO_API_PROXY_TARGET`（默认 localhost:8870），与旧后台代理隔离。非 JSON 身份响应明确提示服务异常；仅带 403 的 registration_required 才显示注册表单。
 
 本轮前端构建通过；本地隔离 PostgreSQL race 测试通过，含六并发注册去重、无凭据/伪造身份拒绝、额外授权字段拒绝、禁用不复活及新用户无运营权限。真实 Google 密码关联、生产注册未测试；前端、Go 与网关需要一起发布，此文不代表已部署。
+
+## 独立客户端与运营入口（2026-09-07）
+
+客户端 `https://moventra.apexisnetworking.work/login`，运营后台 `https://admin.moventra.apexisnetworking.work/login`。分别发布 `moventra-web` 和 `moventra-admin`；构建设置 `VITE_SITE_KIND=client|admin`，Firebase SDK 使用独立命名实例和内存会话。共享 Firebase 身份项目，不代表身份库或 token audience 分离；Go 继续独立校验真实授权与 MFA。
+
+后台只开放登录、找回密码与身份工作台路由，无客户自助注册。两端网关阻断另一端业务 API；身份查询仅返回本站适用范围。后台身份查询要求 Go 返回 operator=true，未完成 MFA 不返回 staffScopes，业务查询仍由 Go 强制 MFA 和具体客户权限。前端邮箱判断不承担授权职责。
+
+用户指定的客户端/管理员邮箱是配置意图；本次域名发布未创建或修改真实账户、成员及运营授权。管理员仍需受控开通身份和明确的客户资源授权，并由本人完成邮箱验证与 MFA。
+
+构建发布：
+
+```bash
+cd adsflow-admin-react
+VITE_SITE_KIND=admin npm run build -- --outDir dist-admin
+VITE_SITE_KIND=client npm run build
+cd ..
+node --test deploy/cloudflare/gateway.test.mjs
+node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config deploy/cloudflare/wrangler.admin.jsonc
+node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --env production --config deploy/cloudflare/wrangler.jsonc
+```
+
+本次两个构建和 9 项网关测试通过。Firebase authorizedDomains 已加入后台域名，保留已有 provider/MFA 配置。未运行新的真实用户 MFA 测试或生产业务验收。

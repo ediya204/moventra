@@ -75,3 +75,12 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 - 线上验证：正式登录页显示 Google 按钮；网关与 Render 注册接口均拒绝无凭据请求（401）；旧登录接口仍为 404。临时已验证 Firebase 身份经网关和 Render 直连 `/api/v1/me` 均为 403 registration_required，测试身份已清理，没有写生产 users/customers/grants。
 - 本次没有结构迁移、生产业务身份测试写入或真实资金操作。Google 本人选账号、密码关联和实际注册提交仍待用户验收；不以负向身份测试代替完整注册验收。
 - 如需回退：Go 上一运行提交 `03227e0663cdb9c98936a611b65f401aa0cd37e2`，Cloudflare 上一版本 `b8916ce0-5d68-4848-9265-9841af4cb0ce`；应成对回退，避免错误码/路由不一致。
+
+### 2026-09-07 独立域名发布
+
+- 后台 `admin.moventra.apexisnetworking.work` → Worker `moventra-admin`，版本 `301fc700-32bd-4a9c-b31d-61851f8b4c75`。
+- 客户端 `moventra.apexisnetworking.work` → Worker `moventra-web`，版本 `1ce0ef65-58a1-4a80-af06-22bcf7aa34d0`。
+- 公共 DNS 已解析；通过解析出的 Cloudflare IP 保留原域名/SNI 实测 HTTPS 登录页 200；内置浏览器显示“Moventra 运营后台登录”。本机解析器曾缓存无记录，不能用该缓存否定权威绑定成功。
+- 两端独立构建/内存会话/网关业务路由；Go 授权仍是最终边界。共享身份项目，不宣称独立用户库。
+- Firebase 后台域名已授权。两端构建及 9 项网关测试通过；未部署 Go、未迁移数据库、未修改真实用户权限、未访问真实资金接口。
+- 详细命令与账户开通边界见前端 `docs/firebase-setup.md`。域名可访问不等于管理员业务授权已完成。

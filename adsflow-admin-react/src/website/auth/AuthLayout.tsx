@@ -1,3 +1,4 @@
+import { siteTitle } from '../../auth/site';
 import { useLocale, LanguageSwitch } from '../i18n';
 import { useEffect, type ReactNode } from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
@@ -20,7 +21,7 @@ export default function AuthLayout({ children }: {
     </Stack>
     <Container maxWidth="lg" sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: '1.1fr 1fr' }, gap: { md: 10 }, alignItems: 'center', minHeight: 'calc(100vh - 108px)', py: { xs: 6, md: 7 } }}>
       <Stack spacing={3} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' }, p: { md: 3, lg: 5 } }}>
-        <Typography variant="h3" component="h2" textAlign="center">{t("Moventra 工作台")}</Typography>
+        <Typography variant="h3" component="h2" textAlign="center">{siteTitle}</Typography>
         <SeoIllustration sx={{ maxWidth: 420, height: 'auto' }}/>
         <Typography variant="body2" color="text.secondary">{t("广告营销 · AI 订阅 · 订阅卡 · 云服务")}</Typography>
       </Stack>

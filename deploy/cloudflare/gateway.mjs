@@ -11,6 +11,7 @@ export async function handle(request, env, upstreamFetch = fetch) {
   const url = new URL(request.url);
   const api = /^\/(api|admin-api|client-api|local-slash-demo)(\/|$)/.test(url.pathname);
   if (!api) return env.ASSETS.fetch(request);
+  if (env.SITE_KIND === 'admin' && (url.pathname.startsWith('/client-api/') || url.pathname === '/api/v1/register') || env.SITE_KIND === 'client' && url.pathname.startsWith('/admin-api/')) return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
   const readable = registration || url.pathname === '/api/v1/me' || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
@@ -36,6 +37,21 @@ export async function handle(request, env, upstreamFetch = fetch) {
     });
     // Never forward a token to a redirect target or return HTML upstream errors.
     if (response.status >= 300 && response.status < 400 || !response.headers.get('Content-Type')?.includes('application/json')) return error(502, 'invalid_api_response');
+    // Identity discovery uses only verified Go authorization data.
+    if (url.pathname === '/api/v1/me' && response.ok && env.SITE_KIND) {
+      const payload = await response.json();
+      if (!payload?.data || !Array.isArray(payload.data.customers) || !Array.isArray(payload.data.staffScopes)) return error(502, 'invalid_api_response');
+      if (env.SITE_KIND === 'admin') {
+        if (payload.data.operator !== true) return error(403, 'operator_required');
+        payload.data.customers = [];
+        if (payload.data.mfaVerified !== true) payload.data.staffScopes = [];
+      } else {
+        payload.data.staffScopes = [];
+        payload.data.operator = false;
+        payload.data.requiresMfa = false;
+      }
+      return Response.json(payload, { headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
     return new Response(response.body, { status: response.status, headers: {
       'Content-Type': 'application/json', 'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
