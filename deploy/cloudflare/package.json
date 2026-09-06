@@ -1,0 +1,11 @@
+{
+  "name": "adsflow-edge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test gateway.test.mjs",
+    "check": "wrangler deploy --dry-run --env staging",
+    "types": "wrangler types --env staging"
+  },
+  "devDependencies": { "wrangler": "4.129.0" }
+}

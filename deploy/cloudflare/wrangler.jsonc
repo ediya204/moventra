@@ -1,0 +1,51 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "moventra-web",
+  "main": "gateway.mjs",
+  "compatibility_date": "2026-09-06",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../../adsflow-admin-react/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api",
+      "/api/*",
+      "/admin-api",
+      "/admin-api/*",
+      "/client-api",
+      "/client-api/*",
+      "/local-slash-demo",
+      "/local-slash-demo/*"
+    ]
+  },
+  "vars": {
+    "API_ORIGIN": ""
+  },
+  "env": {
+    "staging": {
+      "name": "adsflow-web-staging",
+      "workers_dev": true,
+      "preview_urls": false,
+      "vars": {
+        "API_ORIGIN": ""
+      }
+    },
+    "production": {
+      "name": "moventra-web",
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "API_ORIGIN": "https://moventra-api-ejeq.onrender.com"
+      },
+      "routes": [
+        {
+          "pattern": "moventra.apexisnetworking.work",
+          "custom_domain": true
+        }
+      ]
+    }
+  },
+  "account_id": "1159a5e57869211278b99f401f41321a"
+}

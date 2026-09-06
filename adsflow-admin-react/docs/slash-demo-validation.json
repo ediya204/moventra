@@ -1,0 +1,730 @@
+{
+  "verifiedAt": "2026-09-06T12:24:35.563Z",
+  "mode": "local-isolated-slash-demo",
+  "counts": {
+    "scenarios": 20,
+    "source_records": 115,
+    "source_versions": 133,
+    "source_events": 50,
+    "event_deliveries": 52,
+    "internal_relations": 12,
+    "internal_adjustments": 5,
+    "balance_snapshots": 76
+  },
+  "transactionCount": 33,
+  "summary": {
+    "totals": [
+      {
+        "currency": "USD",
+        "account_subtype": "cash",
+        "postedNetCents": -128020,
+        "postedDebitCents": 148520,
+        "postedCreditCents": 20500,
+        "holdCents": 6000,
+        "count": 33
+      }
+    ],
+    "monthly": [
+      {
+        "month": "2026-08",
+        "currency": "USD",
+        "account_subtype": "cash",
+        "netCents": -130520
+      },
+      {
+        "month": "2026-09",
+        "currency": "USD",
+        "account_subtype": "cash",
+        "netCents": 2500
+      }
+    ],
+    "adjustments": [
+      {
+        "month": "2026-08",
+        "amountCents": 450
+      }
+    ],
+    "counts": {
+      "scenarios": 20,
+      "source_records": 115,
+      "source_versions": 133,
+      "source_events": 50,
+      "event_deliveries": 52,
+      "internal_relations": 12,
+      "internal_adjustments": 5,
+      "balance_snapshots": 76
+    },
+    "asOf": "2026-09-06T00:00:00.000Z",
+    "timeBasis": "UTC / posted交易按date入账月；内部调整单列",
+    "balances": [
+      {
+        "id": "DEMO-SLASH-S01-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S01-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 90000
+          },
+          "posted": {
+            "amountCents": 90000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S01-R001",
+          "customerName": "演示客户 S01-R001",
+          "email": "demo.s01-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "demo_verified",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S01-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S02-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S02-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 92000
+          },
+          "posted": {
+            "amountCents": 92000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S02-R001",
+          "customerName": "演示客户 S02-R001",
+          "email": "demo.s02-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "demo_verified",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S02-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S03-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S03-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 88000
+          },
+          "posted": {
+            "amountCents": 88000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S03-R001",
+          "customerName": "演示客户 S03-R001",
+          "email": "demo.s03-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S03-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S04-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S04-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 90000
+          },
+          "posted": {
+            "amountCents": 90000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S04-R001",
+          "customerName": "演示客户 S04-R001",
+          "email": "demo.s04-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S04-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S05-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S05-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 100000
+          },
+          "posted": {
+            "amountCents": 100000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S05-R001",
+          "customerName": "演示客户 S05-R001",
+          "email": "demo.s05-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "demo_verified",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S05-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S06-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S06-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 100000
+          },
+          "posted": {
+            "amountCents": 100000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S06-R001",
+          "customerName": "演示客户 S06-R001",
+          "email": "demo.s06-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "demo_verified",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S06-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S07-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S07-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 94000
+          },
+          "posted": {
+            "amountCents": 100000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S07-R001",
+          "customerName": "演示客户 S07-R001",
+          "email": "demo.s07-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S07-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S08-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S08-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 90000
+          },
+          "posted": {
+            "amountCents": 90000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S08-R001",
+          "customerName": "演示客户 S08-R001",
+          "email": "demo.s08-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S08-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S09-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S09-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 92000
+          },
+          "posted": {
+            "amountCents": 92000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S09-R001",
+          "customerName": "演示客户 S09-R001",
+          "email": "demo.s09-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "unmatched",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S09-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S10-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S10-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 100000
+          },
+          "posted": {
+            "amountCents": 100000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S10-R001",
+          "customerName": "演示客户 S10-R001",
+          "email": "demo.s10-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S10-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S11-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S11-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 93000
+          },
+          "posted": {
+            "amountCents": 93000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S11-R001",
+          "customerName": "演示客户 S11-R001",
+          "email": "demo.s11-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S11-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S12-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S12-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 95000
+          },
+          "posted": {
+            "amountCents": 95000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S12-R001",
+          "customerName": "演示客户 S12-R001",
+          "email": "demo.s12-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S12-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S13-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S13-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 90000
+          },
+          "posted": {
+            "amountCents": 90000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S13-R001",
+          "customerName": "演示客户 S13-R001",
+          "email": "demo.s13-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S13-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S14-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S14-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 90000
+          },
+          "posted": {
+            "amountCents": 90000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S14-R001",
+          "customerName": "演示客户 S14-R001",
+          "email": "demo.s14-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S14-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S15-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S15-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 88780
+          },
+          "posted": {
+            "amountCents": 88780
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S15-R001",
+          "customerName": "演示客户 S15-R001",
+          "email": "demo.s15-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S15-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S16-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S16-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 90150
+          },
+          "posted": {
+            "amountCents": 90150
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S16-R001",
+          "customerName": "演示客户 S16-R001",
+          "email": "demo.s16-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S16-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S17-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S17-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 92500
+          },
+          "posted": {
+            "amountCents": 92500
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S17-R001",
+          "customerName": "演示客户 S17-R001",
+          "email": "demo.s17-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S17-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S18-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S18-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 91000
+          },
+          "posted": {
+            "amountCents": 91000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S18-R001",
+          "customerName": "演示客户 S18-R001",
+          "email": "demo.s18-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "pending_confirmation",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S18-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S19-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S19-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 100000
+          },
+          "posted": {
+            "amountCents": 100000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S19-R001",
+          "customerName": "演示客户 S19-R001",
+          "email": "demo.s19-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "demo_verified",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S19-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      },
+      {
+        "id": "DEMO-SLASH-S20-R001-ACCOUNT-BALANCE",
+        "kind": "balance",
+        "source": {
+          "accountId": "DEMO-SLASH-S20-R001-ACCOUNT",
+          "type": "debit",
+          "timestamp": "2026-09-06T00:00:00.000Z",
+          "available": {
+            "amountCents": 100000
+          },
+          "posted": {
+            "amountCents": 100000
+          }
+        },
+        "internal": {
+          "customerId": "DEMO-CUSTOMER-S20-R001",
+          "customerName": "演示客户 S20-R001",
+          "email": "demo.s20-r001@example.com",
+          "firstCollectedAt": "2026-08-20T10:00:00.000Z",
+          "lastSyncedAt": "2026-09-06T00:00:00.000Z",
+          "syncError": null,
+          "matchingStatus": "demo_verified",
+          "assumption": "按Demo版本和内部调整计算的合成余额，不是Slash实时余额",
+          "currency": "USD",
+          "platform": "slash",
+          "entityId": "DEMO-ENTITY-001",
+          "scenarioId": "S20-R001",
+          "version": 1,
+          "namespace": "slash-clearing-v1"
+        }
+      }
+    ]
+  },
+  "foreignKeyErrors": [],
+  "storage": "demo-server/slash/data/projection.sqlite",
+  "realSlashWrites": false,
+  "tests": {
+    "slash": 15,
+    "existingPortal": 44,
+    "passed": 59,
+    "failed": 0,
+    "commands": [
+      "npm run slash:test",
+      "node --test tests/*.test.mjs"
+    ]
+  },
+  "builds": {
+    "defaultMode": "passed",
+    "slashDemoMode": "passed",
+    "warning": "Existing ApexCharts chunk above 500kB"
+  },
+  "liveHttp": [
+    {
+      "endpoint": "health",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "endpoint": "transactions?scenario=S15-R001",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "endpoint": "accounts.csv",
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8",
+      "lines": 21
+    },
+    {
+      "endpoint": "cards.csv",
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8",
+      "lines": 21
+    },
+    {
+      "endpoint": "balances.csv",
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8",
+      "lines": 21
+    }
+  ]
+}
