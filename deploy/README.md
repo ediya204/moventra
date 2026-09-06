@@ -89,3 +89,7 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 用户明确选择个人用途后，为指定已验证身份执行受控个人主体关联。运行提交 `3d24ee0`；Render deploy `dep-daeq0ugu01pc73figlf0` 为 live；一次性任务 `job-daeq1ulg1s2s73db57ug` 为 succeeded，日志确认 personal subject linked。主体关联使用事务及唯一所有权，新增主体为 draft/inactive，仅首次创建写入审计；不创建资金账户、运营授权或真实交易，无结构迁移。目标身份与主体 ID 留在受控任务日志，不写公开记录。
 
 本轮隔离 PostgreSQL race/五并发幂等测试、停用与不存在身份拒绝、服务不激活、审计单次落库和既有权限回归通过；go vet 通过，线上 readyz 正常。初次新增测试影响共享测试样本计数，补充该测试自身数据清理后重跑全部通过。本轮未发布前端或 Cloudflare；并行域名发布结果见上节。本人工作台可点击“刷新身份和权限”读取个人范围；未代替用户完成页面登录验收。
+
+## 客户端首页发布（2026-09-07）
+
+代码 `7829ccc`，客户端 Worker `moventra-web` 版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`。个人/企业用户通过登录后从 /session 进入 /portal 真实客户端首页，安全设置位于 /portal/security。客户端构建、9项网关回归与 dry-run 通过；线上浏览器确认未登录 /portal 回到客户端登录页。未代替本人完成认证后首页验收。仅发布客户端，没有重新部署运营 Worker、Go、数据库或权限。共享 App.tsx 通过精确路由补丁保留其他页面改动。
