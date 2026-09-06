@@ -10,6 +10,7 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
+  admin_password_required: '运营后台请使用已开通账号的邮箱和密码登录。',
   operator_required: '此账号没有运营后台权限，请使用客户端入口。',
   registration_required: '你尚未创建 Moventra 账户，请补充信息完成注册。',
   user_disabled: '账户已停用，请联系管理员。',

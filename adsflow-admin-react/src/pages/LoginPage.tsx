@@ -1,4 +1,4 @@
-import { siteTitle } from '../auth/site';
+import { siteTitle, isAdminSite } from '../auth/site';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
 import { Alert, Button, CircularProgress, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
@@ -29,9 +29,10 @@ export function LoginPage() {
   }}>
     <Typography variant="h4" component="h1">{challenge ? t('双重验证') : t('欢迎回来')}</Typography>
     <Typography color="text.secondary">{challenge ? t('请输入验证器应用当前的六位验证码。') : siteTitle + '登录'}</Typography>
+    {isAdminSite && !challenge && <Alert severity="info">仅限已开通的运营账号使用邮箱和密码登录。客户账号请使用客户端入口。</Alert>}
     {typeof location.state?.notice === 'string' && <Alert severity="info">{location.state.notice}</Alert>}
     {(error || loginError != null) && <Alert severity="error">{error || authMessage(loginError)}</Alert>}
-    {usesFirebaseAuth && !challenge && <Button type="button" variant="outlined" size="large" disabled={busy} startIcon={<Icon icon="logos:google-icon" width={20} />} onClick={async () => {
+    {usesFirebaseAuth && !isAdminSite && !challenge && <Button type="button" variant="outlined" size="large" disabled={busy} startIcon={<Icon icon="logos:google-icon" width={20} />} onClick={async () => {
       if (busy) return;
       setBusy(true); setError(''); setPassword('');
       try { await signInWithGoogle(); }

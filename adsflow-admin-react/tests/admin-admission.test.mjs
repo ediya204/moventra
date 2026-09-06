@@ -10,6 +10,7 @@ const require=createRequire(import.meta.url);
 const uri=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
 const mocks=uri(`
 const m=globalThis.__moventraAdmission;
+export const acceptsLoginEmail=email=>email.trim().toLowerCase()==='fixture@example.invalid';
 export const isAdminSite=true,isDemoMode=false,browserPopupRedirectResolver={};
 export const clearAccessToken=()=>{},setAccessToken=()=>{},login=()=>{};
 export const getFirebaseAuth=()=>m.auth;
@@ -17,9 +18,9 @@ export const liveGet=()=>m.pending;
 export class SessionError extends Error {constructor(code,status){super(code);this.code=code;this.status=status;}}
 export const onIdTokenChanged=(a,cb)=>{m.listener=cb;cb(null);return ()=>{};};
 export const signOut=async()=>{m.signouts++;m.auth.currentUser=null;m.listener(null);};
-export const signInWithEmailAndPassword=()=>{},signInWithPopup=()=>{},getMultiFactorResolver=()=>{};
+export const signInWithEmailAndPassword=()=>{m.passwordCalls++;throw {code:'auth/multi-factor-auth-required'};},signInWithPopup=()=>{m.googleCalls++;},getMultiFactorResolver=()=>({hints:[{uid:'totp-fixture',factorId:'totp'}]});
 export class GoogleAuthProvider {setCustomParameters(){}}
-export const TotpMultiFactorGenerator={};
+export const TotpMultiFactorGenerator={FACTOR_ID:'totp'};
 `);
 const m=globalThis.__moventraAdmission={auth:{currentUser:null},signouts:0};
 const src=readFileSync(new URL('../src/auth/AuthContext.tsx',import.meta.url),'utf8');
@@ -50,5 +51,29 @@ test('admin admission waits for Go and signs out denied identities',async()=>{
    assert.equal(m.signouts,0);assert.equal(state.user,user);assert.equal(state.authenticated,scenario==='operator');
   }
   await act(async()=>view.unmount());
+ }
+});
+
+test('client email rejected before password request or MFA; admin Google cannot bypass precheck',async()=>{
+ m.auth.currentUser=null;m.passwordCalls=0;m.googleCalls=0;
+ let view;await act(async()=>{view=Renderer.create(React.createElement(AuthProvider,null,React.createElement(Probe)));});
+ await act(async()=>{await assert.rejects(state.signIn('client@example.invalid','fixture-password'),{code:'operator_required'});});
+ assert.equal(m.passwordCalls,0);assert.equal(state.factors.length,0);
+ await act(async()=>{await assert.rejects(state.signInWithGoogle(),{code:'admin_password_required'});});
+ assert.equal(m.googleCalls,0);assert.equal(state.factors.length,0);
+ await act(async()=>{await state.signIn(' FIXTURE@EXAMPLE.INVALID ','fixture-password');});
+ assert.equal(m.passwordCalls,1);assert.equal(state.factors.length,1);
+ await act(async()=>{await assert.rejects(state.signIn('client@example.invalid','fixture-password'),{code:'operator_required'});});
+ assert.equal(m.passwordCalls,1);assert.equal(state.factors.length,0);
+ await act(async()=>view.unmount());
+});
+test('deployment login policy normalizes email and denies every account when admin configuration is missing',async()=>{
+ const source=readFileSync(new URL('../src/auth/site.ts',import.meta.url),'utf8');
+ for(const [kind,emails,wantAdmin,wantClient] of [['admin','fixture@example.invalid',true,false],['admin','',false,false],['client','',true,true]]){
+  let {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}});
+  outputText=outputText.replaceAll('import.meta.env.VITE_SITE_KIND',JSON.stringify(kind)).replaceAll('import.meta.env.VITE_ADMIN_LOGIN_EMAILS',JSON.stringify(emails));
+  const {acceptsLoginEmail}=await import(uri(outputText));
+  assert.equal(acceptsLoginEmail(' FIXTURE@EXAMPLE.INVALID '),wantAdmin);
+  assert.equal(acceptsLoginEmail('client@example.invalid'),wantClient);
  }
 });

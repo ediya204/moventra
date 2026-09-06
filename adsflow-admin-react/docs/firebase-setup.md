@@ -73,7 +73,7 @@ node adsflow-admin-react/tests/firebase-live.mjs
 
 ```bash
 cd adsflow-admin-react
-VITE_SITE_KIND=admin npm run build -- --outDir dist-admin
+VITE_SITE_KIND=admin VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请先配置已批准的运营邮箱}" npm run build -- --outDir dist-admin
 VITE_SITE_KIND=client npm run build
 cd ..
 node --test deploy/cloudflare/gateway.test.mjs
@@ -86,3 +86,9 @@ node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --env produc
 ### 后续账号授权已执行
 
 用户随后明确授权真实账号开通，已通过 Render 受控任务创建管理员本地身份并授予指定个人客户的 accounts:read / transactions:read；客户身份无运营权限。前述“本次域名发布未创建或修改真实账户”仅描述域名发布当时的范围。实际执行证据见部署记录的“实际账号授权”。管理员首次使用后台“忘记密码”设置密码，然后完成邮箱验证和验证器绑定；未代用户发送邮件或绕过 MFA。
+
+### 后台账号前置检查
+
+后台构建必须提供 `VITE_ADMIN_LOGIN_EMAILS`（逗号分隔），值来自已批准的运营账号配置；缺失时拒绝所有后台账号。当前部署只允许用户指定的运营邮箱，真实配置不写本公开文档。邮箱先去空格并转小写，在请求 Firebase 密码登录前检查，不允许的邮箱不进入 MFA。后台仅使用邮箱密码，客户端 Google 登录保留。
+
+此检查用于登录流程，不是服务端授权。即使修改浏览器脚本，Go 仍校验真实 UID、staff_grants、MFA 和客户范围。两端仍共用 Firebase 身份项目，不宣称独立身份库或 token audience。
