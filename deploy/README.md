@@ -64,3 +64,14 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 本地同步采用内容比较与三方合并，仅 App.tsx 的路由变更手动按精确片段合入，保留并行任务新增的 LegalPage 路由；发布版本不含那部分后续开发。主目录依赖出现系统 dataless 占位导致构建停滞，因此前端与 Wrangler 在发布 worktree 中独立重新安装后验证，未覆盖共享 node_modules。
 
 可重复线上拒绝检查：`RUN_DEPLOYED_AUTH_TESTS=1 FIREBASE_PROJECT_ID=edi-gws-20260309-hk node adsflow-admin-react/tests/firebase-deployed.mjs`。需要指定项目测试身份管理权限，只创建并清理云端临时身份，不修改生产数据库。
+
+## Google 登录与注册分流发布（2026-09-07）
+
+- 运行代码：`1d2471a6fa3e8b4ceece3c075f22dbdc953e0465`，已推送 origin/main。
+- Render：`dep-daepu0tbedkc73e8hq1g`，状态 live；`/readyz` 返回 ready。
+- Cloudflare：`b3e74009-3e85-417b-90c3-e193083b232e`，正式域名 https://moventra.apexisnetworking.work。
+- 独立发布目录 `/tmp/moventra-registration-publish` 从最新远端克隆，只纳入 Google 登录、注册分流、相关契约和测试；保留共享目录的其他开发。
+- 本轮验证：前端构建与状态分流测试通过，7 项网关测试通过，隔离 PostgreSQL race/并发注册与权限测试通过，go vet 与 Wrangler dry-run 通过。首次 dry-run 早于构建完成因 dist 不存在退出，构建完成后重跑成功。
+- 线上验证：正式登录页显示 Google 按钮；网关与 Render 注册接口均拒绝无凭据请求（401）；旧登录接口仍为 404。临时已验证 Firebase 身份经网关和 Render 直连 `/api/v1/me` 均为 403 registration_required，测试身份已清理，没有写生产 users/customers/grants。
+- 本次没有结构迁移、生产业务身份测试写入或真实资金操作。Google 本人选账号、密码关联和实际注册提交仍待用户验收；不以负向身份测试代替完整注册验收。
+- 如需回退：Go 上一运行提交 `03227e0663cdb9c98936a611b65f401aa0cd37e2`，Cloudflare 上一版本 `b8916ce0-5d68-4848-9265-9841af4cb0ce`；应成对回退，避免错误码/路由不一致。
