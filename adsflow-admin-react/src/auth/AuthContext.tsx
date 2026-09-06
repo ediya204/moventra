@@ -4,13 +4,14 @@ import { clearAccessToken, setAccessToken } from '../api/client';
 import { login as legacyLogin } from '../api/queries';
 import { getFirebaseAuth } from '../firebase';
 import { isDemoMode } from '../utils/dataMode';
-import { liveGet, type LiveSession } from './liveApi';
+import { isAdminSite } from './site';
+import { liveGet, SessionError, type LiveSession } from './liveApi';
 import type { SessionProfile } from '../types';
 
 export const usesFirebaseAuth = !(import.meta.env.DEV && isDemoMode);
 type AuthContextValue = {
   profile: SessionProfile | null; authenticated: boolean; user: User | null;
-  ready: boolean; session: LiveSession | null; sessionError: unknown;
+  ready: boolean; session: LiveSession | null; sessionError: unknown; loginError: unknown;
   factors: { uid: string; name: string }[];
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<SessionProfile | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<LiveSession | null>(null);
+  const [loginError, setLoginError] = useState<unknown>(null);
   const [sessionError, setSessionError] = useState<unknown>(null);
   const [ready, setReady] = useState(!usesFirebaseAuth);
   const [factors, setFactors] = useState<{ uid: string; name: string }[]>([]);
@@ -29,15 +31,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const generation = useRef(0);
   const loadSession = useCallback(async (current: User | null) => {
     const request = ++generation.current;
-    setUser(current); setProfile(null); setSession(null); setSessionError(null);
+    setReady(false); setUser(isAdminSite ? null : current); setProfile(null); setSession(null); setSessionError(null);
     try {
       if (!current) return;
-      if (!current.emailVerified) { setSessionError({ code: 'email_unverified' }); return; }
+      if (!current.emailVerified) { setUser(current); setSessionError({ code: 'email_unverified' }); return; }
       const data = await liveGet<LiveSession>('/api/v1/me');
       if (request !== generation.current || getFirebaseAuth().currentUser !== current) return;
-      setSession(data);
-      setProfile({ username: current.email || '', nickname: current.displayName || undefined, roles: data.operator && data.mfaVerified ? ['operator'] : ['customer'], permissions: [] });
-    } catch (error) { if (request === generation.current) setSessionError(error); }
+      if (isAdminSite && data.operator !== true) throw new SessionError('operator_required', 403);
+      setUser(current); setSession(data);
+      if (!isAdminSite || data.mfaVerified === true) setProfile({ username: current.email || '', nickname: current.displayName || undefined, roles: data.operator && data.mfaVerified ? ['operator'] : ['customer'], permissions: [] });
+    } catch (error) {
+      if (request !== generation.current) return;
+      if (isAdminSite) {
+        // Firebase identity alone is never an admitted admin session.
+        setLoginError(error); setUser(null); setSession(null); setProfile(null);
+        if (getFirebaseAuth().currentUser === current) await firebaseSignOut(getFirebaseAuth());
+      } else setSessionError(error);
+    }
     finally { if (request === generation.current) setReady(true); }
   }, []);
   useEffect(() => {
@@ -62,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await legacyLogin(email, password); setAccessToken(result.accessToken);
       setProfile({ username: result.username || email, nickname: result.nickname, avatar: result.avatar, roles: result.roles || [], permissions: result.permissions || [] }); return;
     }
-    resolver.current = null; setFactors([]); clearAccessToken();
+    setLoginError(null); resolver.current = null; setFactors([]); clearAccessToken();
     try { await signInWithEmailAndPassword(getFirebaseAuth(), email.trim(), password); }
     catch (error) {
       handleMfaError(error);
@@ -70,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleMfaError]);
   const signInWithGoogle = useCallback(async () => {
     if (!usesFirebaseAuth) throw new Error('Google login is unavailable in Demo mode');
-    resolver.current = null; setFactors([]); clearAccessToken();
+    setLoginError(null); resolver.current = null; setFactors([]); clearAccessToken();
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
@@ -88,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     generation.current++; resolver.current = null; setFactors([]); clearAccessToken(); setProfile(null); setSession(null); setUser(null); setSessionError(null);
     if (usesFirebaseAuth) void firebaseSignOut(getFirebaseAuth());
   }, []);
-  const value = useMemo(() => ({ profile, authenticated: Boolean(profile), user, ready, session, sessionError, factors, signIn, signInWithGoogle, completeMfa, refreshSession, signOut }), [profile,user,ready,session,sessionError,factors,signIn,signInWithGoogle,completeMfa,refreshSession,signOut]);
+  const value = useMemo(() => ({ profile, authenticated: Boolean(profile), user, ready, session, sessionError, loginError, factors, signIn, signInWithGoogle, completeMfa, refreshSession, signOut }), [profile,user,ready,session,sessionError,loginError,factors,signIn,signInWithGoogle,completeMfa,refreshSession,signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 export function useAuth() {

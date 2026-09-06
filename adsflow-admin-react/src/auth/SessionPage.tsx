@@ -40,7 +40,7 @@ export default function SessionPage() {
     ...(isAdminSite ? session?.staffScopes || [] : []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),
   ];
   return <Container maxWidth="md" sx={{ py: 5 }}><Stack spacing={3}>
-    <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">{siteTitle}</Typography><Button onClick={signOut}>退出登录</Button></Stack>
+    <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">{isAdminSite && (!user.emailVerified || !session?.mfaVerified) ? '完成后台安全验证' : siteTitle}</Typography><Button onClick={signOut}>退出登录</Button></Stack>
     <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
       <Typography>{user.email}</Typography>
       <Stack direction="row" spacing={1}><Chip label={user.emailVerified ? '邮箱已验证' : '邮箱待验证'} /><Chip label={session?.mfaVerified ? '本次登录已完成双重验证' : '本次登录未完成双重验证'} /></Stack>

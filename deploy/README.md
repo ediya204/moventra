@@ -104,3 +104,9 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 后台域名 HTTPS 再次验证 200；独立 Worker 与 Firebase authorizedDomains 配置沿用上节已发布版本。
 
 授权重复执行任务 `job-daeq4r5g1s2s73dbearg` 同样 succeeded，返回同一客户范围。授权函数 ON CONFLICT 不重复插入，只有新授权才写审计；本地数据库测试已核验授权和审计数量不增加。
+
+## 后台登录放行修复（2026-09-07）
+
+原页面在 Firebase 返回 User 后先进入 /session，再显示 Go 权限拒绝，容易误以为客户端已登录后台。现改为先等待 Go 确认运营权限；拒绝或异常时退出本地 Firebase 会话，清除用户/权限并在登录页显示错误。只有运营且 MFA 完成才设置 authenticated profile；未完成邮箱验证/MFA 的设置流程不代表后台业务访问已放行。空邮箱/密码禁用提交。
+
+后台 Worker 版本 `9bd2b03e-6d5d-4f54-8660-e7cb159fa8c5` 已部署。React AuthProvider 回归覆盖等待、普通客户拒绝/退出、运营放行、MFA 待设置、接口异常退出；注册分流测试、9 项网关测试、TS/Vite 构建及 dry-run 通过。SDK 与 Go 响应在组件回归中为测试替身，不代表本人密码/MFA 登录验收；未重置真实用户密码、MFA 或业务权限。仅发布后台 Worker，保留客户端独立发布版本。
