@@ -34,7 +34,7 @@ GitHub：https://github.com/ediya204/moventra-card-bin 。Go 运行版本 `3fd23
 - 浏览器实际确认官网及登录页面渲染；curl 确认 `/`、`/login`、`/portal` 返回 HTML 200。未将 portal HTML 可访问视为客户业务验收。
 - 初次 Python urllib 请求被边缘返回 403；未改 WAF，curl 与实际浏览器验证通过。Render 首次切换期间出现一次 readiness 502，服务 live 后复测为 200。
 
-## 尚未上线的业务闭环
+## 首轮部署时的业务待办（历史，当前状态见下方登录切换发布）
 
 登录页面仍调用旧接口，当前域名无法使用旧管理员账户完成登录。Firebase SDK 初始化不是登录切换；下一步需接入 provider、真实用户 ID Token、Go 用户/主体映射、运营 MFA、资源授权和撤销验证。
 
@@ -45,3 +45,22 @@ GitHub：https://github.com/ediya204/moventra-card-bin 。Go 运行版本 `3fd23
 从经审查的源码建立独立快照，前端 `pnpm build` 后进入 `deploy/cloudflare` 运行 `npm test`、`npx wrangler deploy --env production --dry-run` 和已授权的正式发布。运行配置的 API_ORIGIN 指向上述 Render 服务，compatibility_date 使用 UTC 已到达日期。
 
 Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/readyz`、未认证拒绝、业务授权和日志；迁移另行审批。不能把部署检查通过当作登录和金融验收通过。
+
+
+## Firebase 登录切换发布（2026-09-07）
+
+运行代码 `03227e0` 已发布：Cloudflare `b8916ce0-5d68-4848-9265-9841af4cb0ce`；Render deploy `dep-daepon5g1s2s73da7e20` 为 live，健康检查通过。本次没有结构迁移。
+
+登录已从旧接口切换为 Firebase 邮箱密码 + TOTP，登录后的 `/session` 展示已接入的身份、MFA、客户与运营授权范围及只读查询。生产旧工作台/portal 路由转向该入口；本地显式开发 Demo 保留。尚未接入的新业务模块不随身份登录自动开放。
+
+真实验证：16 项 Firebase 签名/TOTP + 本地隔离 PostgreSQL/Go 检查通过；包括真实密码、错误密码、TOTP 绑定/挑战/错误码、跨主体与资源越权、停用、撤销、伪造 MFA 声明及运营审计。一次使用绑定验证码立即登录被 Firebase 拒绝，改为等待下一验证码后通过，页面已有对应提示。所有临时测试身份和本地数据库已清理。
+
+线上追加验证：临时已验证 Firebase 用户通过 CF 网关与 Render 直连均返回 403 `user_not_enabled`，证明身份验证不自动产生业务授权；该身份已删除，测试没有写生产用户/客户/授权表。浏览器确认新登录页及错误凭据提示，密码提交后清空。
+
+用户指定的首个邮箱已在 Firebase 创建（初始邮箱未验证），受控 Render job `job-daepqadg1s2s73dad4tg` 成功开通对应 Go users 身份。仅此实际用户身份写入生产；未分配客户、成员关系或 staff_grants。首个任务因命令环境变量前缀未被执行器接受而失败，改用显式 `env ... api provision-user` 后成功，任务日志确认仅身份开通。没有发送邮件或保留/展示生成密码，持有人需在页面请求密码设置邮件并自行完成邮箱验证及 TOTP 绑定。
+
+生产数据库继续关闭公网访问；外部只读查询工具无法连接，未为验证而开放 IP 白名单。身份开通以受控任务成功及其日志为证据。本人首次登录、邮箱验证和验证器绑定尚待持有人完成，不能用测试身份替代。
+
+本地同步采用内容比较与三方合并，仅 App.tsx 的路由变更手动按精确片段合入，保留并行任务新增的 LegalPage 路由；发布版本不含那部分后续开发。主目录依赖出现系统 dataless 占位导致构建停滞，因此前端与 Wrangler 在发布 worktree 中独立重新安装后验证，未覆盖共享 node_modules。
+
+可重复线上拒绝检查：`RUN_DEPLOYED_AUTH_TESTS=1 FIREBASE_PROJECT_ID=edi-gws-20260309-hk node adsflow-admin-react/tests/firebase-deployed.mjs`。需要指定项目测试身份管理权限，只创建并清理云端临时身份，不修改生产数据库。
