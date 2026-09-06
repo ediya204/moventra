@@ -4,11 +4,11 @@
 
 ## 项目与入口
 
-`moventra.me` 已完成官网 Worker 绑定并加入 Firebase authorizedDomains；根路径为官网，登录路径为 `/login`。已验证官网页面，不代表完成本人 Google/密码/MFA 登录验收。`admin.moventra.me` 仍为目标域名，后台本次未切换；现有旧域名授权保留。
+`moventra.me` 已完成官网 Worker 绑定并加入 Firebase authorizedDomains；根路径为官网，登录路径为 `/login`。已验证官网页面，不代表完成本人 Google/密码/MFA 登录验收。`admin.moventra.me` 与 `www.moventra.me` 已完成绑定并加入 Firebase authorizedDomains，旧域名授权保留。后台继续只开放批准邮箱密码登录和 MFA，www 与根域名同为官网/客户端。
 
 Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示名仍为 `moventra-card-bin`，App ID 为 `1:666750758771:web:c38e91069fc64737db5f06`。这些实际云端标识不随源码仓库改名。
 
-| 应用 | 目标登录地址 | 登录方式 | 业务入口 |
+| 应用 | 登录地址 | 登录方式 | 业务入口 |
 | --- | --- | --- | --- |
 | 客户端 | https://moventra.me/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
 | 运营后台 | https://admin.moventra.me/login | 批准的运营邮箱密码、MFA；无 Google | `/session` 身份、授权范围及只读查询 |

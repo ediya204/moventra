@@ -42,6 +42,10 @@
       },
       "routes": [
         {
+          "pattern": "www.moventra.me",
+          "custom_domain": true
+        },
+        {
           "pattern": "moventra.me",
           "custom_domain": true
         },

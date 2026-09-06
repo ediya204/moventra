@@ -27,6 +27,10 @@
   "account_id": "1159a5e57869211278b99f401f41321a",
   "routes": [
     {
+      "pattern": "admin.moventra.me",
+      "custom_domain": true
+    },
+    {
       "pattern": "admin.moventra.apexisnetworking.work",
       "custom_domain": true
     }

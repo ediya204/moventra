@@ -1,6 +1,6 @@
 # Moventra 部署记录
 
-## 新域名目标（2026-09-07）
+## 新域名接入（2026-09-07）
 
 - 客户端：[moventra.me](https://moventra.me)，登录 `/login`，对应 Worker `moventra-web`。
 - 运营后台：[admin.moventra.me](https://admin.moventra.me)，登录 `/login`，对应 Worker `moventra-admin`。
@@ -10,7 +10,13 @@
 
 本次验证：权威 DNS 和 Google/Cloudflare 公共 DNS 返回 A 记录；通过公开解析地址保留域名/SNI 验证 HTTPS 200；Chrome 实际打开根路径，展示广告营销、AI 工具与云服务官网。初期本机解析/内置浏览器仍有失败，Chrome 后续验证成功。10 项网关测试及触发器 dry-run 通过。
 
-Firebase 仅 PATCH authorizedDomains，加入 `moventra.me` 并读取确认，保留已有域名，不修改 provider、MFA 或用户。配置脚本已同步。新域名本人登录、Google 回调和 MFA 业务验收未执行；后台 `admin.moventra.me` 本次未接入。
+Firebase 仅 PATCH authorizedDomains，加入 `moventra.me` 并读取确认，保留已有域名，不修改 provider、MFA 或用户。配置脚本已同步。新域名本人登录、Google 回调和 MFA 业务验收未执行；当次仅接入官网，后台与 www 的后续接入见下方。
+
+### 后台与 www 接入
+
+随后通过两份 Wrangler 配置的 `triggers deploy` 完成 `admin.moventra.me` → `moventra-admin`、`www.moventra.me` → `moventra-web`；根域名与旧域名绑定均保留。www 直接展示同一官网，不配置跨域重定向。官网/客户端登录在 `/login`，运营登录在独立后台域名 `/login`。
+
+Firebase 仅更新 authorizedDomains 并读取确认三个新域名存在，不改变 provider、MFA 或真实用户。10 项网关测试及两份触发器 dry-run 通过；Chrome 实际确认后台登录页无 Google 入口、www 为官网内容。后台 HTTPS 登录 200、无凭据 me 401、跨端客户 API 404。未用本人账号完成密码/MFA/业务验收，未发布 Render 或迁移数据库。
 
 ## 最近已核验的发布基线（2026-09-07）
 
