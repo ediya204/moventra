@@ -13,8 +13,7 @@ services:
     plan: starter
     autoDeployTrigger: off
     healthCheckPath: /readyz
-    # Bootstrap only. Clear after the initial empty database is initialized.
-    preDeployCommand: api migrate
+    # Initial empty database migration completed; future migrations are explicit.
     envVars:
       - key: DATABASE_URL
         fromDatabase:
