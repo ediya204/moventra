@@ -1,5 +1,13 @@
 # 跨币种卡消费字段差异与实施顺序
 
+## 当前仓库状态（2026-09-07）
+
+以下映射与查询矩阵属于旧跨币种 Demo。当前 Go 不支持该 FX DTO、时间线、来源关系和多币种汇总；后续实现以领域规范和机器契约为准。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
 核验日期 2026-09-06。检查 React/旧查询 DTO、SQLite source_records/source_versions/余额/关联表、Node 适配层与 Go 基础契约。Go 的正数 amountMinor+direction 及三状态契约不适合直接覆盖；本次不改 Go 业务库。旧 S01–S20、Portal 钱包和 BIN 数据保留。统一列表通过008只读视图联合两套数据；精确跨币种报表保留独立统计范围。
 
 官方依据：[Transaction](https://docs.slash.com/api-reference/schema-transaction)、[单笔](https://docs.slash.com/api-reference/transaction-get-by-id)、[费用详情](https://docs.slash.com/api-reference/transaction-get-fee-details)、[余额](https://docs.slash.com/api-reference/account-balance-get)、[事件](https://docs.slash.com/api-reference/schema-webhook-event)。2026-09-06 获取 https://api.slash.com/openapi，info.version=0.0.1，SHA256 `013031ce79340b529594d6401ee84d00a71ae1802d6a097aa971b80cfecab481`。版本号不代表长期不变。

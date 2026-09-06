@@ -1,5 +1,13 @@
 # Slash 清算 Demo：实施与本地验收
 
+## 当前仓库状态（2026-09-07）
+
+当前保留 `apps/admin/src/slash`、共享 Slash 类型及客户端原型；Node/SQLite 来源投影服务、导入 CLI、迁移和场景数据不在仓库。生产网关拒绝 `/local-slash-demo`，不提供 8852 完整演示启动命令。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
 本轮先盘点字段差异，再实施本地查询存储、生成器和页面。字段定义及差异见 [字段差异表](./slash-field-gap.md)。核对时间 2026-09-06；官方机器可读约束摘录位于 `demo-server/slash/official-schema.json`（含来源URL），测试不会为了业务场景扩充来源枚举。
 
 ## 本地入口
@@ -11,7 +19,8 @@
 
 ## 初始化、重复导入与清理
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 cd '/Users/edi/Documents/ChatGPT/moventra/apps/admin'
 # Node需支持node:sqlite（本机验证v25.7.0）；新检出时安装依赖
 npm ci
@@ -78,7 +87,7 @@ npm run build -- --mode slash-demo
 
 交易详情有金额/状态、时间、商户、平台标识、关联记录、来源同步六组，外加来源版本、事件和余额快照。未提供字段显示“—”或原因，真实零保留0.00。`postedAt`仅从posted交易date派生；其他状态不称为清算时间。卡片月限额500 USD与父账户余额分别显示，卡余额不编造。
 
-官方状态直接保留，不把退款/撤销/争议压入旧0/1/2枚举。旧系统DTO及页面路径在普通模式保持原实现；来源DTO在`src/slash/types.ts`独立定义且字段可选，支持旧/其他平台缺值的展示边界。真实其他平台端到端业务接口未调用，本轮兼容性证据是类型构建、原44项Portal测试和缺值/未知枚举适配断言。
+官方状态直接保留，不把退款/撤销/争议压入旧0/1/2枚举。旧系统DTO及页面路径在普通模式保持原实现；来源DTO在`packages/shared/src/slash/types.ts`独立定义且字段可选，支持旧/其他平台缺值的展示边界。真实其他平台端到端业务接口未调用，本轮兼容性证据是类型构建、原44项Portal测试和缺值/未知枚举适配断言。
 
 ## Demo假设与待Slash确认
 
@@ -132,7 +141,8 @@ npm run build -- --mode slash-demo
 - API：`GET /local-slash-demo/portal/state`（仅5条最近交易+服务端趋势）、`GET portal/transactions`（后端分页）、`GET portal/transactions/:id`、`GET portal/transactions.csv`、`POST portal/action`。这些路径固定代理至loopback8862，不经过原远程admin-api代理。
 - 当前客户端固定导入R001的20个场景，便于人工体验；后台生成器仍支持replicas批量。卡片选择数据和资金模型为小样本JSON；交易查询在服务端筛选，不向浏览器发送全量交易。尚未进行大规模客户端压测，也不是生产多租户鉴权实现。
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 # Node 25.7.0 已验证（需要node:sqlite及直接导入TypeScript支持）
 npm run slash:import  # 同时初始化客户端；重复运行保留操作且不重复充值
 npm run slash:demo    # API 8862 + 页面8852；已有8850页面可直接使用

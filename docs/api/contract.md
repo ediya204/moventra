@@ -1,6 +1,8 @@
 # 交易与资金 API 契约草案
 
-更新日期：2026-09-06。状态：DESIGN；下列 financial 路由未实现。本文件不修改现有 OpenAPI，也不授权自动切换前端。
+当前 Go 基础及生产范围见 [文档索引](../README.md)。下方金融设计、F 场景不是已实现或全部已通过的能力；引用的旧 Node/SQLite 实验仅有历史文档，服务、迁移和私有数据未纳入当前仓库。历史测试结果未在本次重跑。
+
+更新日期：2026-09-07。状态：DESIGN；下列 financial 路由未实现。本文件不修改现有 OpenAPI，也不授权自动切换前端。
 
 ## 1. 当前契约与兼容边界
 
@@ -133,14 +135,14 @@ BalanceSnapshot 至少含 id、sourceRef、externalAccountId、internalAccountMa
 - 前端只格式化、筛选和展示；状态映射、净额、费用去重与币种汇总由后端负责。
 
 
-## 已实施的独立本地演示（2026-09-06）
+## 历史：独立本地演示（2026-09-06）
 
 React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,balances,differences}`（Vite固定loopback转发），以及单笔timeline/relations、白名单CSV。该路径继承本地操作员会话，仅用于 `fx-cross-currency-v1`；不等同于上文Go financial草案实现。`transactions?unified=yes` 联合原清算只读视图，分页/筛选/排序在服务端执行，不复制旧账务数据。详见 [跨币种交付](../frontend/cross-currency-delivery.md)。
 
-## 2026-09-07：隔离卡片管理执行模块
+## 历史 2026-09-07：隔离卡片管理执行模块
 
 本次用户明确授权在本地补齐冻结、双人审批、强制扣款与转入/转出，新增 `/local-slash-demo/management/card-admin` 契约。使用独立ca_*账本，不接管Go交易投影或旧Portal预算；逐项权限、预占及双边分录在服务端实现。真实金融写接口仍禁用。详见 [卡片管理盘点、接口与验证](../frontend/card-administration.md)。
 
-## 2026-09-07：本地真实 Slash 投影
+## 历史 2026-09-07：本地真实 Slash 投影
 
 新增 management/live 的 status、cards、transactions 只读查询与本地 sync 触发。仍不是上文 Go 草案的生产实现。服务端连接授权、loopback 边界、金额精度、revision 分页和失败保留规则见 [真实数据接口](../frontend/slash-live-data.md)。

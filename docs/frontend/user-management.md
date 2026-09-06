@@ -1,5 +1,13 @@
 # 用户组与开户管理（本地实现）
 
+## 当前仓库状态（2026-09-07）
+
+用户组管理 UI 保留在 `apps/admin/src/management`；mg_* 存储和 Demo 密码服务未纳入仓库。生产认证使用 Firebase，Go 授权使用受控 CLI；没有运营网页授权管理或审核开户自动创建资金账户的能力。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
 ## 功能规划与已实现范围
 
 采用“用户组列表 → 分组详情 / 成员列表 → 用户详情”的结构。用户组是商业分组，与后台管理员角色分开。沿用微软蓝主题、MUI DataGrid、Tabs、Dialog 和现有 PageHeader；列表行和末列详情按钮均可进入详情。
@@ -32,14 +40,16 @@
 
 在 `apps/admin` 目录运行（Node 需支持 `node:sqlite`）：
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm run management:init
 npm run slash:demo
 ```
 
 初始化可重复执行，不覆盖已修改的组、用户或费率；没有基础 Demo 批次时先建立批次。服务仅监听 127.0.0.1:8862，演示前端为 8852；8850 的 `/local-slash-demo` 也仅代理该本地服务。
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm run management:test
 node --test tests/*.test.mjs
 npm run typecheck
@@ -48,7 +58,8 @@ npm run build
 
 仅清理本模块某批次的数据（**包含该批次新增用户、费率、密码凭证、审核记录和会话**，保留原 Slash 场景与 Portal 资金数据）：
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm run management:clean -- --namespace slash-clearing-v1
 ```
 

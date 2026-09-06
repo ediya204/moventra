@@ -1,6 +1,6 @@
-# Moventra Go API — 第一阶段基础
+# Moventra Go API
 
-独立 Go 模块，面向客户端与运营后台。现有 `apps/admin` 演示保持原状；本服务没有连接旧生产 API、卡渠道或真实资金。
+更新日期：2026-09-07。独立 Go 模块 `moventra.local/api`，面向客户端与运营后台，部署于 Render。本服务没有连接旧生产 API、卡渠道或真实资金。
 
 ## 已实现
 
@@ -19,7 +19,7 @@ Firebase 密码/TOTP 登录、Go 身份与范围查询已完成真实签名联�
 
 ## 本地启动
 
-需要 Go 1.26.5+、PostgreSQL 17+。创建独立开发库后设置环境变量（参见 `.env.example`，程序不自动加载 dotenv）：
+需要 Go 1.26.5+、PostgreSQL 17+。先进入 `services/api`，创建独立开发库后设置环境变量（参见 `.env.example`，程序不自动加载 dotenv）：
 
 ```bash
 createdb moventra_development
@@ -51,12 +51,14 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 
 ## 设计和契约
 
-- [跨项目开发总纲与多渠道资金规范](../../docs/DEVELOPMENT.md)（设计目标；不代表本服务已实现渠道接入）
+- [开发总纲与多渠道资金规范](../../docs/DEVELOPMENT.md)（设计目标；不代表本服务已实现渠道接入）
 - [账户与升级模型](./docs/account-model.md)
 - [OpenAPI 3.1 契约](./docs/openapi.json)
 
-下一条交付闭环：配置 Firebase 测试项目 → 开通测试个人及企业用户 → 接入前端真实身份/主体切换 → 查询账户交易 → 完成企业资料和运营审核流程。部署资源、数据库规格和真实金融写操作不在本次修改范围内。
+## 开通与后续范围
 
-## 独立 Slash 本地预览（2026-09-07）
+`POST /api/v1/register` 只创建已验证 UID 的本地用户。受控 CLI `api provision-user`、`api provision-personal`、`api provision-operator` 分别处理身份、个人主体及指定客户的运营只读授权；使用方式与拒绝边界见账户模型。它们不是公开自助开户或运营网页权限管理接口，生产执行需明确授权。
 
-新增 Python 标准库工具用于单账户、最近 30 天真实只读快照及本地分页查看。数据保存在独立 `.slash-preview/`，不经过上述 Go API 或 React Demo。入口、凭据边界、金额口径和测试见 [Slash 本地预览](docs/slash-local-preview.md)。这不改变上文 Go 服务尚未接入卡渠道的状态。
+下一阶段需实现企业资料、审核、成员权限细化及独立服务激活，并接入客户端相应流程；当前 V1 客户端只开放个人范围。
+
+旧本地 Slash Python 预览/同步工具、私有 SQLite 及凭据未纳入此仓库；历史记录见 [Slash 本地投影档案](../../docs/frontend/slash-live-data.md)，不能按其旧路径运行本服务。当前机器契约仍有“未部署”的陈旧 servers 描述；实际部署以 [部署记录](../../deploy/README.md) 为准，本次 Markdown 校对不修改 JSON 契约。

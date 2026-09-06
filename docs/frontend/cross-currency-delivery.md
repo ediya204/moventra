@@ -1,5 +1,13 @@
 # 卡交易流水：双币种消费交付与验收
 
+## 当前仓库状态（2026-09-07）
+
+跨币种 UI 保留在 `apps/admin/src/fx`；来源观察、SQL 聚合、重放、导出和本地迁移服务不在当前仓库。Go financial 路由仍未实现。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
 实施范围：本地 React + Node Demo API + SQLite。2026-09-06 核验 Slash 官方文档并实现；不连接真实 Slash、不迁移 Go 业务库、不部署。使用既有本地管理会话，真实生产权限/MFA/Webhook 验签不是本次完成项。
 
 ## 页面与流程
@@ -50,7 +58,8 @@ Slash 原币对象缺省时，原币币种按来源文档为 USD；不据此制�
 
 在 `apps/admin` 目录，使用当前项目 Node（本次 Node 25.7.0，支持 node:sqlite 和 lossless JSON reviver）：
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm install
 npm run slash:import
 npm run fx:import
@@ -59,7 +68,8 @@ npm run slash:demo
 
 本次沿用已安装依赖，未重新安装。启动前端8852、后端8862；首次访问用公开合成账号 `demo@moventra.local` / `demo-only`，如提示则启用本地管理演示会话。
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm run fx:import                           # 相同副本不重写、不追加重复记录
 npm run fx:import -- --replicas 100 --batch-size 10
 npm run fx:status

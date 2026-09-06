@@ -1,6 +1,6 @@
 # 账户模型与第一阶段接口边界
 
-已确认需求：运营后台 + 客户端；个人与企业都支持；个人可升级企业。
+更新日期：2026-09-07。已确认目标：运营后台 + 客户端；模型兼容个人与企业，个人可申请升级企业。当前 V1 客户端只开放个人流程；后端企业模型不表示企业产品已上线。
 
 ## 模型
 
@@ -42,15 +42,15 @@
 
 ## 待确认的业务项
 
-企业资料与审核清单、个人升级后服务政策、子账户成员范围、是否允许一人多企业、首期币种/精度、客户注册开放方式、运营授权审批方式。当前提供的查询基础不能作为资金业务已完成的依据。
+企业资料与审核清单、个人升级后服务政策、子账户成员范围、是否允许一人多企业、首期币种/精度、完整客户自助开户开放方式、运营授权审批方式。当前提供的查询基础不能作为资金业务已完成的依据。
 
 ## 2026-09-07 Firebase 登录联调
 
-`/api/v1/me` 追加 `operator`、`mfaVerified`、`requiresMfa`、`staffScopes`。operator 仅表示存在 staff_grants，不是全局角色；未验证 MFA 时 staffScopes 为空，数据接口始终再次检查权限。真实 Firebase/TOTP 与本地隔离库的 16 项联调通过。
+`/api/v1/me` 追加 `operator`、`mfaVerified`、`requiresMfa`、`staffScopes`。operator 仅表示存在 staff_grants，不是全局角色；未验证 MFA 时 staffScopes 为空，数据接口始终再次检查权限。历史真实 Firebase/TOTP 与本地隔离库的 16 项联调通过；不是本次文档更新重跑结果。
 
 受控命令 `api provision-user` 使用 `PROVISION_FIREBASE_UID` 和 `PROVISION_EMAIL` 指定目标，经 Firebase 验证 UID/邮箱匹配且未禁用后仅插入 users。重复运行不重新激活禁用用户、不分配客户关系或 staff_grants。此命令不经 HTTP 暴露，不含密码设置或邮箱验证旁路。
 
-## 2026-09-07 Google 登录后注册分流（本地新增，未部署）
+## Google 登录后注册分流（已随基础版本发布）
 
 已存在的有效本地用户继续进入 `/session`，运营仍要求 MFA 和资源授权。已验证 UID 不存在时 `/api/v1/me` 返回 `403 registration_required`，进入姓名/密码补全表单；停用用户返回 `403 user_disabled`。旧 `user_not_enabled`、网络异常和服务错误均不得进入注册。
 
@@ -58,7 +58,7 @@
 
 本地 Vite 新契约 `/api/v1/`、`/client-api/v1/`、`/admin-api/v1/` 使用 `VITE_GO_API_PROXY_TARGET`（默认 localhost:8870），与旧后台代理隔离。非 JSON 身份响应明确提示服务异常；仅带 403 的 registration_required 才显示注册表单。
 
-本轮前端构建通过；本地隔离 PostgreSQL race 测试通过，含六并发注册去重、无凭据/伪造身份拒绝、额外授权字段拒绝、禁用不复活及新用户无运营权限。真实 Google 密码关联、生产注册未测试；前端、Go 与网关需要一起发布，此文不代表已部署。
+历史隔离 PostgreSQL race 测试覆盖六并发注册去重、伪造身份/额外授权字段拒绝、禁用不复活及新用户无运营权限；部署证据见 [发布记录](../../../deploy/README.md)。真实 Google 密码关联与完整生产注册仍缺持有人验收。独立 `/register` 页面仍为表单预览，不调用此接口。
 
 ## 受控个人主体关联
 

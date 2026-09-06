@@ -1,19 +1,29 @@
 # V1 个人账户发布范围
 
-2026-09-07，本次从 origin/main a5f09b9 建立独立发布目录，合入客户团队功能下线。保留已发布的真实客户端首页和后台登录准入修复，不覆盖共享开发目录。
+更新日期：2026-09-07。当前 `main` 为独立客户端、运营后台和 Go API。当前构建入口是 `apps/client` 与 `apps/admin`，产物分别在各自 `dist`，不再用同一个 App 配合 `VITE_SITE_KIND` 构建两端。
 
-- 清理团队菜单、创建/邀请/角色表单、卡片团队筛选与字段、团队资金划拨及团队通知展示。
-- 真实客户端首页自动读取个人主体，不再提供个人/企业主体切换。安全页只提供个人业务查询；后台 staffScopes、MFA、客户数据隔离照旧。
-- 旧团队页面经认证入口回到个人首页或后台会话页。非 Firebase 的本地模式保持原个人工作台路径。
-- 生产 Go 没有团队创建/邀请管理接口，网关白名单继续拒绝旧接口与本地 Demo 接口（404）。共享演示模型另外拒绝遗留团队指令（410），不删除历史原始数据。
-- 历史 memberships、customer_id、客户归属、资金和审计数据全部保留；不迁移或重新分配资金，不改变生产角色授权。
+## 当前功能
 
-## 验证与边界
+- 客户端登录后由 `/session` 进入 `/portal`，查询授权个人主体的账户与交易；安全设置在 `/portal/security`。
+- 团队创建、邀请、角色管理、团队卡片筛选与内部划拨入口已退役；旧团队路径回到个人入口或后台认证入口。
+- 后端仍保留 business/memberships 和升级意向申请，企业审核、关联创建、激活与前端企业流程待实现；不会自动改变个人主体或资金归属。
+- 后台保留指定客户的 staffScopes、MFA 与审计；客户账号没有运营权限。网关拒绝跨端业务、旧团队和本地 Demo API。
+- 历史客户归属和原始数据保留；Demo 模型拒绝退役团队指令，不删除历史资金记录。
 
-`node --test apps/admin/tests/*.test.mjs deploy/cloudflare/gateway.test.mjs`：17 项通过，覆盖模型退役、历史归属/余额保护、跨账户卡号拒绝、注册分流、后台准入与两端网关团队 API 拒绝。
+## 构建和回归
 
-`VITE_SITE_KIND=client npm --prefix apps/admin run build` 与 `VITE_SITE_KIND=admin VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?需沿用已批准的运营邮箱配置}" npm --prefix apps/admin run build -- --outDir dist-admin` 分别构建。生产配置分别指向 dist 和 dist-admin，API_ORIGIN 仍为既有 Render。
+从仓库根目录执行：
 
-本次不发布 Go、不执行迁移、不上传本地 Demo 服务/数据库/真实 Slash 快照。完整卡片与资金业务仍有本地演示部分，不能将前端源文件打包视为生产接口已接入。本人登录后业务验收与渠道资金验收单独进行。
+```bash
+pnpm build:client
+VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm test
+```
 
-发布前版本：客户端 5eaa10ed-560b-4032-8c5c-4c742b54384e，后台 07421c0b-c911-4514-b157-ecfcfb48ad66。需要回退时分别使用对应 Wrangler 配置和版本；本次无需数据库回退。
+当前测试入口为 `tests/frontend` 与 `deploy/cloudflare/gateway.test.mjs`。历史 17 项通过记录包含团队退役、注册分流、后台准入及网关隔离；不是本次文档编辑重跑结果。
+
+## 发布证据与限制
+
+个人版本运行提交 `c933ce5` 后，目录独立化版本 `be31513` 已发布，具体 Worker/Render 版本见 [部署记录](../../deploy/README.md)。旧共享 App、`dist-admin`、8852 和旧 tests 路径不是现行构建指南。
+
+生产未接入完整卡片、资金、消息、企业或真实金融渠道。本人认证后的完整业务验收与真实渠道验收独立进行；不可用 HTML/构建成功替代。回退前核对当前两端/API版本与契约兼容性，历史记录的“上一版本”只对应当次发布。

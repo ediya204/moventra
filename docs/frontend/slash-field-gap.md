@@ -1,6 +1,14 @@
 # Slash 字段差异与实施顺序（2026-09-06）
 
-检查范围：React `src/api`、`src/types.ts`、运营页面、Node `demo-server/server.mjs` / snapshot.json、独立 Go API 的 `001_initial.sql`。现有运营页面实际接 Node / 旧 admin-api；Go/PostgreSQL 不参与该链路。本轮沿用 Node Demo 技术栈，增加独立本地入口、命名空间 JSON 批次和可重建 SQLite 查询投影，不迁移或填充 Go 业务库，不覆盖旧 snapshot.json。SQLite 为本地 Demo 新增存储；生产数据库迁移与真实渠道接入不属于已完成结果。
+## 当前仓库状态（2026-09-07）
+
+以下字段表记录旧 Node/SQLite Demo 的映射，不能当作当前 Go 已实现字段。当前 Go 查询投影仅支持 USD/USDT、正数 amountMinor + direction；跨渠道来源模型仍为设计。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
+检查范围：React `src/api`、`packages/shared/src/types.ts`、运营页面、Node `demo-server/server.mjs` / snapshot.json、独立 Go API 的 `001_initial.sql`。现有运营页面实际接 Node / 旧 admin-api；Go/PostgreSQL 不参与该链路。本轮沿用 Node Demo 技术栈，增加独立本地入口、命名空间 JSON 批次和可重建 SQLite 查询投影，不迁移或填充 Go 业务库，不覆盖旧 snapshot.json。SQLite 为本地 Demo 新增存储；生产数据库迁移与真实渠道接入不属于已完成结果。
 
 实施顺序：P0 来源模型、金额/状态/时间与余额 → P1 商户、费用、卡片及关联 → P2 版本/事件/对账记录 → 参数化场景导入 → 后端过滤排序分页 → 现有运营页面与场景入口 → 自动化和浏览器验证。
 

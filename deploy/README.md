@@ -1,6 +1,8 @@
 # Moventra 部署记录
 
-## 当前仓库结构与发布（2026-09-07）
+## 最近已核验的发布基线（2026-09-07）
+
+本次为 Markdown 校对，以下运行版本、线上访问及测试是上一轮发布证据，未在本次重新部署或完成用户认证验收。文档提交不改变运行产物。当前能力分类见 [文档索引](../docs/README.md)。
 
 GitHub 已更名为 `ediya204/moventra`，仅保留远程 `main` 分支。目录重构提交 `be31513b8be84f902384d97e7d6dcd89fda62ad3`：`apps/client`、`apps/admin`、`services/api`、`packages/shared`；独立应用路由、构建与运行入口，共用认证/类型/UI 不反向引用应用。Go module 为 `moventra.local/api`。新本地规范目录 `/Users/edi/Documents/ChatGPT/moventra`，旧工作目录及其中未提交/私有内容保留。
 
@@ -12,6 +14,8 @@ GitHub 已更名为 `ediya204/moventra`，仅保留远程 `main` 分支。目录
 - 未迁移数据库、未变更身份/权限/资金；既有云资源 ID 与 Firebase 项目 ID 保留。历史备份的真实文件名也保留，不通过改写历史记录伪造文件迁移。
 
 ### 当前构建与发布命令
+
+本地构建/测试不需要云写入；正式发布需本轮明确授权。Render 自动部署关闭，推送 main 不会自动发布 API；数据库迁移单独审查，不加入永久启动或 pre-deploy 命令。
 
 从仓库根目录运行：
 
@@ -26,7 +30,9 @@ node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config dep
 node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config deploy/cloudflare/wrangler.admin.jsonc
 ```
 
-下方为历史发布记录，历史代码版本与资源名称不表示当前运行版本。
+## 历史发布账目
+
+以下全部是原发布当时的记录。“本轮”“后续”“当前”均限定在相应历史版本；旧路径、脚本和回退版本不作为现行操作指南。现行命令以本页顶部为准，历史账号授权和发布结果保留原始证据。
 
 
 2026-09-07（香港时间）。本轮经用户“部署”授权发布基础设施和前端快照；不代表真实登录或金融业务验收。
@@ -92,7 +98,7 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 
 本地同步采用内容比较与三方合并，仅 App.tsx 的路由变更手动按精确片段合入，保留并行任务新增的 LegalPage 路由；发布版本不含那部分后续开发。主目录依赖出现系统 dataless 占位导致构建停滞，因此前端与 Wrangler 在发布 worktree 中独立重新安装后验证，未覆盖共享 node_modules。
 
-可重复线上拒绝检查：`RUN_DEPLOYED_AUTH_TESTS=1 FIREBASE_PROJECT_ID=edi-gws-20260309-hk node apps/admin/tests/firebase-deployed.mjs`。需要指定项目测试身份管理权限，只创建并清理云端临时身份，不修改生产数据库。
+可重复线上拒绝检查：`RUN_DEPLOYED_AUTH_TESTS=1 FIREBASE_PROJECT_ID=edi-gws-20260309-hk node tests/frontend/firebase-deployed.mjs`。需要指定项目测试身份管理权限，只创建并清理云端临时身份，不修改生产数据库。
 
 ## Google 登录与注册分流发布（2026-09-07）
 
@@ -112,7 +118,7 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 - 公共 DNS 已解析；通过解析出的 Cloudflare IP 保留原域名/SNI 实测 HTTPS 登录页 200；内置浏览器显示“Moventra 运营后台登录”。本机解析器曾缓存无记录，不能用该缓存否定权威绑定成功。
 - 两端独立构建/内存会话/网关业务路由；Go 授权仍是最终边界。共享身份项目，不宣称独立用户库。
 - Firebase 后台域名已授权。两端构建及 9 项网关测试通过；未部署 Go、未迁移数据库、未修改真实用户权限、未访问真实资金接口。
-- 详细命令与账户开通边界见前端 `docs/firebase-setup.md`。域名可访问不等于管理员业务授权已完成。
+- 详细命令与账户开通边界见[认证配置](../docs/frontend/firebase-setup.md)。域名可访问不等于管理员业务授权已完成。
 ## 受控个人主体关联（2026-09-07）
 
 用户明确选择个人用途后，为指定已验证身份执行受控个人主体关联。运行提交 `3d24ee0`；Render deploy `dep-daeq0ugu01pc73figlf0` 为 live；一次性任务 `job-daeq1ulg1s2s73db57ug` 为 succeeded，日志确认 personal subject linked。主体关联使用事务及唯一所有权，新增主体为 draft/inactive，仅首次创建写入审计；不创建资金账户、运营授权或真实交易，无结构迁移。目标身份与主体 ID 留在受控任务日志，不写公开记录。
@@ -159,4 +165,4 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 - 本机 DNS 仍有后台域名负缓存，HTTP 验证使用公共 DNS 解析地址并保留正式域名/SNI；没有修改 DNS、WAF 或 Access。
 - 未部署 Go、未迁移数据库、未变更权限或真实资金。本人认证后的完整业务与真实通道验收未执行；本地 Demo 金融模块仍不属于已接入生产能力。
 
-字段与历史依赖保留范围见 `apps/admin/docs/v1-personal-release.md`。需要回退时，客户端上一版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`；后台上一版本 `07421c0b-c911-4514-b157-ecfcfb48ad66`。
+字段与历史依赖保留范围见 [V1 范围](../docs/frontend/v1-personal-release.md)。需要回退时，客户端上一版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`；后台上一版本 `07421c0b-c911-4514-b157-ecfcfb48ad66`。

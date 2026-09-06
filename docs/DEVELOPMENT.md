@@ -1,10 +1,10 @@
 # Moventra 开发总纲
 
-当前源码结构：`apps/client` 为独立客户端，`apps/admin` 为独立运营后台，`services/api` 为 Go 服务，`packages/shared` 为共用认证/UI/类型。统一在 `main` 维护，构建入口见根目录 README。下方历史功能盘点保留原验收范围。
+当前源码结构：`apps/client` 为独立客户端，`apps/admin` 为独立运营后台，`services/api` 为 Go 服务，`packages/shared` 为共用认证/UI/类型。统一在 `main` 维护，构建入口见根目录 README。文档全量分类见 [文档索引](./README.md)。
 
-更新日期：2026-09-07。状态：跨项目目标规范仍为草案；部分本地能力已按追加授权实施，具体以各交付记录为准。
+更新日期：2026-09-07。状态：身份、个人查询及部署基础已落地；跨渠道金融目标仍为草案。部署版本及历史验证见部署记录，不将本次文档校对当作新的业务验收。
 
-2026-09-06 初次交付仅为文档。2026-09-07 用户另行授权的本地 Slash 真实数据导入与定时更新已实现，见 [交付范围](./frontend/slash-live-data.md)；不构成生产操作授权。
+旧环境的 Slash 真实数据导入与轮询记录见 [历史交付范围](./frontend/slash-live-data.md)。相应服务、数据和凭据未纳入当前仓库，未部署到生产；本次未复查旧进程运行状态。
 
 ## 1. 文档入口与证据分类
 
@@ -25,12 +25,13 @@
 | 子项目 | 本次检查依据 | 已有边界 |
 | --- | --- | --- |
 | `services/api` | [README](../services/api/README.md)、[账户模型](../services/api/docs/account-model.md)、[SQL](../services/api/internal/database/001_initial.sql)、[OpenAPI](../services/api/docs/openapi.json) | Go/PostgreSQL 基础，身份、客户主体、账户/交易查询与企业升级申请；交易表是查询投影，不是账本 |
-| `apps/admin` | [README](../apps/admin/README.md)、[Slash Demo](./frontend/slash-demo.md)、[字段差异](./frontend/slash-field-gap.md) | React 管理端/客户端、旧接口查询、本地 Node/SQLite Slash Demo；不等于真实渠道接入 |
-| `zttrust_manage_front` | [README](../zttrust_manage_front/README.md) | 旧前端；已有未提交改动，当前文档任务不触碰 |
+| `apps/client` | [README](../apps/client/README.md) | 官网、Firebase 登录、个人主体账户/交易查询；注册页为预览，登录后资料补全可创建用户 |
+| `apps/admin` | [README](../apps/admin/README.md) | 独立运营登录及授权工作台；旧 Demo 页面仅 DEV 加载 |
+| `packages/shared` | [README](../packages/shared/README.md) | 共用认证、主题、UI 和类型；无跨应用源码依赖 |
 
 Go 当前 `transactions` 仅允许 USD/USDT、正数 `amount_minor` 加方向、pending/succeeded/failed，来源唯一约束为 `(source, external_id)`。不能不经迁移设计直接装入多渠道、多状态、零值或其他币种交易。
 
-本地 Demo 已有来源白名单、内部扩展、部分场景和查询投影。应复用其经验和测试，不应把 Demo 的模拟版本号、客户归属、冻结推演或同步行为当作渠道保证。
+旧本地 Demo 的历史记录包含来源白名单、内部扩展、部分场景和查询投影；对应后端未纳入当前仓库。应复用其经验和测试，不应把 Demo 的模拟版本号、客户归属、冻结推演或同步行为当作渠道保证。
 
 ## 3. 目标及不在范围内的事项（DESIGN）
 
@@ -73,7 +74,7 @@ Slash / 其他渠道 → 渠道适配层 → 来源记录与版本 → 统一查
 
 以下参数当前均待采集：总历史记录、日新增、峰值通知、回填年限、保留期限、查询并发、常用时间跨度、P95 延迟目标、同步新鲜度目标、源接口配额、导出大小。未测量前不承诺容量或采购规格。
 
-- 以已有 PostgreSQL 为候选评估查询与存储；SQLite 仅作为当前本地 Demo，不默认承担生产大规模负载。
+- 以已有 PostgreSQL 为候选评估查询与存储；SQLite 仅作为历史本地 Demo，不默认承担生产大规模负载。
 - 明细使用服务端筛选、稳定游标和适用索引，汇总使用独立聚合，不在前端下载全量数据。
 - 索引先覆盖主体/连接/账户/时间/稳定 ID 等实际查询；分区策略需兼顾旧交易更新，不只按新增日期设计。
 - 实时同步与历史回填分队列和配额，限制并发并支持背压、重试和断点续传。
@@ -95,8 +96,8 @@ Slash / 其他渠道 → 渠道适配层 → 来源记录与版本 → 统一查
 
 ## 8. 文档与变更验收
 
-- 本次文档检查：本地链接可达、示例 JSON 可解析、金额算式一致、草案/实现状态明确。
+- 文档检查要求：本地链接可达、示例 JSON 可解析、金额算式一致、草案/实现状态明确。
 - 代码变更时按子项目运行类型检查、构建、单元/数据库测试，补契约、权限、重放和金额不变量测试。
 - 保留本次命令及结果；跳过的测试明确标注，不以历史结果代替。
 - 数据迁移使用增量文件，不修改已应用迁移；生产备份、恢复验证和回滚需独立批准。
-- 不提交凭据、本地 DB、快照、构建输出或不相关改动；本次未执行 Git 提交或推送。
+- 不提交凭据、本地 DB、快照、构建输出或不相关改动；提交范围必须与本轮授权一致，统一维护 main。

@@ -1,95 +1,65 @@
 # Firebase 登录与 Go 授权
 
-2026-09-07：邮箱密码登录、TOTP 绑定/挑战、密码设置邮件、邮箱验证与真实 Go 身份查询已实现。真实 Firebase + 本地隔离 PostgreSQL 验证通过；生产发布记录见 [部署记录](../../deploy/README.md)。
+更新日期：2026-09-07。依据当前 main 源码整理；已发布版本与历史测试证据见 [部署记录](../../deploy/README.md)，不代表本次重新完成用户登录验收。
 
-项目 `edi-gws-20260309-hk`（Identity Platform）；Web 应用 `moventra-card-bin` / `1:666750758771:web:c38e91069fc64737db5f06`；正式登录 `https://moventra.apexisnetworking.work/login`，登录后的基础工作台 `/session`。
+## 项目与入口
 
-## 使用流程
+Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示名仍为 `moventra-card-bin`，App ID 为 `1:666750758771:web:c38e91069fc64737db5f06`。这些实际云端标识不随源码仓库改名。
 
-管理员通过受控 CLI 开通 Firebase UID 对应的本地用户。身份开通不自动创建个人/企业主体、账户、资金服务或运营数据权限，不存在全局管理员旁路。
+| 应用 | 登录地址 | 登录方式 | 业务入口 |
+| --- | --- | --- | --- |
+| 客户端 | https://moventra.apexisnetworking.work/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
+| 运营后台 | https://admin.moventra.apexisnetworking.work/login | 批准的运营邮箱密码、MFA；无 Google | `/session` 身份、授权范围及只读查询 |
 
-新账户在“设置或找回密码”请求邮件，自行设置密码。登录后若邮箱未验证，发送验证邮件并完成验证，再刷新身份。真实密码与验证器密钥不得发送到聊天或写入仓库。
+两端是独立构建、独立命名 SDK 实例和内存会话；共享 Firebase 身份项目，不是独立用户库、tenant 或 token audience。刷新页面需要重新登录。
 
-验证器设置：登录并验证邮箱 → 扫描本地生成的二维码或手动输入密钥 → 输入验证码绑定 → 等待验证码刷新后重新登录。Firebase 会拒绝同一时间步重用绑定验证码。支持选择已绑定的多个 TOTP 验证器；当前不提供短信挑战或自助绕过 MFA 的恢复入口，丢失验证器需独立身份核验。
+## 认证与授权顺序
 
-运营权限由 Go `staff_grants` 控制。MFA 未完成时不返回运营客户范围，运营读取返回 403。完成 MFA 仍需对应客户与资源授权，个人/企业成员关系不会自动变为运营权限。
+1. 后台先按 `VITE_ADMIN_LOGIN_EMAILS` 检查邮箱；去空格并转小写，缺少列表时全部拒绝。不允许的邮箱在 Firebase 密码请求之前被拒绝，不进入 MFA。
+2. Firebase 完成密码或客户端 Google 身份验证；已绑定 TOTP 时完成挑战。
+3. `packages/shared/src/auth/liveApi.ts` 获取 ID token，只发送到同域 Go 精确路径；不传给旧接口或 Demo。
+4. Go 校验 Firebase token、撤销状态、邮箱验证、本地 users 状态和主体/资源关系。前端邮箱列表、角色或自报 UID 不能授予权限。
+5. 后台等待 Go 确认 operator；拒绝或异常时退出 Firebase 并清空用户。MFA 未完成不返回 staffScopes，业务读取仍逐请求核验 MFA 与指定客户资源授权。
 
-## 实现边界
+邮箱验证/MFA 设置 UI 不表示运营业务访问已放行。当前运营授权仅 `accounts:read`、`transactions:read`，不是全局超级管理员。客户端身份查询不暴露运营范围；两端网关拒绝对端业务接口，后台拒绝自助注册接口。
 
-`src/auth/liveApi.ts` 每次通过 SDK 获取当前有效 ID token，仅发送给同域 Go 精确路径；不使用旧令牌变量，不向旧接口、Demo 或跨域目的地传递 Firebase token。业务响应 no-store；SDK 仅内存持久化，刷新后需重新登录；退出后在途结果不建立新会话。
+## 注册、密码和 MFA
 
-正式模式使用 Firebase；只有开发服务器且显式 Demo 模式保留旧 Demo 登录。生产 `/portal` 和旧工作台路由转向已接入的 `/session`，避免登录后继续使用旧接口或模拟业务。原型源码与本地 Demo 保留，其他页面逐项接入 Go 后再开放。
+客户端 `/register` 是 UI 预览，仅验证格式，不上传或保存申请。已验证的 Google 用户在 Go 返回 `403 registration_required` 时进入独立资料补全：可为当前 UID 关联密码，随后 `POST /api/v1/register` 幂等创建本地 users。停用用户、网络失败和其他错误不进入注册；注册不创建客户主体、账户、成员或运营权限。
 
-Go 检查签名、issuer/audience、过期、撤销、邮箱验证、本地用户状态、成员与运营授权。仅验证成功的 Firebase `sign_in_second_factor` 为 `totp` 或 `phone` 才视为 MFA；客户端自报角色或 `mfa` 不作授权依据。
+已存在用户正常进入个人查询。受控开通命令见 [账户模型](../../services/api/docs/account-model.md)；个人主体创建和运营客户范围授权是不同操作，必须使用明确身份并获得对应授权。
 
-## 配置与验证
+密码重置和邮箱验证由持有人在页面自行请求邮件并完成。TOTP 绑定后按页面提示等验证码刷新，再重新登录；没有自助绕过 MFA 的恢复入口。真实密码、验证码、验证器密钥不写聊天、文档或仓库。后台获授权记录不能替代持有人的邮箱验证和 MFA 登录验收。
 
-### Google 登录（2026-09-07 本轮新增）
+## 配置与常规检查
 
-Firebase CLI 已在 `edi-gws-20260309-hk` 成功启用 Google provider（品牌 Moventra，支持邮箱 `ediyanghk@gmail.com`），保留邮箱密码入口。正式模式登录页新增 Google 弹窗按钮，使用账户选择器；弹窗 resolver 显式传入，仅内存保存 Firebase 会话。不读取或保存 Google Access Token，不申请额外 Google API 权限。
+公开 Web SDK 配置为 `packages/shared/src/config/firebase.web.json`；Admin SDK 凭据通过仓库外 Secret File 注入 Go。`firebase.json` 与 `deploy/firebase/configure-auth.mjs` 用于 provider、域名、TOTP 和邮箱隐私配置；运行脚本会修改云项目，需对应授权，不能作为普通本地检查执行。
 
-Google 登录复用邮箱登录的 TOTP challenge 处理和 `/api/v1/me` 授权查询。Google 验证不代表本地业务开通，也不代表运营 MFA 已满足；不自动写入用户、主体或 staff_grants。取消、弹窗拦截、未授权域名、provider 未启用及账号方式冲突均有错误提示，账号冲突不自动合并。
+从仓库根目录：
 
-本轮 `pnpm build`（含 TypeScript）通过，浏览器确认本地 `/login` 显示 Google 按钮、点击进入等待状态。内置浏览器未暴露 OAuth 弹窗，未完成真实 Google 账号选择、回调和 MFA 联调；不能视为登录验收。Firebase provider 配置已生效，前端新增代码尚未部署；既有文档中的真实邮箱/TOTP 测试属于历史证据，本轮未重跑。
+```bash
+pnpm typecheck
+pnpm build:client
+VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm test
+bash services/api/scripts/test-postgres.sh
+```
 
-`firebase.json` 保存邮箱密码 provider；CLI 部署后运行 `node deploy/firebase/configure-auth.mjs` 合并域名、启用 TOTP（相邻窗口 1）与邮箱枚举保护。脚本不打印包含密码哈希签名材料的完整项目配置，不覆盖其他 provider。
+Go 新契约代理由 `packages/tooling/vite.ts` 配置，`VITE_GO_API_PROXY_TARGET` 默认 `http://127.0.0.1:8870`。生产采用同域 Bearer 转发，无 Cookie 会话交换，不将历史 HttpOnly Demo 合同当作现有实现。
 
-常规检查：前端 `pnpm build`；后端 `bash scripts/test-postgres.sh`、`go vet ./...`。
+## 可选真实 Firebase 验证
 
-真实联调需指定项目测试身份管理权限与本地 PostgreSQL：
+以下测试会创建并清理云端临时用户，需先获得该项目测试授权；不是 `pnpm test` 的组成部分。脚本通过 `gcloud auth print-access-token` 使用当前 gcloud 身份管理测试用户，因此需安装 gcloud 并确保该身份拥有目标项目的测试用户管理权限。`GOOGLE_APPLICATION_CREDENTIALS` 单独供 Go Admin SDK 验证使用，不能替代脚本的 gcloud 登录；本机 PostgreSQL 客户端和 `/tmp` socket 也需可用。
 
 ```bash
 RUN_LIVE_FIREBASE_TESTS=1 \
 FIREBASE_PROJECT_ID=edi-gws-20260309-hk \
 GOOGLE_APPLICATION_CREDENTIALS=/path/outside/repo/firebase-reader.json \
-node apps/admin/tests/firebase-live.mjs
+node tests/frontend/firebase-live.mjs
 ```
 
-脚本创建 `@example.invalid` 临时 Firebase 用户，完成真实密码/TOTP 登录，使用真实 Go verifier 和全新本地 `moventra_test_*` 库验证 16 项；finally 清理自身测试身份与数据库。没有短信/邮件发送或真实渠道数据。token/密钥只放内存或仓库外 0600 临时文件，不打印。
+真实签名/TOTP 脚本配合全新本地 PostgreSQL 测试库，不写生产业务库。`tests/frontend/firebase-deployed.mjs` 另需 `RUN_DEPLOYED_AUTH_TESTS=1`，验证未开通临时身份经过线上网关和 API 被拒绝；仍会创建云端临时身份。执行前检查脚本所需环境和清理逻辑，勿将只读运行服务账户当作身份管理账户。
 
-本轮 16 项真实联调、既有 24 项数据库子用例与认证提前拒绝、独立依赖前端构建通过。账户持有人的密码设置、邮箱验证与本人验证器绑定需要本人完成，测试用户通过不能替代本人验收。
+历史记录包含真实 Firebase/TOTP 隔离联调、后台客户端邮箱提前拒绝、线上无授权身份拒绝；Google 本人账号选择/密码关联/完整注册及指定管理员完整业务登录没有新的验收记录。
 
-官方依据：[TOTP MFA](https://firebase.google.com/docs/auth/web/totp-mfa)、[Token 验证](https://firebase.google.com/docs/auth/admin/verify-id-tokens)、[配置 API](https://cloud.google.com/identity-platform/docs/reference/rest/v2/projects/updateConfig)。
-
-## 2026-09-07 Google 登录后注册分流（本地新增，未部署）
-
-已存在的有效本地用户继续进入 `/session`，运营仍要求 MFA 和资源授权。已验证 UID 不存在时 `/api/v1/me` 返回 `403 registration_required`，进入姓名/密码补全表单；停用用户返回 `403 user_disabled`。旧 `user_not_enabled`、网络异常和服务错误均不得进入注册。
-
-密码用 Firebase `linkWithCredential` 关联当前 UID，已有密码不覆盖；密码不发送给 Go。设置密码成功但业务创建失败时，下次识别已绑定的 password provider，仅重试业务创建。`POST /api/v1/register` 只收姓名，核验 Firebase token 后按 UID 幂等插入 users；拒绝客户端自报 UID/role、未知字段和多段 JSON。停用用户不重新激活。注册仅创建登录用户，保留 UID、创建时间，不自动创建客户主体、成员、账户、资金服务或运营权限，无数据库结构迁移。
-
-本地 Vite 新契约 `/api/v1/`、`/client-api/v1/`、`/admin-api/v1/` 使用 `VITE_GO_API_PROXY_TARGET`（默认 localhost:8870），与旧后台代理隔离。非 JSON 身份响应明确提示服务异常；仅带 403 的 registration_required 才显示注册表单。
-
-本轮前端构建通过；本地隔离 PostgreSQL race 测试通过，含六并发注册去重、无凭据/伪造身份拒绝、额外授权字段拒绝、禁用不复活及新用户无运营权限。真实 Google 密码关联、生产注册未测试；前端、Go 与网关需要一起发布，此文不代表已部署。
-
-## 独立客户端与运营入口（2026-09-07）
-
-客户端 `https://moventra.apexisnetworking.work/login`，运营后台 `https://admin.moventra.apexisnetworking.work/login`。分别发布 `moventra-web` 和 `moventra-admin`；应用各自的 Vite 配置固定 client/admin 身份，Firebase SDK 使用独立命名实例和内存会话。共享 Firebase 身份项目，不代表身份库或 token audience 分离；Go 继续独立校验真实授权与 MFA。
-
-后台只开放登录、找回密码与身份工作台路由，无客户自助注册。两端网关阻断另一端业务 API；身份查询仅返回本站适用范围。后台身份查询要求 Go 返回 operator=true，未完成 MFA 不返回 staffScopes，业务查询仍由 Go 强制 MFA 和具体客户权限。前端邮箱判断不承担授权职责。
-
-用户指定的客户端/管理员邮箱是配置意图；本次域名发布未创建或修改真实账户、成员及运营授权。管理员仍需受控开通身份和明确的客户资源授权，并由本人完成邮箱验证与 MFA。
-
-构建发布：
-
-```bash
-# 在 Moventra 仓库根目录执行
-pnpm install --frozen-lockfile
-VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请先配置已批准的运营邮箱}" pnpm build:admin
-pnpm build:client
-npm ci --prefix deploy/cloudflare
-node --test deploy/cloudflare/gateway.test.mjs
-node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config deploy/cloudflare/wrangler.admin.jsonc
-node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --env production --config deploy/cloudflare/wrangler.jsonc
-```
-
-本次两个构建和 9 项网关测试通过。Firebase authorizedDomains 已加入后台域名，保留已有 provider/MFA 配置。未运行新的真实用户 MFA 测试或生产业务验收。
-
-### 后续账号授权已执行
-
-用户随后明确授权真实账号开通，已通过 Render 受控任务创建管理员本地身份并授予指定个人客户的 accounts:read / transactions:read；客户身份无运营权限。前述“本次域名发布未创建或修改真实账户”仅描述域名发布当时的范围。实际执行证据见部署记录的“实际账号授权”。管理员首次使用后台“忘记密码”设置密码，然后完成邮箱验证和验证器绑定；未代用户发送邮件或绕过 MFA。
-
-### 后台账号前置检查
-
-后台构建必须提供 `VITE_ADMIN_LOGIN_EMAILS`（逗号分隔），值来自已批准的运营账号配置；缺失时拒绝所有后台账号。当前部署只允许用户指定的运营邮箱，真实配置不写本公开文档。邮箱先去空格并转小写，在请求 Firebase 密码登录前检查，不允许的邮箱不进入 MFA。后台仅使用邮箱密码，客户端 Google 登录保留。
-
-此检查用于登录流程，不是服务端授权。即使修改浏览器脚本，Go 仍校验真实 UID、staff_grants、MFA 和客户范围。两端仍共用 Firebase 身份项目，不宣称独立身份库或 token audience。
+官方参考：[TOTP MFA](https://firebase.google.com/docs/auth/web/totp-mfa)、[Token 验证](https://firebase.google.com/docs/auth/admin/verify-id-tokens)、[配置 API](https://cloud.google.com/identity-platform/docs/reference/rest/v2/projects/updateConfig)。

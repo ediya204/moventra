@@ -1,7 +1,13 @@
 # Moventra 客户端
 
-独立入口、路由、构建与部署。共用认证和 UI 位于 `packages/shared`，不引用另一应用源码。
+更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，官网和个人客户端共用此应用；不引用运营应用源码。
 
-从仓库根目录执行 `pnpm dev:client`、`pnpm build:client`。后台构建需设置 `VITE_ADMIN_LOGIN_EMAILS` 为批准的运营邮箱列表；缺失时登录拒绝所有账号。Go 仍负责最终权限与 MFA 校验。
+从仓库根目录运行 `pnpm dev:client`（127.0.0.1:8853）、`pnpm build:client`；产物为 `apps/client/dist`，部署到客户端 Worker。身份固定为 client，不使用 `VITE_SITE_KIND` 切换应用。共用认证/UI 位于 [packages/shared](../../packages/shared/README.md)。
 
-详细开发约束见根目录 `AGENTS.md` 与 `docs/DEVELOPMENT.md`。历史功能和本地 Demo 说明位于 `docs/frontend`，不能视为生产能力。
+生产使用 Firebase 邮箱密码或 Google 登录。已开通用户由 `/session` 进入 `/portal`，安全页为 `/portal/security`。查询只展示获授权个人主体的账户与交易，空数据、未关联和失败分别显示；不提供真实卡片或资金执行。
+
+`/register` 仅做表单预览和校验；Google 身份验证后遇到 `registration_required` 才通过资料补全调用 Go 注册。注册创建登录用户，不自动开通个人主体、企业、资金账户或运营权限。企业模型保留在后端，当前前端为 V1 个人范围。
+
+开发 Demo 路由仅在 DEV 且显式 Demo 配置下可用；对应历史 Node/SQLite 服务不在仓库，不能仅启动前端就复现完整旧 Demo。生产不打包 Portal 原型。
+
+参阅 [开发约束](../../AGENTS.md)、[文档索引](../../docs/README.md)、[认证配置](../../docs/frontend/firebase-setup.md)、[部署记录](../../deploy/README.md)。

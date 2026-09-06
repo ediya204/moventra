@@ -27,7 +27,8 @@ pnpm dev:client                   # http://127.0.0.1:8853
 pnpm dev:admin                    # http://127.0.0.1:8850
 pnpm build:client
 # 设置已批准的运营邮箱列表后构建（此列表不是后端授权依据）
-VITE_ADMIN_LOGIN_EMAILS="$VITE_ADMIN_LOGIN_EMAILS" pnpm build:admin
+VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm typecheck
 pnpm test
 bash services/api/scripts/test-postgres.sh
 ```
@@ -45,6 +46,12 @@ bash services/api/scripts/test-postgres.sh
 - 数据库、Firebase 项目 ID、应用 ID、服务账户与实际云资源 ID 不随源码重命名；不得通过重命名重建数据或身份。
 
 详情见 [部署配置与证据](deploy/README.md)、[开发总纲](docs/DEVELOPMENT.md) 和 [Go API](services/api/README.md)。
+
+## 当前能力与文档
+
+文档更新：2026-09-07。完整分类见 [文档索引](docs/README.md)。生产客户端为个人账户查询；企业模型和升级意向申请已在 Go 实现，企业审核、成员管理与客户端企业流程待接入。`/register` 仍是表单预览；Google 登录后的资料补全可创建本地登录用户，但不自动创建客户主体或业务账户。
+
+运营后台目前开放认证、MFA 和按客户资源授权的只读查询；卡片、资金、审批、费率、消息和渠道管理仍为保留的原型或目标设计。真实账号授权任务的成功不替代持有人完整登录验收。
 
 ## 历史资料与本地工作
 

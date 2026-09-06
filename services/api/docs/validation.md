@@ -1,4 +1,15 @@
-# 第一阶段验证记录 — 2026-09-06
+# Go API 验证与历史证据
+
+更新日期：2026-09-07。当前命令在 `services/api` 执行：`go test ./...`、`bash scripts/test-postgres.sh`、`go vet ./...`、`go build -o bin/api ./cmd/api`。普通 go test 未提供 TEST_DATABASE_URL 时会跳过数据库项；脚本建立独立测试库并运行 race 测试。
+
+最新目录重构版本 `be31513` 的历史记录包含两端构建、17 项前端/网关回归、Go vet/build 和隔离 PostgreSQL race 回归；详情见 [部署记录](../../../deploy/README.md)。当前测试代码含注册、受控个人主体/运营授权及审计回滚，已超出下方第一阶段范围。真实 Firebase 测试是单独 opt-in 脚本，见 [认证验证](../../../docs/frontend/firebase-setup.md)。
+
+本次仅更新 Markdown 并检查文档，不重跑云端身份测试或生产业务验收。企业审核/激活、卡渠道和真实资金执行仍未完成。
+
+## 2026-09-06 第一阶段历史记录
+
+以下为原阶段快照；其中“尚未联调”“没有发布”等仅描述 9 月 6 日当时，已被后续发布记录更新。
+
 
 范围：新增独立 services/api Go 模块；现有管理端与客户端演示未切换后端。
 

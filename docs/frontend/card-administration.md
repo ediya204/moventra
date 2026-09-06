@@ -1,5 +1,13 @@
 # 卡片管理闭环（2026-09-07）
 
+## 当前仓库状态（2026-09-07）
+
+保留的卡片管理 UI 在 `apps/admin/src/card-admin`；ca_* 测试账本、009 迁移、执行任务和本地复核服务未随仓库发布。当前 Go 没有卡操作或资金写接口。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
 ## 盘点与实施顺序
 
 | 层 | 当前事实 | 本次增量 |
@@ -94,7 +102,8 @@ API 浏览器前缀 `/local-slash-demo/management/card-admin`，后端前缀 `/a
 
 在 `apps/admin` 目录，使用支持 `node:sqlite` 的项目Node版本：
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm run slash:import
 npm run cards:init
 npm run slash:demo

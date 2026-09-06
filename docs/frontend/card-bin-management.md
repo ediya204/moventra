@@ -1,5 +1,13 @@
 # 卡 BIN 产品目录与客户端开卡
 
+## 当前仓库状态（2026-09-07）
+
+BIN 页面保留在 `apps/admin/src/bins`，客户端卡片原型在 `apps/client/src/portal`；生产无 BIN 管理或发卡 API。V1 已移除团队选择，以下团队字段仅反映历史版本。
+
+本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+
+## 历史记录正文
+
 实施日期：2026-09-06。本次只写入本地 SQLite Demo，不调用真实 Slash 发卡接口。
 
 ## 功能规划与落地
@@ -54,11 +62,12 @@ API 基础路径为 `/admin-api/settlement-management/demo`；普通前端经 `/
 
 当前沿用单一本地 Demo 工作空间，尚未接入真实客户租户身份。真实发卡、客户/用户组可售范围、BIN 专属费率、多币种及实体卡是后续接入项。本次为 USD 虚拟卡模拟开卡，预算为 0、费用为 0，不执行扣款，也不将原有费率预览当成实际账单。
 
-## 初始化与启动
+## 历史初始化与启动
 
 在 `apps/admin` 目录运行，使用支持 `node:sqlite` 的项目 Node 环境：
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 npm run slash:import -- --namespace slash-clearing-v1 --seed 20260906 --replicas 1
 npm run slash:demo
 ```
@@ -79,7 +88,8 @@ npm run slash:demo
 
 以下命令仅在需要重置演示时执行，不是正常启动步骤。
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 # 只重置该批次客户端工作流与 BIN 开卡关联，保留产品配置
 node demo-server/slash/cli.mjs portal-reset --namespace slash-clearing-v1
 
@@ -93,7 +103,8 @@ npm run slash:clean -- --namespace slash-clearing-v1
 
 ## 验证记录
 
-```sh
+```text
+历史命令（旧环境记录，当前仓库不可直接执行）：
 node --test tests/*.test.mjs
 npm run build
 ```
