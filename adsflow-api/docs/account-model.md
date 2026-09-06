@@ -63,3 +63,9 @@
 ## 受控个人主体关联
 
 `api provision-personal` 使用明确的 PROVISION_FIREBASE_UID / PROVISION_EMAIL 核验已验证且未禁用 Firebase 身份，再要求本地 users 为 active。事务锁住用户并创建唯一 personal 主体（draft/inactive），仅首次创建记录 personal:provision:user-request 审计。重复运行返回原主体，不修改其状态，不创建 accounts、memberships 或 staff_grants，不影响资金。该命令仅供获得用户授权后的受控运维执行，不是公开自助接口。
+
+## 受控运营授权
+
+`api provision-operator` 需明确目标 PROVISION_FIREBASE_UID / PROVISION_EMAIL 和客户所有人 PROVISION_OWNER_UID / PROVISION_OWNER_EMAIL。Firebase 核验双方邮箱/UID 且未禁用，客户所有人必须已验证邮箱；目标可预授权，但未验证邮箱和 MFA 仍不能访问业务数据。双方必须已有 active 本地身份；客户所有人不能有 staff_grants，运营不能拥有个人主体或企业成员关系，发现混用则拒绝，不自动删除已有关系。
+
+命令仅针对指定所有人的已存在个人主体，幂等授予 accounts:read / transactions:read，逐项审计并事务提交。不会授权其他客户或未来客户，不创建业务账户、修改资金或激活服务。没有 HTTP 授权管理入口，也没有全局超级管理员旁路。生产执行仅在获得明确授权后进行。

@@ -366,6 +366,52 @@ func TestPostgresBoundary(t *testing.T) {
 			}
 		}
 	})
+	t.Run("operator provisioning is scoped idempotent and preserves MFA", func(t *testing.T) {
+		for _, pair := range [][2]string{{"alice", "alice"}, {"disabled", "alice"}, {"staff", "disabled"}, {"missing", "alice"}, {"alice", "bob"}} {
+			if _, e := database.ProvisionOperator(ctx, pool, pair[0], pair[1]); e == nil {
+				t.Fatal("invalid identity pair accepted", pair)
+			}
+		}
+		for i := 0; i < 2; i++ {
+			id, e := database.ProvisionOperator(ctx, pool, "staff", "alice")
+			if e != nil || id != personal {
+				t.Fatal(id, e)
+			}
+		}
+		var count int
+		if e := pool.QueryRow(ctx, `SELECT count(*) FROM staff_grants WHERE customer_id=$1`, personal).Scan(&count); e != nil || count != 2 {
+			t.Fatal(count, e)
+		}
+		if e := pool.QueryRow(ctx, `SELECT count(*) FROM audit_events WHERE action LIKE 'staff:provision:user-request:%'`).Scan(&count); e != nil || count != 2 {
+			t.Fatal(count, e)
+		}
+		for _, c := range []struct {
+			token, path string
+			want        int
+		}{
+			{"staff-no-mfa", "/admin-api/v1/customers/" + personal + "/accounts", 403},
+			{"staff", "/admin-api/v1/customers/" + personal + "/transactions", 200},
+			{"staff", "/admin-api/v1/customers/" + other + "/accounts", 404},
+			{"alice", "/admin-api/v1/customers/" + personal + "/accounts", 404},
+			{"staff", "/client-api/v1/customers/" + personal + "/accounts", 404},
+		} {
+			if w := request("GET", c.path, c.token, "", ""); w.Code != c.want {
+				t.Fatal(c, w.Code)
+			}
+		}
+		if _, e := pool.Exec(ctx, `CREATE FUNCTION reject_staff_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action LIKE 'staff:provision:%' THEN RAISE EXCEPTION 'audit unavailable'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_staff BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION reject_staff_audit()`); e != nil {
+			t.Fatal(e)
+		}
+		if _, e := database.ProvisionOperator(ctx, pool, "staff", "bob"); e == nil {
+			t.Fatal("audit failure accepted")
+		}
+		if e := pool.QueryRow(ctx, `SELECT count(*) FROM staff_grants WHERE customer_id=$1`, other).Scan(&count); e != nil || count != 0 {
+			t.Fatal("grant leaked", count, e)
+		}
+		if _, e := pool.Exec(ctx, `DROP TRIGGER reject_staff ON audit_events; DROP FUNCTION reject_staff_audit()`); e != nil {
+			t.Fatal(e)
+		}
+	})
 	t.Run("migration checksum enforced", func(t *testing.T) {
 		if _, err = pool.Exec(ctx, `UPDATE schema_migrations SET checksum='tampered' WHERE version=1`); err != nil {
 			t.Fatal(err)

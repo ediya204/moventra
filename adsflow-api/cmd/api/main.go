@@ -39,8 +39,8 @@ func run() error {
 		return errors.New("database unavailable")
 	}
 	if len(os.Args) > 1 {
-		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal") {
-			return errors.New("usage: api [migrate|provision-user|provision-personal]")
+		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {
+			return errors.New("usage: api [migrate|provision-user|provision-personal|provision-operator]")
 		}
 		if os.Args[1] == "migrate" {
 			if err = database.Migrate(ctx, pool); err != nil {
@@ -65,7 +65,7 @@ func run() error {
 	if err != nil {
 		return errors.New("firebase credentials unavailable")
 	}
-	if len(os.Args) == 2 && (os.Args[1] == "provision-user" || os.Args[1] == "provision-personal") {
+	if len(os.Args) == 2 && (os.Args[1] == "provision-user" || os.Args[1] == "provision-personal" || os.Args[1] == "provision-operator") {
 		uid, email := strings.TrimSpace(os.Getenv("PROVISION_FIREBASE_UID")), strings.TrimSpace(os.Getenv("PROVISION_EMAIL"))
 		if uid == "" || email == "" {
 			return errors.New("explicit PROVISION_FIREBASE_UID and PROVISION_EMAIL are required")
@@ -73,6 +73,22 @@ func run() error {
 		user, err := auth.GetUser(ctx, uid)
 		if err != nil || user.Disabled || !strings.EqualFold(user.Email, email) {
 			return errors.New("Firebase identity does not match the enabled provisioning target")
+		}
+		if os.Args[1] == "provision-operator" {
+			ownerUID, ownerEmail := strings.TrimSpace(os.Getenv("PROVISION_OWNER_UID")), strings.TrimSpace(os.Getenv("PROVISION_OWNER_EMAIL"))
+			if ownerUID == "" || ownerEmail == "" || ownerUID == uid {
+				return errors.New("distinct explicit owner identity required")
+			}
+			owner, e := auth.GetUser(ctx, ownerUID)
+			if e != nil || owner.Disabled || !owner.EmailVerified || !strings.EqualFold(owner.Email, ownerEmail) {
+				return errors.New("verified owner identity does not match")
+			}
+			customer, e := database.ProvisionOperator(ctx, pool, uid, ownerUID)
+			if e != nil {
+				return fmt.Errorf("operator provisioning refused: %w", e)
+			}
+			slog.Info("operator authorization verified; two read scopes; client has no staff grants; MFA remains required", "customer_id", customer)
+			return nil
 		}
 		if os.Args[1] == "provision-personal" {
 			if !user.EmailVerified {
