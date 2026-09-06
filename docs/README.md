@@ -52,6 +52,7 @@
 
 ## 目标规范与待实施契约
 
+- [V1 资金账本与对账规划](domain/reconciliation-v1-plan.md)
 - [交易、订单与资金领域规范](domain/transactions-and-funds.md)
 - [交易与资金 API 契约草案](api/contract.md)
 - [交易与资金验收场景](testing/financial-scenarios.md)
@@ -62,6 +63,7 @@
 
 - [V1 当前功能与接入状态](current-state.md)
 - [本次同步验证](releases/2026-09-07-v1-local-sync.md)
+- [卡片管理工作台与客户解冻申请（本地实现边界）](frontend/card-management-workspace.md)
 - [卡片与交易字段](frontend/card-transaction-fields.md)
 - [卡交易抽屉与关联卡详情](frontend/transaction-drawer.md)
 - [卡交易状态分类与颜色](frontend/transaction-status-colors.md)

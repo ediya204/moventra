@@ -146,3 +146,30 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 历史 2026-09-07：本地真实 Slash 投影
 
 新增 management/live 的 status、cards、transactions 只读查询与本地 sync 触发。仍不是上文 Go 草案的生产实现。服务端连接授权、loopback 边界、金额精度、revision 分页和失败保留规则见 [真实数据接口](../frontend/slash-live-data.md)。
+
+## V1 对账契约增量（2026-09-07，DESIGN，未实现）
+
+此节承接 [账本与对账规划](../domain/reconciliation-v1-plan.md)，描述待实施能力，不新增现有可调用端点。客户查询沿用客户主体授权；运营跨客户批次需单独的获授权范围，不能用客户路径查询全平台数据。最终路由、机器 Schema 和权限名称随正式服务实施定稿。
+
+| 能力 | 输入及结果要求 | 权限边界 |
+| --- | --- | --- |
+| 账户对账单/客户余额拆解 | 内部账户、资产、期间、固定 readVersion；期初、逐笔已入账、占用变化、期末和证据 | 查询且逐账户授权 |
+| 创建核对批次 | 范围、资产、期间、日切时区、输入版本、幂等键；返回任务与批次 ID | 运行权限；不触发上游写入或自动记账 |
+| 查询批次/核对明细 | 批次 ID 与版本；三层核对、覆盖、排除项、计算过程与原因 | 查询；后端分页与聚合 |
+| 差异分派/提交处理/复核 | 差异 ID、版本、原因、证据、责任人、处理动作引用 | 调查和复核分离，处理人不得自复核；关闭不直接改余额 |
+| 导出固定版本 | 已授权批次与筛选、精确金额、元数据；任务状态和限时下载 | 独立导出权限，下载复检 |
+| 账务纠正 | 关联原经济事项、原凭证、调整方案及批准记录 | 独立调整/审批权限；不属于差异关闭接口 |
+
+必要数据结构：
+
+- `ReconciliationRun`：id/revision、scope、ledgerId、asset（币种/网络及精度）、from/to、dayCutTimezone、ledgerReadVersion、sourceObservationRefs、openingEvidenceRefs、mappingVersion、ruleVersion、requestedBy、时间组及失败原因。
+- `coverage`：应覆盖账户与期间、实际覆盖边界、失败/缺失/排除项、完整性依据；未知分母不填100%。源采集完成不自动等于账务期间完整。
+- `ReconciliationItem`：layer、internalAccountId、sourceRef、balanceType、opening/increases/decreases/expectedClosing/sourceActual/comparableExpected/unexplainedDifference、bridgeRefs、result、reasonCodes、evidenceRefs。金额使用 SignedMoney/Value，非适用字段不填0。
+- `Difference`：id、run/item引用、economicReference、关联主差异、分类、金额、firstSeenAt、assignee、dueAt、workflowStatus、revision、处理/复核意见、凭证与重跑结果引用。
+- `AccountMappingVersion`：内部客户/卡/资金账户、上游连接/账户、资金角色、生效区间和确认依据。来源持卡人姓名不能替代内部所属用户。
+
+三组候选状态独立返回：作业 `queued/running/completed/failed`；核对结论 `not_checked/insufficient_data/matched/different`；差异处理 `unassigned/in_progress/pending_review/closed`。作业completed只代表计算完成，closed只代表处理闭环，均不能覆盖原始差异或冒充已匹配；明细保留unmatched/mismatch等具体原因。
+
+创建命令幂等键绑定操作者、授权范围及规范化请求摘要；同键不同内容拒绝。处置命令检查revision及当前状态，重复提交不得追加重复动作，版本冲突返回409。批次、明细、分页、汇总、导出必须引用同一固定版本；重跑生成新版本和替代关系，不覆盖旧报告。
+
+金额比较限定同资产/单位；平台资金池与客户分户仅经明确控制账户映射核对。多币种汇总按资产分别返回，不能暴露混合数值total。来源超时、期初缺失或观察时点不一致以结构化原因返回；不以成功HTTP状态、空列表或显示0.00判定对平。现有默认报表时区不等于已批准财务日切。
