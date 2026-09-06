@@ -117,3 +117,17 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 后台 Worker `07421c0b-c911-4514-b157-ecfcfb48ad66` 已部署。构建配置已批准的运营邮箱列表，在 Firebase 密码请求前拒绝其他邮箱；后台关闭 Google 入口及对应调用，客户端不变。Go 后置鉴权保留，前置邮箱列表不作为服务端安全边界。
 
 本次 13 项组件/配置/注册/网关测试、后台 TS/Vite 构建与 dry-run 通过。线上浏览器用指定客户端邮箱和明确非真实测试密码提交后，显示“此账号没有运营后台权限，请使用客户端入口”，URL 保持 /login，没有 MFA 表单。未使用、索取或更改用户真实密码/验证码。
+
+## V1 个人账户与团队功能下线发布（2026-09-07）
+
+运行源码 `c933ce5` 已推送 origin/main，基于最新 `a5f09b9` 保留后台登录前置限制。发布目录 `/tmp/moventra-v1-publish`；共享开发目录的后续客户端重构与报价变更未混入本次部署。
+
+- 客户端 https://moventra.apexisnetworking.work ：Worker `moventra-web`，版本 `6bf1f4ca-0adb-4ce1-92ff-6dc872ffa214`。
+- 后台 https://admin.moventra.apexisnetworking.work ：Worker `moventra-admin`，版本 `f609e815-969f-401b-bceb-3f5de15a5e8c`。
+- 17 项发布回归、两端 TypeScript/Vite 构建及 Wrangler dry-run 通过。保留现有大 chunk 警告。后台沿用已部署的运营登录邮箱配置，经线上产物与原构建字节比对确认；配置值不写入公开文档。
+- 正式域名登录 HTML 和入口 JS 均与本次构建一致；两端无令牌 me 为 401，旧团队和本地 Demo API 为 404；Render readyz 正常。
+- 浏览器验证 `/portal/team/invite` 与后台 `/teams/demo/members` 在未登录状态均回到各自登录页面并正常渲染；后台运营提示与无 Google 登录入口保留。
+- 本机 DNS 仍有后台域名负缓存，HTTP 验证使用公共 DNS 解析地址并保留正式域名/SNI；没有修改 DNS、WAF 或 Access。
+- 未部署 Go、未迁移数据库、未变更权限或真实资金。本人认证后的完整业务与真实通道验收未执行；本地 Demo 金融模块仍不属于已接入生产能力。
+
+字段与历史依赖保留范围见 `adsflow-admin-react/docs/v1-personal-release.md`。需要回退时，客户端上一版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`；后台上一版本 `07421c0b-c911-4514-b157-ecfcfb48ad66`。
