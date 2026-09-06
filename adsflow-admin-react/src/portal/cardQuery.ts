@@ -12,7 +12,6 @@ export const statusLabels: Record<string, string> = {
 export type CardQuery = {
   q: string;
   status: string;
-  team: string;
   platform: string;
   productId: string;
   min: string;
@@ -35,7 +34,6 @@ export function readCardQuery(params: URLSearchParams): CardQuery {
   return {
     q: params.get("q") || "",
     status: Object.hasOwn(statusLabels, status) ? status : "all",
-    team: params.get("team") || "",
     platform: params.get("platform") || "",
     productId: params.get("productId") || "",
     min: params.get("min") || "",
@@ -83,7 +81,6 @@ export function filterCards(cards: Card[], q: CardQuery): Card[] {
             .includes(q.q.trim().toLowerCase())) &&
         (!q.productId || c.binProduct?.id===q.productId) &&
         (q.status === "all" || cardStatus(c) === q.status) &&
-        (!q.team || c.team === q.team) &&
         (!q.platform || (c.platform || "未分类") === q.platform) &&
         (!q.low || c.balance < LOW_BALANCE) &&
         (!q.min || c.balance >= amountBound(q.min)) &&

@@ -1,3 +1,4 @@
+import {retiredTeamPath} from "./personalV1";
 import MessageCenter from './MessageCenter';
 import {CardOpeningPage} from '../bins/CardOpeningPage';
 import {detailRowProps} from "./rowInteraction";
@@ -56,7 +57,6 @@ const nav = [
   ["funds", "资金中心", "solar:wallet-money-linear"],
   ["cards", "卡片中心", "solar:card-linear"],
   ["transactions", "交易与账单", "solar:bill-list-linear"],
-  ["team", "团队与子账户", "solar:users-group-rounded-linear"],
   ["messages", "消息中心", "solar:bell-linear"],
   ["support", "帮助与工单", "solar:chat-round-line-linear"],
   ["settings", "设置与开户", "solar:settings-linear"],
@@ -66,8 +66,6 @@ const titles: Record<string, string> = {
   open: "申请新卡",
   topup: "充值到卡",
   return: "资金转回账户",
-  team: "新增子账户",
-  invite: "邀请成员",
   ticket: "提交问题",
   onboard: "开户资料",
 };
@@ -127,8 +125,11 @@ export default function Portal() {
     return()=>{active=false;clearInterval(timer);window.removeEventListener('focus',refresh);};
   },[]);
   useEffect(()=>{
+    const retired=retiredTeamPath(location.pathname);
+    if(retired){navigate(retired,{replace:true});return;}
     const params=new URLSearchParams(location.search);
-    if(params.has('source')){params.delete('source');navigate(`${location.pathname}${params.size?'?'+params:''}`,{replace:true});}
+    for(const key of ["team","teamId","invite","invitation","inviteToken"])params.delete(key);
+    params.delete('source');if(params.toString()!==location.search.slice(1))navigate(`${location.pathname}${params.size?'?'+params:''}`,{replace:true});
   },[location.pathname,location.search,navigate]);
   const sourcePage = localSlashAvailable && ['risk','reports','reconciliation'].includes(page);
   const cardId = location.pathname.split("/")[3];
@@ -193,18 +194,10 @@ export default function Portal() {
           type: "topup",
           id: v("card"),
           amount: cents(v("amount")),
-          source: v("source") === "team" ? "team" : "main",
+          source: "main",
         });
       if (op === "open")
-        act({ type: "open", name: v("name"), team: v("team") });
-      if (op === "team") act({ type: "team", name: v("name") });
-      if (op === "invite")
-        act({
-          type: "invite",
-          email: v("email"),
-          role: v("role"),
-          team: v("team"),
-        });
+        act({ type: "open", name: v("name") });
       if (op === "onboard")
         act({ type: "onboard", name: v("name"), email: v("email") });
       if (op === "ticket") act({ type: "ticket", text: v("description") });
@@ -314,7 +307,7 @@ export default function Portal() {
           都有清晰的去向。
         </Typography>
         <Typography color="text.secondary" mb={5}>
-          在一个工作台管理资金、卡片与团队。从补充预算，到核对账单。
+          在一个工作台管理资金与卡片。从补充预算，到核对账单。
         </Typography>
         <Paper variant="outlined" sx={panel}>
           <Typography variant="h5" mb={2}>
@@ -344,7 +337,7 @@ export default function Portal() {
             display="block"
             mt={2}
           >
-            当前角色：企业管理员 · 真实登录与找回密码待客户认证接口接入
+            个人账户演示 · 真实登录与找回密码待客户认证接口接入
           </Typography>
         </Paper>
       </Container>
@@ -360,9 +353,9 @@ export default function Portal() {
         客户工作台 / CLIENT WORKSPACE
       </Typography>
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-        <Typography variant="subtitle2">{"Northstar Studio"}</Typography>
+        <Typography variant="subtitle2">{"Demo 个人账户"}</Typography>
         <Typography variant="caption" color="text.secondary">
-          企业管理员 · 演示组织
+          个人账户 · 本地演示
         </Typography>
       </Paper>
       <List
@@ -475,7 +468,7 @@ export default function Portal() {
               fontSize: 12,
             }}
           >
-            NS
+            DP
           </Avatar>
         </Stack>
         <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -500,7 +493,7 @@ export default function Portal() {
           {!sourcePage && <PageHeader
             description={
               page === "overview"
-                ? "Northstar Studio · 管理投放资金、卡片与团队预算"
+                ? "Demo 个人账户 · 管理投放资金与卡片预算"
                 : page === "funds"
                   ? "查看分币种资产，追踪每一笔资金流转"
                   : undefined
@@ -525,11 +518,6 @@ export default function Portal() {
                 {!sourcePage && !state.unified && page === "transactions" && (
                   <Button variant="outlined" onClick={exportCsv}>
                     导出 CSV
-                  </Button>
-                )}
-                {page === "team" && (
-                  <Button variant="contained" onClick={() => open("invite")}>
-                    邀请成员
                   </Button>
                 )}
                 {page === "support" && (
@@ -593,56 +581,6 @@ export default function Portal() {
               </Stack>
               <Paper variant="outlined" sx={panel}>
                 {table(entries)}
-              </Paper>
-            </>
-          )}
-          {page === "team" && (
-            <>
-              <Paper variant="outlined" sx={panel}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="h6">业务子账户</Typography>
-                  <Button onClick={() => open("team")}>新增子账户</Button>
-                </Stack>
-                {state.teams.map((t) => (
-                  <Stack
-                    key={t}
-                    direction="row"
-                    justifyContent="space-between"
-                    py={2}
-                    gap={2}
-                  >
-                    <Typography>{t}</Typography>
-                    <Typography color="text.secondary">
-                      {state.cards.filter((c) => c.team === t).length} 张卡 ·{" "}
-                      {money(
-                        state.cards
-                          .filter((c) => c.team === t)
-                          .reduce((sum, c) => sum + c.balance, 0),
-                      )}
-                    </Typography>
-                  </Stack>
-                ))}
-              </Paper>
-              <Paper variant="outlined" sx={panel}>
-                <Typography variant="h6" mb={2}>
-                  成员与权限
-                </Typography>
-                <Alert severity="info">
-                  演示邀请只生成待接受记录，不发送邮件；角色选择不代表服务端权限已接入。
-                </Alert>
-                {state.members.map((m, i) => (
-                  <Stack
-                    key={m.email}
-                    direction={{ xs: "column", sm: "row" }}
-                    justifyContent="space-between"
-                    py={2}
-                  >
-                    <Typography>{m.email}</Typography>
-                    <Typography color="text.secondary">
-                      {m.team} · {m.role} · {i ? "待接受" : "已加入"}
-                    </Typography>
-                  </Stack>
-                ))}
               </Paper>
             </>
           )}
@@ -747,27 +685,13 @@ export default function Portal() {
         <Box key={op} component="form" onSubmit={submit}>
           <Stack gap={3}>
             {error && <Alert severity="error">{error}</Alert>}
-            {["open", "team", "onboard"].includes(op) && (
+            {["open", "onboard"].includes(op) && (
               <TextField
                 name="name"
-                label={op === "onboard" ? "演示企业名称" : "名称"}
+                label={op === "onboard" ? "演示开户姓名" : "名称"}
                 required
                 inputProps={{ maxLength: 60 }}
               />
-            )}
-            {["open", "invite"].includes(op) && (
-              <TextField
-                name="team"
-                label="所属子账户"
-                select
-                defaultValue={state.teams[0]}
-              >
-                {state.teams.map((t) => (
-                  <MenuItem key={t} value={t}>
-                    {t}
-                  </MenuItem>
-                ))}
-              </TextField>
             )}
             {["topup", "return"].includes(op) && (
               <TextField
@@ -804,9 +728,6 @@ export default function Portal() {
                 <MenuItem value="main">
                   主账户 USD · {money(state.balance)}
                 </MenuItem>
-                <MenuItem value="team">
-                  所选卡片归属子账户的独立 USD 余额
-                </MenuItem>
               </TextField>
             )}
             {["topup", "return"].includes(op) && (
@@ -822,27 +743,13 @@ export default function Portal() {
                 }
               />
             )}
-            {["invite", "onboard"].includes(op) && (
+            {op === "onboard" && (
               <TextField
                 name="email"
                 label="演示联系邮箱"
                 type="email"
                 required
               />
-            )}
-            {op === "invite" && (
-              <TextField
-                name="role"
-                label="角色"
-                select
-                defaultValue="投放操作员"
-              >
-                {["财务", "投放操作员", "只读成员"].map((r) => (
-                  <MenuItem key={r} value={r}>
-                    {r}
-                  </MenuItem>
-                ))}
-              </TextField>
             )}
             {op === "ticket" && (
               <TextField

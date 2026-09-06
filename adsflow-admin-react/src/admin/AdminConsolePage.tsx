@@ -780,7 +780,7 @@ function PricingPage() {
         columns={[
           { field: "name", headerName: "用户组", flex: 1, minWidth: 180 },
           { field: "description", headerName: "说明", flex: 1, minWidth: 200 },
-          { field: "memberCount", headerName: "成员数", width: 110 },
+          { field: "memberCount", headerName: "客户数", width: 110 },
           {
             field: "status",
             headerName: "状态",
@@ -1193,7 +1193,7 @@ function SystemPage({ access }: { access: boolean }) {
         title={access ? "访问权限" : "渠道与数据"}
         description={
           access
-            ? "区分后台登录身份、本地操作权限与客户端成员身份。"
+            ? "区分后台登录身份、本地操作权限与客户端个人身份。"
             : "查看当前接入范围和数据来源，不展示或录入渠道密钥。"
         }
         action={

@@ -1,3 +1,4 @@
+import {isRetiredNotice} from "./personalV1.ts";
 import type { Notice, State } from "./model.ts";
 export const messageTypes: Record<string, string> = {
   card: "卡片通知",
@@ -19,7 +20,7 @@ export type MessagePage = {
 };
 // Legacy relationships are recovered only from stored IDs or the exact old order notification format.
 export function messageRows(state: State): Message[] {
-  return state.notices.map((n) => {
+  return state.notices.filter(n=>!isRetiredNotice(n)).map((n) => {
     const entry = state.entries.find((e) => e.id === n.id);
     const order = state.finance.orders.find(
       (o) =>

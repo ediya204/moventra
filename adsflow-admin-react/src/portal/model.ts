@@ -1,10 +1,10 @@
+import {assertPersonalAction} from "./personalV1.ts";
 import type {SourceRecord,SourceFields} from '../slash/types';
 export type BinSnapshot={id:string;name:string;binPrefix:string;network:string;currency:string;revision:number;mode:string};
 export type Card = {
   binProduct?: BinSnapshot;
   id: string;
   name: string;
-  team: string;
   balance: number;
   frozen: boolean;
   riskFrozen?: boolean;
@@ -44,8 +44,6 @@ export type State = {
   finance: FinanceState;
   cards: Card[];
   entries: Entry[];
-  teams: string[];
-  members: { email: string; role: string; team: string }[];
   notices: Notice[];
   onboarding: "未提交" | "待审核";
   tickets: string[];
@@ -71,7 +69,6 @@ export function initialState(): State {
         platform: "Meta",
         project: "北美增长",
         createdAt: "2026-08-12",
-        team: "增长团队",
         balance: 480000,
         frozen: false,
       },
@@ -81,7 +78,6 @@ export function initialState(): State {
         platform: "Google",
         project: "品牌搜索",
         createdAt: "2026-08-20",
-        team: "品牌团队",
         balance: 12500,
         frozen: false,
       },
@@ -91,7 +87,6 @@ export function initialState(): State {
         platform: "TikTok",
         project: "创意测试",
         createdAt: "2026-09-01",
-        team: "增长团队",
         balance: 96000,
         frozen: true,
         riskFrozen: true,
@@ -126,10 +121,6 @@ export function initialState(): State {
         card: "1001",
       },
     ],
-    teams: ["增长团队", "品牌团队"],
-    members: [
-      { email: "owner@example.test", role: "管理员", team: "增长团队" },
-    ],
     notices: [
       {
         id: "N1",
@@ -150,11 +141,9 @@ export function initialState(): State {
 }
 export type Action =
   | FinanceAction
-  | { type: "open"; name: string; team: string; productId?:string; productRevision?:number }
-  | { type: "topup"; id: string; amount: number; source?: "main" | "team" }
+  | { type: "open"; name: string; productId?:string; productRevision?:number }
+  | { type: "topup"; id: string; amount: number; source?: "main" }
   | { type: "freeze"; id: string }
-  | { type: "team"; name: string }
-  | { type: "invite"; email: string; role: string; team: string }
   | { type: "read"; ids?:string[]; read?:boolean }
   | { type: "onboard"; name: string; email: string }
   | { type: "ticket"; text: string };
@@ -164,6 +153,7 @@ export function transition(
   id: string,
   time: string,
 ): State {
+  assertPersonalAction(action);
   if (action.type.startsWith("finance/"))
     return financeTransition(state, action as FinanceAction, id, time);
   const s = structuredClone(state);
@@ -180,15 +170,14 @@ export function transition(
   };
   switch (action.type) {
     case "open":
-      if (!action.name.trim() || !s.teams.includes(action.team))
-        throw new Error("请填写卡片名称并选择子账户。");
+      if (!action.name.trim())
+        throw new Error("请填写卡片名称。");
       s.cards.push({
         id,
         name: action.name.trim(),
         createdAt: time.slice(0, 10),
         platform: "未分类",
         project: "未分组",
-        team: action.team,
         balance: 0,
         frozen: false,
       });
@@ -198,15 +187,8 @@ export function transition(
       positive(action.amount);
       const card = s.cards.find((c) => c.id === action.id);
       if (!card || card.frozen) throw new Error("卡片不存在或已冻结。");
-      const sourceBalance =
-        action.source === "team"
-          ? s.finance.subBalances[card.team] || 0
-          : s.balance;
-      if (action.amount > sourceBalance)
-        throw new Error("付款账户可用余额不足。");
-      if (action.source === "team")
-        s.finance.subBalances[card.team] = sourceBalance - action.amount;
-      else s.balance -= action.amount;
+      if (action.amount > s.balance) throw new Error("付款账户可用余额不足。");
+      s.balance -= action.amount;
       card.balance += action.amount;
       entry("卡片充值", card.name, -action.amount, "已完成", card.id);
       s.entries[0].orderId = id;
@@ -221,7 +203,7 @@ export function transition(
         status: "已完成",
         created: time,
         cardId: card.id,
-        target: `${action.source === "team" ? card.team : "主账户"} → ${card.name}`,
+        target: `个人账户 → ${card.name}`,
         history: [{ time, text: "模拟卡片充值完成" }],
       });
       break;
@@ -234,35 +216,6 @@ export function transition(
       entry(card.frozen ? "冻结" : "解冻", card.name, 0, "已完成", card.id);
       break;
     }
-    case "team":
-      if (
-        !action.name.trim() ||
-        ["__proto__", "constructor", "prototype"].includes(
-          action.name.trim(),
-        ) ||
-        s.teams.includes(action.name.trim())
-      )
-        throw new Error("子账户名称为空或已存在。");
-      s.teams.push(action.name.trim());
-      break;
-    case "invite":
-      if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(action.email) ||
-        !s.teams.includes(action.team)
-      )
-        throw new Error("请输入有效邮箱并选择子账户。");
-      if (
-        s.members.some(
-          (m) => m.email.toLowerCase() === action.email.toLowerCase(),
-        )
-      )
-        throw new Error("该成员已存在。");
-      s.members.push({
-        email: action.email,
-        role: action.role,
-        team: action.team,
-      });
-      break;
     case "read":
       if (action.read !== undefined && typeof action.read !== 'boolean') throw new Error('已读状态无效');
       if (action.ids !== undefined && (!Array.isArray(action.ids) || !action.ids.length || action.ids.length > 100 || action.ids.some(id => typeof id !== 'string' || !s.notices.some(n=>n.id===id)))) throw new Error('请选择有效消息，单次最多100条');
@@ -274,7 +227,7 @@ export function transition(
         !action.name.trim() ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(action.email)
       )
-        throw new Error("请填写企业名称和有效邮箱。");
+        throw new Error("请填写开户姓名和有效邮箱。");
       s.application = { name: action.name.trim(), email: action.email };
       s.onboarding = "待审核";
       break;
@@ -289,7 +242,7 @@ export function transition(
       id,
       createdAt: time,
       category: ['open','topup','freeze'].includes(action.type) ? 'card' : 'system',
-      title: ({open:'卡片已创建',topup:'卡片充值已完成',freeze:'卡片状态已更新',team:'子账户已创建',invite:'成员邀请已记录',onboard:'开户资料已提交',ticket:'支持请求已提交'} as Record<string,string>)[action.type],
+      title: ({open:'卡片已创建',topup:'卡片充值已完成',freeze:'卡片状态已更新',onboard:'开户资料已提交',ticket:'支持请求已提交'} as Record<string,string>)[action.type],
       cardId: action.type==='open' ? id : action.type==='topup'||action.type==='freeze' ? action.id : undefined,
       orderId: action.type==='topup' ? id : undefined,
       text: `演示操作已记录：${action.type === "onboard" ? "开户资料待审核" : "请在相关页面查看结果"}`,
@@ -374,7 +327,9 @@ export type FinanceState = {
   addresses: Address[];
   orders: Order[];
   quotes: Quote[];
+  /** Historical storage only. No V1 operation can spend these balances. */
   subBalances: Record<string, number>;
+  legacyRestrictedUsd?: number;
   events: string[];
 };
 export type FinanceAction =
@@ -391,12 +346,6 @@ export type FinanceAction =
     }
   | { type: "finance/cancel"; orderId: string }
   | { type: "finance/card-return"; cardId: string; amount: number }
-  | {
-      type: "finance/transfer";
-      team: string;
-      direction: "to-team" | "to-main";
-      amount: number;
-    }
   | {
       type: "finance/simulate";
       orderId: string;
@@ -431,6 +380,7 @@ export function financeTransition(
   id: string,
   time: string,
 ): State {
+  assertPersonalAction(action);
   const s = structuredClone(state);
   const f = s.finance;
   const positive = (value: number) => {
@@ -638,32 +588,6 @@ export function financeTransition(
         target: c.name,
       });
       record(o, o.amount);
-      break;
-    }
-    case "finance/transfer": {
-      positive(action.amount);
-      if (!s.teams.includes(action.team)) throw new Error("未找到子账户。");
-      const current = f.subBalances[action.team] || 0;
-      if (action.direction === "to-team") {
-        if (s.balance < action.amount) throw new Error("主账户余额不足。");
-        move("USD", -action.amount);
-        f.subBalances[action.team] = checked(current + action.amount);
-      } else {
-        if (current < action.amount) throw new Error("子账户余额不足。");
-        f.subBalances[action.team] = current - action.amount;
-        move("USD", action.amount);
-      }
-      const o = makeOrder({
-        kind: "内部划拨",
-        currency: "USD",
-        toCurrency: "USD",
-        amount: action.amount,
-        fee: 0,
-        receive: action.amount,
-        status: "已完成",
-        target: `${action.direction === "to-team" ? "主账户 → " : ""}${action.team}${action.direction === "to-main" ? " → 主账户" : ""}`,
-      });
-      record(o, action.direction === "to-team" ? -o.amount : o.amount);
       break;
     }
     case "finance/simulate": {

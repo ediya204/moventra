@@ -12,7 +12,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  MenuItem,
   Paper,
   Skeleton,
   Stack,
@@ -22,7 +21,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import { Link, Navigate, useLocation } from "react-router-dom";
@@ -69,17 +67,13 @@ export default function ClientHome() {
   const { user, session, sessionError, ready, signOut } = useAuth();
   const { pathname } = useLocation();
   const [mobile, setMobile] = useState(false);
-  const [selected, setSelected] = useState("");
   const [reload, setReload] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [failure, setFailure] = useState<{
     customer: string;
     message: string;
   } | null>(null);
-  const customer =
-    session?.customers.find((c) => c.id === selected) ||
-    session?.customers.find((c) => c.kind === "personal") ||
-    session?.customers[0];
+  const customer = session?.customers.find((c) => c.kind === "personal");
   useEffect(() => {
     let active = true;
     setSnapshot(null);
@@ -171,7 +165,7 @@ export default function ClientHome() {
             ? "账户数据暂不可用"
             : customer
               ? "正在读取账户…"
-              : "关联客户主体后可查看账户。"}
+              : "关联个人账户后可查看账户。"}
         </Typography>
       ) : !data.accounts.length ? (
         <Stack spacing={1} sx={{ py: 5, textAlign: "center" }}>
@@ -216,7 +210,7 @@ export default function ClientHome() {
             ? "交易数据暂不可用"
             : customer
               ? "正在读取交易…"
-              : "关联客户主体后可查看交易。"}
+              : "关联个人账户后可查看交易。"}
         </Typography>
       ) : !data.transactions.length ? (
         <Stack spacing={1} sx={{ py: 5, textAlign: "center" }}>
@@ -348,26 +342,10 @@ export default function ClientHome() {
                   刷新数据
                 </Button>
               </Stack>
-              {customer && (
-                <TextField
-                  select
-                  label="当前个人 / 企业主体"
-                  size="small"
-                  value={customer.id}
-                  onChange={(e) => setSelected(e.target.value)}
-                  sx={{ maxWidth: 400 }}
-                >
-                  {session.customers.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>
-                      {c.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
               {error && <Alert severity="error">{error}</Alert>}
               {!customer && (
                 <Alert severity="info">
-                  当前尚未关联个人或企业主体，请联系账户管理员。
+                  当前尚未开通个人账户，请联系支持。
                 </Alert>
               )}
               {pathname === "/portal" && (

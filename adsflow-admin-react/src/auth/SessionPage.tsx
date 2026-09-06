@@ -27,7 +27,7 @@ export default function SessionPage() {
   const [scope, setScope] = useState('');
   const [rows, setRows] = useState<Row[] | null>(null);
   const generation = useRef(0);
-  useEffect(() => { generation.current++; setRows(null); setScope(''); setError(''); }, [session]);
+  useEffect(() => { generation.current++; setRows(null); setScope(!isAdminSite && session?.customers.find(c => c.kind === 'personal') ? `/client-api/v1/customers/${session.customers.find(c => c.kind === 'personal')!.id}/accounts` : ''); setError(''); }, [session]);
   useEffect(() => () => { generation.current++; }, []);
   if (!ready) return <Container sx={{py:6}}><CircularProgress /></Container>;
   if (!user) return <Navigate to="/login" replace />;
@@ -36,7 +36,7 @@ export default function SessionPage() {
   if (!session && !sessionError) return <Container sx={{py:6}}><CircularProgress aria-label="正在检查账户" /></Container>;
   if (!isAdminSite && session && !sessionError && location.pathname === '/session') return <Navigate to="/portal" replace />;
   const options = [
-    ...(!isAdminSite ? session?.customers || [] : []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
+    ...(!isAdminSite ? session?.customers.filter(c => c.kind === "personal") || [] : []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
     ...(isAdminSite ? session?.staffScopes || [] : []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),
   ];
   return <Container maxWidth="md" sx={{ py: 5 }}><Stack spacing={3}>
@@ -66,7 +66,7 @@ export default function SessionPage() {
     {session && <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
       <Typography variant="h6">已授权的数据范围</Typography>
       {!options.length ? <Alert severity="info">当前没有可访问的客户数据。身份登录不会自动开通业务或授予运营权限。</Alert> : <>
-        <TextField select label="客户与资源" value={scope} onChange={e => { generation.current++; setScope(e.target.value); setRows(null); setError(''); }}>{options.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}</TextField>
+        <TextField select label={isAdminSite ? "客户与资源" : "个人账户业务"} value={scope} onChange={e => { generation.current++; setScope(e.target.value); setRows(null); setError(''); }}>{options.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}</TextField>
         <Button disabled={busy || !scope} onClick={() => void run(async () => {
           const current = ++generation.current; setRows(null);
           const result = await liveGet<Row[]>(scope);

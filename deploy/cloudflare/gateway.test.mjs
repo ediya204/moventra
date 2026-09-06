@@ -75,3 +75,13 @@ test('identity discovery separates customer scopes, staff scopes and denies nono
   const pending=await handle(req,{...env,SITE_KIND:'admin'},async()=>Response.json({data:{...source,mfaVerified:false,requiresMfa:true}}));
   assert.deepEqual((await pending.json()).data.staffScopes,[]);
 });
+
+test('retired team endpoints are unreachable on both production gateways',async()=>{
+ for(const SITE_KIND of ['client','admin']) for(const path of ['/client-api/v1/teams','/admin-api/v1/teams','/client-api/v1/invitations/demo','/admin-api/settlement-management/demo/portal/action']) {
+  for(const method of ['GET','POST','DELETE']) {
+   let forwarded=false;
+   const response=await handle(new Request('https://example.com'+path,{method,headers:{Authorization:'Bearer fixture'}}),{SITE_KIND,API_ORIGIN:'https://api.example.com',ASSETS:{fetch(){throw new Error('must not serve SPA')}}},async()=>{forwarded=true;throw new Error('must not forward')});
+   assert.equal(response.status,404);assert.equal(forwarded,false);
+  }
+ }
+});

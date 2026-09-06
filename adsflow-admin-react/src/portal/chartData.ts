@@ -63,14 +63,6 @@ export function assetComposition(state: State, currency: Currency) {
       icon: "solar:card-linear",
     },
     {
-      label: "子账户余额",
-      value: Object.values(f.subBalances).reduce(
-        (sum, value) => sum + value,
-        0,
-      ),
-      icon: "solar:users-group-rounded-linear",
-    },
-    {
       label: "冻结 / 预占",
       value: f.heldUsd,
       icon: "solar:lock-keyhole-linear",

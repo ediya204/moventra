@@ -136,7 +136,7 @@ export function OverviewDashboard({
     {
       label: "USD 可用余额",
       value: asset(state.balance).replace(" USD", ""),
-      helper: "用于卡片充值与预算划拨",
+      helper: "用于个人卡片充值与资金管理",
       to: "/portal/funds",
     },
     {
@@ -154,7 +154,7 @@ export function OverviewDashboard({
     {
       label: "使用中卡片",
       value: `${activeCards} / ${state.cards.length}`,
-      helper: `${state.cards.length - activeCards} 张冻结 · ${state.teams.length} 个子账户`,
+      helper: `${state.cards.length - activeCards} 张冻结`,
       to: "/portal/cards",
     },
   ];
@@ -348,7 +348,7 @@ export function OverviewDashboard({
         </Section>
         <Section
           title="卡片预算分布"
-          subtitle="按当前内部卡预算计算，不代表消费占比"
+          subtitle="展示预算最高的 5 张卡，不代表消费占比"
           action={
             <Button component={Link} to="/portal/cards" size="small">
               全部卡片
@@ -356,20 +356,18 @@ export function OverviewDashboard({
           }
         >
           <Stack gap={2.5} sx={{ p: 3 }}>
-            {state.teams.map((team) => {
-              const balance = state.cards
-                .filter((card) => card.team === team)
-                .reduce((sum, card) => sum + card.balance, 0);
+            {[...state.cards].sort((a,b)=>b.balance-a.balance).slice(0,5).map((card) => {
+              const balance = card.balance;
               const percent = cardBalance ? (balance / cardBalance) * 100 : 0;
               return (
-                <Box key={team}>
+                <Box key={card.id}>
                   <Stack
                     direction="row"
                     gap={1}
                     justifyContent="space-between"
                     mb={1}
                   >
-                    <Typography variant="body2">{team}</Typography>
+                    <Typography variant="body2">{card.name}</Typography>
                     <Typography variant="subtitle2">
                       {asset(balance)}
                     </Typography>
@@ -377,7 +375,7 @@ export function OverviewDashboard({
                   <LinearProgress
                     variant="determinate"
                     value={percent}
-                    aria-label={`${team}内部卡预算占比`}
+                    aria-label={`${card.name}内部卡预算占比`}
                     sx={{
                       height: 6,
                       borderRadius: 1,
@@ -390,19 +388,11 @@ export function OverviewDashboard({
                 </Box>
               );
             })}
-            {!state.teams.length && (
+            {!state.cards.length && (
               <Typography color="text.secondary">
-                创建子账户后，可在这里查看卡片预算分布。
+                开卡后可查看各卡片预算分布。
               </Typography>
             )}
-            <Button
-              component={Link}
-              to="/portal/team"
-              variant="outlined"
-              fullWidth
-            >
-              管理团队与子账户
-            </Button>
           </Stack>
         </Section>
       </Box>
@@ -444,26 +434,17 @@ export function FundsDashboard({
       to: "/portal/cards",
       icon: "solar:card-linear",
     },
-    {
-      title: "子账户独立余额",
-      value: Object.values(f.subBalances).reduce(
-        (sum, value) => sum + value,
-        0,
-      ),
-      note: "可划拨余额，不包含卡片资金",
-      to: "/portal/funds/transfer",
-      icon: "solar:users-group-rounded-linear",
-    },
   ];
   return (
     <Stack gap={3}>
+      {!!state.finance.legacyRestrictedUsd && <Alert severity="info">历史隔离余额 {asset(state.finance.legacyRestrictedUsd)} 已保留，不计入个人可用资金。如需处理请联系支持。</Alert>}
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
             sm: "1fr 1fr",
-            lg: "repeat(4, minmax(0, 1fr))",
+            lg: "repeat(3, minmax(0, 1fr))",
           },
           gap: 2,
         }}
@@ -487,12 +468,6 @@ export function FundsDashboard({
           description="提取到已添加的地址"
           icon="solar:arrow-right-up-linear"
           to="/portal/funds/withdraw"
-        />
-        <Shortcut
-          title="内部划拨"
-          description="主账户与子账户调配"
-          icon="solar:transfer-horizontal-linear"
-          to="/portal/funds/transfer"
         />
       </Box>
       <Section
@@ -545,9 +520,9 @@ export function FundsDashboard({
                 <Button
                   fullWidth
                   component={Link}
-                  to={`/portal/funds/${currency === "USD" ? "transfer" : "withdraw"}`}
+                  to={currency === "USD" ? "/portal/cards" : "/portal/funds/withdraw"}
                 >
-                  {currency === "USD" ? "划拨" : "提现"}
+                  {currency === "USD" ? "充值到卡" : "提现"}
                 </Button>
               </Stack>
             </ListItem>
@@ -594,7 +569,7 @@ export function FundsDashboard({
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {currency === "USD"
-                            ? "卡片充值与团队预算"
+                            ? "卡片充值与个人资金"
                             : "数字资产充值与提现"}
                         </Typography>
                       </Box>
@@ -623,9 +598,9 @@ export function FundsDashboard({
                     </Button>
                     <Button
                       component={Link}
-                      to={`/portal/funds/${currency === "USD" ? "transfer" : "withdraw"}`}
+                      to={currency === "USD" ? "/portal/cards" : "/portal/funds/withdraw"}
                     >
-                      {currency === "USD" ? "划拨" : "提现"}
+                      {currency === "USD" ? "充值到卡" : "提现"}
                     </Button>
                   </TableCell>
                 </TableRow>

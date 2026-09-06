@@ -1,3 +1,4 @@
+import { retiredTeamPath } from "./portal/personalV1";
 import { isAdminSite } from './auth/site';
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
@@ -61,6 +62,14 @@ function ProtectedRoute() {
 }
 
 export default function App() {
+  const location = useLocation();
+  const { authenticated, ready } = useAuth();
+  const retired = retiredTeamPath(location.pathname);
+  if (retired) {
+    if (!ready) return <PageSkeleton />;
+    if (usesFirebaseAuth) return <Navigate to={isAdminSite ? "/session" : "/portal"} replace />;
+    return <Navigate to={retired.startsWith("/portal/") ? retired : authenticated ? retired : "/login"} replace />;
+  }
   if (isSlashDemoMode) return <Suspense fallback={<PageSkeleton />}><Routes>
     <Route path="/session" element={<SessionPage />} />
     <Route path="/" element={<Website />} />

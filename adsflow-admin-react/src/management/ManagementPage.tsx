@@ -267,7 +267,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
     },
     ...(resource === "users"
       ? [{ field: "groupName", headerName: "所属用户组", width: 160 }]
-      : [{ field: "memberCount", headerName: "成员数", width: 100 }]),
+      : [{ field: "memberCount", headerName: "客户数", width: 100 }]),
     {
       field: "status",
       headerName: "状态",
@@ -585,7 +585,7 @@ function OwnerDetail({
             <Status status={data.status} />
             {!isUser && (
               <Button component={Link} to={`/user-groups/users?groupId=${id}`}>
-                查看成员
+                查看客户
               </Button>
             )}
           </Stack>
@@ -978,7 +978,7 @@ function FeeEditor({
       <Typography color="text.secondary">
         {userId
           ? "默认继承所属组的费率，关闭继承后可为该用户单独定价。"
-          : "组费率应用于未设置专属费率的成员；勾选默认时使用系统演示值。"}{" "}
+          : "组费率应用于未设置专属费率的客户；勾选默认时使用系统演示值。"}{" "}
         百分比与固定费相加，百分比费用向上取整至最小单位。
       </Typography>
       {error && <Alert severity="error">{error}</Alert>}

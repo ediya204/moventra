@@ -135,7 +135,6 @@ export function CardCenter({
   }, [
     query.q,
     query.status,
-    query.team,
     query.platform,
     query.min,
     query.max,
@@ -189,7 +188,7 @@ export function CardCenter({
     const d = new FormData(e.currentTarget);
     change(
       Object.fromEntries(
-        ["q", "team", "platform", "productId", "min", "max", "start", "end"].map((key) => [
+        ["q", "platform", "productId", "min", "max", "start", "end"].map((key) => [
           key,
           String(d.get(key) || "").trim(),
         ]),
@@ -206,7 +205,6 @@ export function CardCenter({
         [
           "卡片编号",
           "卡片名称",
-          "子账户",
           "BIN前缀",
           "卡产品",
           "平台",
@@ -218,7 +216,6 @@ export function CardCenter({
         ...rows.map((c) => [
           c.id,
           c.name,
-          c.team,
           c.binProduct?.binPrefix||"",
           c.binProduct?.name||"",
           c.platform || "未分类",
@@ -311,7 +308,6 @@ export function CardCenter({
   );
   const filters = [
     ["q", query.q ? `关键词：${query.q}` : ""],
-    ["team", query.team ? `子账户：${query.team}` : ""],
     ["platform", query.platform ? `平台：${query.platform}` : ""],
     ["min", query.min ? `余额 ≥ ${query.min} USD` : ""],
     ["max", query.max ? `余额 ≤ ${query.max} USD` : ""],
@@ -399,7 +395,7 @@ export function CardCenter({
             </Tabs>
             <Box
               component="form"
-              key={["q", "team", "platform", "productId", "min", "max", "start", "end"]
+              key={["q", "platform", "productId", "min", "max", "start", "end"]
                 .map((k) => params.get(k))
                 .join("|")}
               onSubmit={filterSubmit}
@@ -416,25 +412,6 @@ export function CardCenter({
                   <MenuItem value="">全部产品</MenuItem>
                   {Array.from(new Map(state.cards.filter(c=>c.binProduct).map(c=>[c.binProduct!.id,c.binProduct!])).values()).map(p=><MenuItem key={p.id} value={p.id}>{p.name} · {p.binPrefix}</MenuItem>)}
                   {query.productId&&!state.cards.some(c=>c.binProduct?.id===query.productId)&&<MenuItem value={query.productId}>所选产品 · 暂无卡片</MenuItem>}
-                </TextField>
-                <TextField
-                  name="team"
-                  select
-                  label="归属子账户"
-                  defaultValue={query.team}
-                  sx={{ minWidth: { md: 180 } }}
-                >
-                  <MenuItem value="">全部子账户</MenuItem>
-                  {Array.from(
-                    new Set([
-                      ...state.teams,
-                      ...(query.team ? [query.team] : []),
-                    ]),
-                  ).map((t) => (
-                    <MenuItem value={t} key={t}>
-                      {t}
-                    </MenuItem>
-                  ))}
                 </TextField>
                 <Button
                   type="submit"
@@ -665,7 +642,6 @@ export function CardCenter({
                         卡片名称 / 尾号
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell>归属子账户</TableCell>
                     <TableCell>状态</TableCell>
                     <TableCell>平台 / 项目</TableCell>
                     <TableCell align="right">
@@ -746,7 +722,6 @@ export function CardCenter({
                           •••• {(c.last4||c.id.slice(-4))} · {c.binProduct?`BIN ${c.binProduct.binPrefix}`:"BIN未关联"}
                         </Typography>
                       </TableCell>
-                      <TableCell>{c.team}</TableCell>
                       <TableCell>
                         <CardBadge card={c} />
                       </TableCell>
@@ -791,7 +766,7 @@ export function CardCenter({
                   {!pagination.rows.length && (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={7}
                         sx={{ py: 7, textAlign: "center" }}
                       >
                         <Typography variant="subtitle1">
@@ -904,7 +879,6 @@ export function CardCenter({
                       {[
                         ["记录编号", record.id],
                         ["关联卡片", `${card.name} · ${(card.last4||card.id.slice(-4))}`],
-                        ["归属子账户", card.team],
                         ["发生时间", record.time],
                         ["业务类型", record.kind],
                         ["当前状态", record.status],
@@ -954,7 +928,7 @@ export function CardCenter({
                 <Box>
                   <Typography variant="h5">{card.name}</Typography>
                   <Typography color="text.secondary" variant="body2" mt={1}>
-                    •••• {(card.last4||card.id.slice(-4))} · {card.team} · USD
+                    •••• {(card.last4||card.id.slice(-4))} · USD
                   </Typography>
                   <Typography variant="body2" color="text.secondary" mt={1}>
                     {card.binProduct?`${card.binProduct.name} · BIN ${card.binProduct.binPrefix} · ${card.binProduct.network} · 开卡快照 v${card.binProduct.revision}`:"未关联卡BIN产品：缺少可靠来源信息"}

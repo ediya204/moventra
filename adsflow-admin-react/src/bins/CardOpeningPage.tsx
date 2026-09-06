@@ -6,7 +6,6 @@ import {
   Button,
   Chip,
   LinearProgress,
-  MenuItem,
   Paper,
   Radio,
   Stack,
@@ -236,7 +235,6 @@ export function CardOpeningPage({
                 const id = await onAction({
                   type: "open",
                   name: String(form.get("name") || ""),
-                  team: String(form.get("team") || ""),
                   productId: selected.id,
                   productRevision: selected.revision,
                 });
@@ -270,20 +268,6 @@ export function CardOpeningPage({
               helperText="例如：Meta 北美投放"
               disabled={busy}
             />
-            <TextField
-              label="所属子账户"
-              name="team"
-              select
-              defaultValue={state.teams[0]}
-              required
-              disabled={busy}
-            >
-              {state.teams.map((t) => (
-                <MenuItem key={t} value={t}>
-                  {t}
-                </MenuItem>
-              ))}
-            </TextField>
             <Typography variant="body2" color="text.secondary">
               确认时会重新检查产品状态和剩余名额。产品暂停后，已开的卡片及历史记录保持不变。
             </Typography>

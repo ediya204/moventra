@@ -500,7 +500,7 @@ function ProductForm({
                       max: 1000,
                       step: 1,
                     }}
-                    helperText={`已创建 ${data.issuedCount} 张，按产品累计，不按团队计算`}
+                    helperText={`已创建 ${data.issuedCount} 张，按产品累计`}
                   />
                   <Typography variant="body2" color="text.secondary">
                     草稿不展示；上架后可选；暂停后显示但不可开卡；归档后不可重新上架。

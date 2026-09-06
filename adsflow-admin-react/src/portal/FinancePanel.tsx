@@ -48,7 +48,6 @@ const sections = [
   ["deposit", "USDT 充值"],
   ["exchange", "兑换"],
   ["withdraw", "提现"],
-  ["transfer", "内部划拨"],
   ["addresses", "收款地址"],
   ["history", "资金流水"],
 ];
@@ -803,81 +802,6 @@ export function FinancePanel({
                 </Typography>
               </Stack>
             </Box>
-          </Paper>
-        </Box>
-      )}
-      {section === "transfer" && (
-        <Box sx={twoColumns}>
-          <Paper variant="outlined" sx={surface}>
-            <Typography variant="h6" mb={3}>
-              主账户与子账户划拨
-            </Typography>
-            <Box
-              component="form"
-              onSubmit={submit((d) =>
-                run(
-                  {
-                    type: "finance/transfer",
-                    team: String(d.get("team")),
-                    direction: String(d.get("direction")) as
-                      | "to-team"
-                      | "to-main",
-                    amount: parse(String(d.get("amount")), "USD"),
-                  },
-                  true,
-                ),
-              )}
-            >
-              <Stack gap={3}>
-                <TextField
-                  select
-                  name="direction"
-                  label="划拨方向"
-                  defaultValue="to-team"
-                >
-                  <MenuItem value="to-team">主账户 → 子账户</MenuItem>
-                  <MenuItem value="to-main">子账户 → 主账户</MenuItem>
-                </TextField>
-                <TextField
-                  select
-                  name="team"
-                  label="子账户"
-                  defaultValue={state.teams[0]}
-                >
-                  {state.teams.map((t) => (
-                    <MenuItem key={t} value={t}>
-                      {t}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  name="amount"
-                  label="划拨金额 · USD"
-                  required
-                  inputProps={{ inputMode: "decimal" }}
-                />
-                <Typography variant="body2" color="text.secondary">
-                  同币种划拨；演示手续费 0 USD。
-                </Typography>
-                <Button type="submit" variant="contained">
-                  确认演示划拨
-                </Button>
-              </Stack>
-            </Box>
-          </Paper>
-          <Paper variant="outlined" sx={surface}>
-            <Typography variant="h6" mb={2}>
-              可用余额
-            </Typography>
-            <Field label="主账户">{asset(state.balance)}</Field>
-            {state.teams.map((t) => (
-              <Field key={t} label={t}>
-                {asset(f.subBalances[t] || 0)}
-              </Field>
-            ))}
-            <Typography variant="caption" color="text.secondary">
-              子账户余额与其卡片余额分别核算，不包含在主账户可用余额中。
-            </Typography>
           </Paper>
         </Box>
       )}
