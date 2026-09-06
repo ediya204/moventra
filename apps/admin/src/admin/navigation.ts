@@ -19,14 +19,9 @@ export function navigationGroups(slash = false): NavGroup[] {
     {
       label: "客户与开户",
       icon: "solar:users-group-rounded-bold-duotone",
-      description: "从客户申请到分组与账户关系",
+      description: "个人客户开户、资料与账户管理",
       items: [
         item("用户与开户", "/user-groups/users", "user-plus-bold-duotone"),
-        item(
-          "用户组管理",
-          "/user-groups/groups",
-          "users-group-rounded-bold-duotone",
-        ),
         item("账户目录", "/customers", "hierarchy-2-bold-duotone"),
       ],
     },

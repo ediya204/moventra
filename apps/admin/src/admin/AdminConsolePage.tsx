@@ -116,13 +116,13 @@ const titles: Record<string, string> = {
 const actionNames: Record<string, string> = {
  "channel.create":"创建发卡渠道", "channel.update":"维护发卡渠道", "channel.import":"导入产品目录",
  "bin.create":"创建卡BIN产品", "bin.update":"维护卡BIN产品",
-  "group.create": "创建用户组",
+  "group.create": "创建费率方案",
   "user.opening": "提交开户",
   "opening.review": "开户审核",
   "fees.update": "调整费率",
   "status.update": "变更状态",
   "user.profile": "编辑用户",
-  "group.profile": "编辑分组",
+  "group.profile": "编辑费率方案",
   "password.reset_requested": "创建重置链接",
   "password.reset_completed": "完成密码重置",
   "settings.update": "更新后台设置",
@@ -135,6 +135,7 @@ function money(amount: number | undefined, currency: string) {
 }
 function logHref(row: Log) {
  if(row.targetType==="channels")return `/card-bins/channels/${encodeURIComponent(row.targetId)}`;
+ if(row.targetType==="groups")return `/pricing/plans/${encodeURIComponent(row.targetId)}?tab=fees`;
  if(row.targetType==="bins")return `/card-bins/${encodeURIComponent(row.targetId)}`;
   return row.targetType === "settings"
     ? "/system/settings"
@@ -382,11 +383,11 @@ function OverviewPage() {
             sub: "本地客户目录",
           },
           {
-            title: "用户组",
+            title: "费率方案",
             value: groups,
-            path: "/user-groups/groups",
+            path: "/pricing",
             icon: "folder-with-files",
-            sub: "统一维护商业分组",
+            sub: "统一维护客户费率方案",
           },
           {
             title: "专属费率用户",
@@ -627,7 +628,7 @@ function OverviewPage() {
           </Typography>
         )}
         <Typography variant="caption" color="text.secondary">
-          更新于 {time(d?.asOf)} · 用户目录与来源卡片尚未建立客户映射
+          更新于 {time(d?.asOf)} · 卡片所属用户读取内部数据库绑定；未绑定记录单独标注
         </Typography>
       </Box>
     </>
@@ -646,7 +647,7 @@ function ApprovalsPage() {
   const columns: GridColDef[] = [
     { field: "name", headerName: "申请用户", minWidth: 160, flex: 1 },
     { field: "email", headerName: "邮箱", minWidth: 220, flex: 1 },
-    { field: "groupName", headerName: "用户组", width: 140 },
+    { field: "groupName", headerName: "费率方案", width: 140 },
     {
       field: "status",
       headerName: "状态",
@@ -727,11 +728,12 @@ function PricingPage() {
     <>
       <PageHeader
         title="费率管理"
-        description="先确定组默认价格，再针对客户设置专属费率。"
+        description="先确定方案默认价格，再针对客户设置专属费率。"
         action={
-          <Button component={Link} to="/user-groups/users">
-            查找用户专属费率
-          </Button>
+          <Stack direction="row" gap={1}>
+            <Button component={Link} to="/pricing/plans" variant="contained">维护费率方案</Button>
+            <Button component={Link} to="/user-groups/users">查找用户专属费率</Button>
+          </Stack>
         }
       />
       <Paper variant="outlined" sx={{ p: 3 }}>
@@ -740,7 +742,7 @@ function PricingPage() {
           spacing={2}
           divider={<Divider orientation="vertical" flexItem />}
         >
-          {["01  用户专属配置", "02  所属组默认费率", "03  系统演示默认"].map(
+          {["01  用户专属配置", "02  所选方案默认费率", "03  系统演示默认"].map(
             (v) => (
               <Typography key={v} variant="subtitle2">
                 {v}
@@ -763,7 +765,7 @@ function PricingPage() {
         }}
       >
         <TextField
-          label="搜索用户组"
+          label="搜索费率方案"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           fullWidth
@@ -778,7 +780,7 @@ function PricingPage() {
         page={page}
         change={(p) => change({ page: String(p) })}
         columns={[
-          { field: "name", headerName: "用户组", flex: 1, minWidth: 180 },
+          { field: "name", headerName: "费率方案", flex: 1, minWidth: 180 },
           { field: "description", headerName: "说明", flex: 1, minWidth: 200 },
           { field: "memberCount", headerName: "客户数", width: 110 },
           {
@@ -788,7 +790,7 @@ function PricingPage() {
             renderCell: (p) => <State value={p.value} />,
           },
         ]}
-        href={(r) => `/user-groups/groups/${r.id}?tab=fees`}
+        href={(r) => `/pricing/plans/${r.id}?tab=fees`}
       />
       <Alert severity="info">
         本地费率配置支持后端试算，尚未应用于已有资金订单或真实扣费。

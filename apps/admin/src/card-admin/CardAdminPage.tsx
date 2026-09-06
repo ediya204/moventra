@@ -1,3 +1,4 @@
+import {fieldLabels as F,utcTime} from '../components/cardTransactionFields';
 import {isSlashDemoMode} from "../../../../packages/shared/src/utils/dataMode";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
@@ -27,7 +28,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { DataGrid, GridToolbarColumnsButton, type GridColDef } from "@mui/x-data-grid";
 import { zhCN } from "@mui/x-data-grid/locales";
 import { Icon } from "@iconify/react";
 import { get, post, exactUnits } from "../../../../packages/shared/src/management/api";
@@ -148,8 +149,7 @@ const money = (v?: string | null) => {
     a = n < 0n ? -n : n;
   return `USD ${n < 0n ? "-" : ""}${a / 100n}.${String(a % 100n).padStart(2, "0")}`;
 };
-const time = (s?: string | null) =>
-  s ? new Date(s).toLocaleString("zh-CN", { hour12: false }) : "—";
+const time = utcTime;
 function Status({ value }: { value: string }) {
   return (
     <Chip
@@ -254,7 +254,8 @@ function GridRows({
       rowCount={total}
       paginationMode="server"
       sortingMode="server"
-      disableColumnMenu
+      disableColumnSorting
+      slots={{toolbar:()=> <Stack direction="row" alignItems="center" gap={2} sx={{p:1}}><GridToolbarColumnsButton/><Typography variant="caption" color="text.secondary">时间统一 UTC · 缺失值显示 —</Typography></Stack>}}
       paginationModel={{ page, pageSize: 10 }}
       pageSizeOptions={[10]}
       onPaginationModelChange={(p) => onPage(p.page)}
@@ -263,6 +264,7 @@ function GridRows({
       }}
       sx={{
         border: 0,
+        "& .MuiDataGrid-cell": {fontVariantNumeric:"tabular-nums"},
         "& .MuiDataGrid-row": { cursor: href ? "pointer" : "default" },
       }}
     />
@@ -333,10 +335,10 @@ function Workspace() {
         </TextField>
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}
-      <Tabs value={operation ? "operations" : "cards"}>
-        <Tab label="卡片目录" value="cards" component={Link} to="/cards?source=demo" />
+      <Tabs aria-label="卡片管理导航" value={operation ? "operations" : "cards"}>
+        <Tab label="卡片列表" value="cards" component={Link} to="/cards?source=demo" />
         <Tab
-          label="卡操作审批"
+          label="操作审批"
           value="operations"
           component={Link}
           to="/card-operations"
@@ -364,31 +366,19 @@ function CardList() {
     page = Number(p.get("page") || 0),
     s = useData<Page<Card>>(`cards?${p}`);
   const cols: GridColDef[] = [
-    {
-      field: "name",
-      headerName: "卡片 / 客户",
-      flex: 1,
-      minWidth: 230,
-      renderCell: (x) => (
-        <Stack justifyContent="center" height="100%">
-          <Typography variant="body2">
-            {x.row.name} · {x.row.last4 || "—"}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {x.row.owner_id}
-          </Typography>
-        </Stack>
-      ),
-    },
+    {field:"name",headerName:F.cardName,minWidth:180,flex:1,valueFormatter:(v:string)=>v||'—'},
+    {field:"last4",headerName:F.last4,width:130,valueFormatter:(v:string)=>v?`•••• ${v}`:'—'},
+    {field:"owner_id",headerName:"所属客户",width:190,valueFormatter:(v:string)=>v||'—'},
     {
       field: "status",
-      headerName: "当前状态",
+      headerName: F.cardStatus,
       width: 130,
       renderCell: (x) => <Status value={x.value} />,
     },
     {
       field: "balance",
-      headerName: "可扣资金",
+      headerName: "可用资金 · USD",
+      description: "内部卡分户账本可用资金；不是渠道消费限额", align:"right", headerAlign:"right",
       width: 155,
       valueGetter: (_, r) => money(r.balance?.availableMinor),
     },
@@ -456,13 +446,13 @@ const operationColumns: GridColDef[] = [
   { field: "id", headerName: "操作单号", minWidth: 230, flex: 1 },
   {
     field: "kind",
-    headerName: "操作",
+    headerName: "操作类型",
     width: 135,
     valueGetter: (_, r) => kinds[r.kind] || r.kind,
   },
   {
     field: "amount_minor",
-    headerName: "金额",
+    headerName: "操作金额", align:"right", headerAlign:"right",
     width: 140,
     valueGetter: (_, r) => money(r.amount_minor),
   },

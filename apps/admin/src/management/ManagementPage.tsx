@@ -1,6 +1,8 @@
+import { legacyFeePlanRedirect, managementDetailPath } from "./routes";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   Link,
+  Navigate,
   useLocation,
   useNavigate,
   useSearchParams,
@@ -68,6 +70,9 @@ function Status({ status }: { status: string }) {
   );
 }
 export default function ManagementPage() {
+  const location = useLocation();
+  const redirect = legacyFeePlanRedirect(location.pathname, location.search);
+  if (redirect) return <Navigate to={redirect} replace />;
   return (
     <ManagementAccess>
       <ManagementWorkspace />
@@ -76,7 +81,7 @@ export default function ManagementPage() {
 }
 export function ManagementAccess({
   children,
-  title = "用户组管理",
+  title = "客户管理",
 }: {
   children: ReactNode;
   title?: string;
@@ -111,7 +116,7 @@ export function ManagementAccess({
   if (!local)
     return (
       <Alert severity="info">
-        用户组管理当前仅在本地隔离Demo环境启用，尚未连接生产管理接口。
+        客户管理当前仅在本地隔离Demo环境启用，尚未连接生产管理接口。
       </Alert>
     );
   if (checking) return <CircularProgress />;
@@ -120,7 +125,7 @@ export function ManagementAccess({
       <Stack gap={3}>
         <PageHeader
           title={title}
-          description="管理客户分组、开户、费率与安全操作"
+          description="管理个人客户开户、费率与安全操作"
         />
         <Paper variant="outlined" sx={{ p: 4, maxWidth: 640 }}>
           <Stack gap={2}>
@@ -159,7 +164,7 @@ function ManagementWorkspace() {
   const location = useLocation(),
     navigate = useNavigate();
   const parts = location.pathname.split("/");
-  const resource = parts[2] || "groups",
+  const resource = parts[1] === "pricing" ? "groups" : parts[2] || "users",
     id = parts[3];
   return (
     <Stack gap={3}>
@@ -178,25 +183,18 @@ function ManagementWorkspace() {
       ) : (
         <>
           <PageHeader
-            title="用户组管理"
-            description="以用户组统一定价，按用户处理开户与专属配置"
+            title={resource === "users" ? "用户与开户" : "费率方案"}
+            description={resource === "users" ? "管理个人客户开户、资料与专属费率" : "维护个人客户可选的费率方案与默认价格"}
             action={
               <Button
                 variant="contained"
-                startIcon={<Icon icon="solar:user-plus-linear" />}
-                onClick={() => navigate("/user-groups/new-user")}
+                startIcon={<Icon icon={resource === "users" ? "solar:user-plus-linear" : "solar:arrow-left-linear"} />}
+                onClick={() => navigate(resource === "users" ? "/user-groups/new-user" : "/pricing")}
               >
-                新增用户并开户
+                {resource === "users" ? "新增用户并开户" : "返回费率管理"}
               </Button>
             }
           />
-          <Tabs
-            value={resource === "users" ? "users" : "groups"}
-            onChange={(_, v) => navigate(`/user-groups/${v}`)}
-          >
-            <Tab value="groups" label="用户组" />
-            <Tab value="users" label="用户与开户" />
-          </Tabs>
           <Directory
             key={resource}
             resource={resource === "users" ? "users" : "groups"}
@@ -255,7 +253,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
   const columns: GridColDef[] = [
     {
       field: "name",
-      headerName: resource === "users" ? "用户" : "用户组",
+      headerName: resource === "users" ? "用户" : "费率方案",
       minWidth: 180,
       flex: 1,
     },
@@ -266,7 +264,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
       flex: 1,
     },
     ...(resource === "users"
-      ? [{ field: "groupName", headerName: "所属用户组", width: 160 }]
+      ? [{ field: "groupName", headerName: "费率方案", width: 160 }]
       : [{ field: "memberCount", headerName: "客户数", width: 100 }]),
     {
       field: "status",
@@ -280,7 +278,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
       headerName: "操作",
       width: 100,
       renderCell: (p) => (
-        <Button component={Link} to={`/user-groups/${resource}/${p.id}`}>
+        <Button component={Link} to={managementDetailPath(resource, String(p.id))}>
           详情
         </Button>
       ),
@@ -299,7 +297,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
       >
         <TextField
           label={
-            resource === "users" ? "搜索姓名、邮箱或用户编号" : "搜索用户组"
+            resource === "users" ? "搜索姓名、邮箱或用户编号" : "搜索费率方案"
           }
           size="small"
           value={keyword}
@@ -336,7 +334,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
         </Button>
         {resource === "groups" && (
           <Button variant="outlined" onClick={() => setCreate(true)}>
-            新建用户组
+            新建费率方案
           </Button>
         )}
       </Stack>
@@ -358,7 +356,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
           sx={{ "& .MuiDataGrid-row": { cursor: "pointer" } }}
           onRowClick={(r, e) => {
             if (!ignoresRowAction(e))
-              navigate(`/user-groups/${resource}/${r.id}`);
+              navigate(managementDetailPath(resource, String(r.id)));
           }}
         />
       </Paper>
@@ -381,7 +379,7 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
               });
               setCreate(false);
               setReload((v) => v + 1);
-              navigate(`/user-groups/groups/${result.id}`);
+              navigate(managementDetailPath("groups", result.id));
             } catch (e) {
               setError((e as Error).message);
               setCreate(false);
@@ -390,12 +388,12 @@ function Directory({ resource }: { resource: "groups" | "users" }) {
             }
           }}
         >
-          <DialogTitle>新建用户组</DialogTitle>
+          <DialogTitle>新建费率方案</DialogTitle>
           <DialogContent>
             <Stack gap={2} pt={1}>
               <TextField
                 name="name"
-                label="用户组名称"
+                label="费率方案名称"
                 required
                 inputProps={{ maxLength: 60 }}
               />
@@ -479,13 +477,13 @@ function NewUser() {
             />
             <TextField
               name="groupId"
-              label="所属用户组"
+              label="费率方案"
               select
               required
               defaultValue=""
             >
               <MenuItem value="" disabled>
-                请选择用户组
+                请选择费率方案
               </MenuItem>
               {groups.map((g) => (
                 <MenuItem value={g.id} key={g.id}>
@@ -527,7 +525,7 @@ function OwnerDetail({
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [tab, setTab] = useState(
-      detailParams.get("tab") === "fees" ? "fees" : "overview",
+      detailParams.get("tab") === "fees" || resource === "groups" ? "fees" : "overview",
     ),
     [operation, setOperation] = useState(""),
     [busy, setBusy] = useState(false),
@@ -574,8 +572,8 @@ function OwnerDetail({
         title={data.name}
         breadcrumbs={[
           {
-            label: isUser ? "用户与开户" : "用户组",
-            to: `/user-groups/${resource}`,
+            label: isUser ? "用户与开户" : "费率方案",
+            to: isUser ? "/user-groups/users" : "/pricing",
           },
           { label: "详情" },
         ]}
@@ -598,8 +596,8 @@ function OwnerDetail({
         </Alert>
       )}
       <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-        <Tab value="overview" label={isUser ? "用户资料与开户" : "分组资料"} />
-        <Tab value="fees" label={isUser ? "用户专属费率" : "组默认费率"} />
+        <Tab value="overview" label={isUser ? "用户资料与开户" : "方案资料"} />
+        <Tab value="fees" label={isUser ? "用户专属费率" : "方案默认费率"} />
         <Tab value="audit" label="操作记录" />
       </Tabs>
       {tab === "overview" && (
@@ -621,7 +619,7 @@ function OwnerDetail({
               {isUser && (
                 <Box>
                   <Typography variant="caption" color="text.secondary">
-                    所属用户组
+                    费率方案
                   </Typography>
                   <Typography>{data.groupName}</Typography>
                 </Box>
@@ -695,7 +693,7 @@ function OwnerDetail({
                     }
                   >
                     {data.status === "active" ? "停用" : "启用"}
-                    {isUser ? "用户" : "用户组"}
+                    {isUser ? "用户" : "费率方案"}
                   </Button>
                 )
               )}
@@ -872,7 +870,7 @@ function ActionDialog({
                     <TextField
                       name="groupId"
                       select
-                      label="所属用户组"
+                      label="费率方案"
                       defaultValue={data.group_id || ""}
                       required
                     >
@@ -883,7 +881,7 @@ function ActionDialog({
                       ))}
                     </TextField>
                     <Typography variant="body2" color="text.secondary">
-                      调整分组后，继承项目采用新组费率；用户专属配置保持不变。
+                      调整方案后，继承项目采用新方案费率；用户专属配置保持不变。
                     </Typography>
                   </>
                 ) : (
@@ -977,8 +975,8 @@ function FeeEditor({
     <Stack gap={2}>
       <Typography color="text.secondary">
         {userId
-          ? "默认继承所属组的费率，关闭继承后可为该用户单独定价。"
-          : "组费率应用于未设置专属费率的客户；勾选默认时使用系统演示值。"}{" "}
+          ? "默认继承所选方案的费率，关闭继承后可为该用户单独定价。"
+          : "方案费率应用于未设置专属费率的客户；勾选默认时使用系统演示值。"}{" "}
         百分比与固定费相加，百分比费用向上取整至最小单位。
       </Typography>
       {error && <Alert severity="error">{error}</Alert>}
@@ -988,7 +986,7 @@ function FeeEditor({
             <TableHead>
               <TableRow>
                 <TableCell>业务</TableCell>
-                <TableCell>{userId ? "继承组费率" : "使用默认"}</TableCell>
+                <TableCell>{userId ? "继承方案费率" : "使用默认"}</TableCell>
                 <TableCell>费率 %</TableCell>
                 <TableCell>固定费</TableCell>
                 <TableCell>币种</TableCell>
@@ -1129,7 +1127,7 @@ function FeeEditor({
               {preview.source === "user"
                 ? "用户专属"
                 : preview.source === "group"
-                  ? "所属用户组"
+                  ? "费率方案"
                   : "系统默认"}
               。试算不会扣费。
             </Alert>

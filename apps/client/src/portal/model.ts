@@ -275,6 +275,22 @@ export const FINANCE_POLICY = {
   withdrawalFee: 2_000000,
   quoteMs: 60000,
 } as const;
+// Legacy Portal Demo policy, independent from the finance workbench's configurable fixed price.
+export const PORTAL_QUOTE_POLICY = {
+  feeBps: 50,
+  source: 'portal-legacy-demo-v1',
+  rates: { USDT: { rate: '0.997', numerator: 997n }, USD: { rate: '1.001', numerator: 1001n } },
+  denominator: 1000n,
+} as const;
+export function demoQuoteMath(total: bigint, from: Currency) {
+  const fee = (total * BigInt(PORTAL_QUOTE_POLICY.feeBps) + 9999n) / 10000n;
+  const net = total - fee;
+  const sourceScale = from === 'USDT' ? 1000000n : 100n;
+  const targetScale = from === 'USDT' ? 100n : 1000000n;
+  const receive = net * PORTAL_QUOTE_POLICY.rates[from].numerator * targetScale
+    / (PORTAL_QUOTE_POLICY.denominator * sourceScale);
+  return { fee, receive };
+}
 export type Address = {
   id: string;
   label: string;
@@ -291,6 +307,9 @@ export type Quote = {
   receive: number;
   expires: number;
   used: boolean;
+  rate?: string;
+  feeBps?: number;
+  rateSource?: string;
 };
 export type Order = {
   id: string;
@@ -464,16 +483,14 @@ export function financeTransition(
     case "finance/quote": {
       positive(action.amount);
       if (!Number.isFinite(action.now)) throw new Error("报价时间无效。");
-      const fee = Number((BigInt(action.amount) * 5n + 999n) / 1000n); // 0.5%, rounded upward in source minor units.
-      const net = BigInt(action.amount - fee);
-      const receive = Number(
-        action.from === "USDT"
-          ? (net * 997n * 100n) / (1000n * 1000000n)
-          : (net * 1001n * 1000000n) / (1000n * 100n),
-      );
+      const calculated = demoQuoteMath(BigInt(action.amount), action.from);
+      const fee = Number(calculated.fee), receive = Number(calculated.receive);
       positive(receive);
       checked(receive);
       f.quotes.unshift({
+        rate: PORTAL_QUOTE_POLICY.rates[action.from].rate,
+        feeBps: PORTAL_QUOTE_POLICY.feeBps,
+        rateSource: PORTAL_QUOTE_POLICY.source,
         id,
         from: action.from,
         to: action.from === "USD" ? "USDT" : "USD",

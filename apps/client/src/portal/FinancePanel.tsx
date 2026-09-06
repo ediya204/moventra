@@ -553,10 +553,10 @@ export function FinancePanel({
               <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}><Typography variant="h6">兑换明细</Typography><Chip size="small" variant="outlined" label={quoteValid?'报价有效':quote?'报价失效':'待获取报价'} color={quoteValid?'success':'default'}/></Stack>
               <Field label="兑换方向">{from} → {to}</Field>
               <Field label="支付金额">{quote?asset(quote.amount,quote.from):'—'}</Field>
-              <Field label="其中手续费 · 0.5%">{quote?asset(quote.fee,quote.from):'—'}</Field>
+              <Field label={quote?.feeBps==null?"其中手续费":`其中手续费 · ${quote.feeBps/100}%`}>{quote?asset(quote.fee,quote.from):'—'}</Field>
               <Field label="用于兑换的净额">{quote?asset(quote.amount-quote.fee,quote.from):'—'}</Field>
               <Divider sx={{my:2}}/>
-              <Field label="演示汇率">{quote?`1 ${quote.from} = ${quote.from==='USDT'?'0.997 USD':'1.001 USDT'}`:'获取报价后显示'}</Field>
+              <Field label="演示汇率">{quote?.rate?`1 ${quote.from} = ${quote.rate} ${quote.to}`:quote?'旧报价未提供汇率':'获取报价后显示'}</Field>
               <Field label="预计获得"><Typography component="span" variant="subtitle1" color={quoteValid?'primary.main':'text.secondary'}>{quote?asset(quote.receive,quote.to):'—'}</Typography></Field>
               <Typography variant="caption" color="text.secondary" display="block" mt={2}>手续费从原始资产中扣除，不另外收取。</Typography>
             </Paper>

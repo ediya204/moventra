@@ -1,0 +1,8206 @@
+{
+  "at": "2026-09-06T19:33:45.581Z",
+  "environment": "fresh-in-memory-local-only",
+  "upstreamCalls": 0,
+  "requests": 60,
+  "failed": 0,
+  "results": [
+    {
+      "path": "health",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "mode": [
+          "string"
+        ],
+        "namespace": [
+          "string"
+        ],
+        "local": [
+          "boolean"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "summary",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "totals": [
+          "array"
+        ],
+        "totals[]": [
+          "object"
+        ],
+        "totals[].currency": [
+          "string"
+        ],
+        "totals[].account_subtype": [
+          "string"
+        ],
+        "totals[].postedNetCents": [
+          "number"
+        ],
+        "totals[].postedDebitCents": [
+          "number"
+        ],
+        "totals[].postedCreditCents": [
+          "number"
+        ],
+        "totals[].holdCents": [
+          "number"
+        ],
+        "totals[].count": [
+          "number"
+        ],
+        "monthly": [
+          "array"
+        ],
+        "monthly[]": [
+          "object"
+        ],
+        "monthly[].month": [
+          "string"
+        ],
+        "monthly[].currency": [
+          "string"
+        ],
+        "monthly[].account_subtype": [
+          "string"
+        ],
+        "monthly[].netCents": [
+          "number"
+        ],
+        "adjustments": [
+          "array"
+        ],
+        "adjustments[]": [
+          "object"
+        ],
+        "adjustments[].month": [
+          "string"
+        ],
+        "adjustments[].amountCents": [
+          "number"
+        ],
+        "counts": [
+          "object"
+        ],
+        "counts.scenarios": [
+          "number"
+        ],
+        "counts.source_records": [
+          "number"
+        ],
+        "counts.source_versions": [
+          "number"
+        ],
+        "counts.source_events": [
+          "number"
+        ],
+        "counts.event_deliveries": [
+          "number"
+        ],
+        "counts.internal_relations": [
+          "number"
+        ],
+        "counts.internal_adjustments": [
+          "number"
+        ],
+        "counts.balance_snapshots": [
+          "number"
+        ],
+        "asOf": [
+          "string"
+        ],
+        "timeBasis": [
+          "string"
+        ],
+        "balances": [
+          "array"
+        ],
+        "balances[]": [
+          "object"
+        ],
+        "balances[].id": [
+          "string"
+        ],
+        "balances[].kind": [
+          "string"
+        ],
+        "balances[].source": [
+          "object"
+        ],
+        "balances[].source.accountId": [
+          "string"
+        ],
+        "balances[].source.type": [
+          "string"
+        ],
+        "balances[].source.timestamp": [
+          "string"
+        ],
+        "balances[].source.available": [
+          "object"
+        ],
+        "balances[].source.available.amountCents": [
+          "number"
+        ],
+        "balances[].source.posted": [
+          "object"
+        ],
+        "balances[].source.posted.amountCents": [
+          "number"
+        ],
+        "balances[].internal": [
+          "object"
+        ],
+        "balances[].internal.customerId": [
+          "string"
+        ],
+        "balances[].internal.customerName": [
+          "string"
+        ],
+        "balances[].internal.email": [
+          "string"
+        ],
+        "balances[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "balances[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "balances[].internal.syncError": [
+          "null"
+        ],
+        "balances[].internal.matchingStatus": [
+          "string"
+        ],
+        "balances[].internal.assumption": [
+          "string"
+        ],
+        "balances[].internal.currency": [
+          "string"
+        ],
+        "balances[].internal.platform": [
+          "string"
+        ],
+        "balances[].internal.entityId": [
+          "string"
+        ],
+        "balances[].internal.scenarioId": [
+          "string"
+        ],
+        "balances[].internal.version": [
+          "number"
+        ],
+        "balances[].internal.namespace": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "scenarios",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].namespace": [
+          "string"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].title": [
+          "string"
+        ],
+        "rows[].description": [
+          "string"
+        ],
+        "rows[].expected_net_cents": [
+          "number"
+        ],
+        "rows[].expected_hold_cents": [
+          "number"
+        ],
+        "rows[].confirmation": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "accounts",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.status": [
+          "string"
+        ],
+        "rows[].source.name": [
+          "string"
+        ],
+        "rows[].source.createdAt": [
+          "string"
+        ],
+        "rows[].source.type": [
+          "string"
+        ],
+        "rows[].source.balances": [
+          "array"
+        ],
+        "rows[].source.balances[]": [
+          "string"
+        ],
+        "rows[].internal": [
+          "object"
+        ],
+        "rows[].internal.customerId": [
+          "string"
+        ],
+        "rows[].internal.customerName": [
+          "string"
+        ],
+        "rows[].internal.email": [
+          "string"
+        ],
+        "rows[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "rows[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "rows[].internal.syncError": [
+          "null"
+        ],
+        "rows[].internal.matchingStatus": [
+          "string"
+        ],
+        "rows[].internal.assumption": [
+          "string"
+        ],
+        "rows[].internal.openingBalanceCents": [
+          "number"
+        ],
+        "rows[].internal.currency": [
+          "string"
+        ],
+        "rows[].internal.platform": [
+          "string"
+        ],
+        "rows[].internal.entityId": [
+          "string"
+        ],
+        "rows[].internal.scenarioId": [
+          "string"
+        ],
+        "rows[].internal.version": [
+          "number"
+        ],
+        "rows[].internal.namespace": [
+          "string"
+        ],
+        "rows[].balances": [
+          "array"
+        ],
+        "rows[].balances[]": [
+          "object"
+        ],
+        "rows[].balances[].id": [
+          "string"
+        ],
+        "rows[].balances[].kind": [
+          "string"
+        ],
+        "rows[].balances[].source": [
+          "object"
+        ],
+        "rows[].balances[].source.accountId": [
+          "string"
+        ],
+        "rows[].balances[].source.type": [
+          "string"
+        ],
+        "rows[].balances[].source.timestamp": [
+          "string"
+        ],
+        "rows[].balances[].source.available": [
+          "object"
+        ],
+        "rows[].balances[].source.available.amountCents": [
+          "number"
+        ],
+        "rows[].balances[].source.posted": [
+          "object"
+        ],
+        "rows[].balances[].source.posted.amountCents": [
+          "number"
+        ],
+        "rows[].balances[].internal": [
+          "object"
+        ],
+        "rows[].balances[].internal.customerId": [
+          "string"
+        ],
+        "rows[].balances[].internal.customerName": [
+          "string"
+        ],
+        "rows[].balances[].internal.email": [
+          "string"
+        ],
+        "rows[].balances[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "rows[].balances[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "rows[].balances[].internal.syncError": [
+          "null"
+        ],
+        "rows[].balances[].internal.matchingStatus": [
+          "string"
+        ],
+        "rows[].balances[].internal.assumption": [
+          "string"
+        ],
+        "rows[].balances[].internal.currency": [
+          "string"
+        ],
+        "rows[].balances[].internal.platform": [
+          "string"
+        ],
+        "rows[].balances[].internal.entityId": [
+          "string"
+        ],
+        "rows[].balances[].internal.scenarioId": [
+          "string"
+        ],
+        "rows[].balances[].internal.version": [
+          "number"
+        ],
+        "rows[].balances[].internal.namespace": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "cards",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.accountId": [
+          "string"
+        ],
+        "rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "rows[].source.last4": [
+          "string"
+        ],
+        "rows[].source.name": [
+          "string"
+        ],
+        "rows[].source.expiryMonth": [
+          "string"
+        ],
+        "rows[].source.expiryYear": [
+          "string"
+        ],
+        "rows[].source.status": [
+          "string"
+        ],
+        "rows[].source.isPhysical": [
+          "boolean"
+        ],
+        "rows[].source.isSingleUse": [
+          "boolean"
+        ],
+        "rows[].source.cardGroupId": [
+          "string"
+        ],
+        "rows[].source.cardGroupName": [
+          "string"
+        ],
+        "rows[].source.createdAt": [
+          "string"
+        ],
+        "rows[].source.cardProductId": [
+          "string"
+        ],
+        "rows[].source.spendingConstraint": [
+          "object"
+        ],
+        "rows[].source.spendingConstraint.spendingRule": [
+          "object"
+        ],
+        "rows[].source.spendingConstraint.spendingRule.utilizationLimitV2": [
+          "array"
+        ],
+        "rows[].source.spendingConstraint.spendingRule.utilizationLimitV2[]": [
+          "object"
+        ],
+        "rows[].source.spendingConstraint.spendingRule.utilizationLimitV2[].preset": [
+          "string"
+        ],
+        "rows[].source.spendingConstraint.spendingRule.utilizationLimitV2[].timezone": [
+          "string"
+        ],
+        "rows[].source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount": [
+          "object"
+        ],
+        "rows[].source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount.amountCents": [
+          "number"
+        ],
+        "rows[].internal": [
+          "object"
+        ],
+        "rows[].internal.customerId": [
+          "string"
+        ],
+        "rows[].internal.customerName": [
+          "string"
+        ],
+        "rows[].internal.email": [
+          "string"
+        ],
+        "rows[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "rows[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "rows[].internal.syncError": [
+          "null"
+        ],
+        "rows[].internal.matchingStatus": [
+          "string"
+        ],
+        "rows[].internal.assumption": [
+          "string"
+        ],
+        "rows[].internal.platform": [
+          "string"
+        ],
+        "rows[].internal.entityId": [
+          "string"
+        ],
+        "rows[].internal.scenarioId": [
+          "string"
+        ],
+        "rows[].internal.version": [
+          "number"
+        ],
+        "rows[].internal.namespace": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "transactions",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.date": [
+          "string"
+        ],
+        "rows[].source.description": [
+          "string"
+        ],
+        "rows[].source.memo": [
+          "string"
+        ],
+        "rows[].source.amountCents": [
+          "number"
+        ],
+        "rows[].source.status": [
+          "string"
+        ],
+        "rows[].source.detailedStatus": [
+          "string"
+        ],
+        "rows[].source.accountId": [
+          "string"
+        ],
+        "rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "rows[].source.accountSubtype": [
+          "string"
+        ],
+        "rows[].source.cardId": [
+          "string"
+        ],
+        "rows[].source.orderId": [
+          "string"
+        ],
+        "rows[].source.referenceNumber": [
+          "string"
+        ],
+        "rows[].source.authorizedAt": [
+          "string"
+        ],
+        "rows[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "rows[].source.merchantData": [
+          "object"
+        ],
+        "rows[].source.merchantData.description": [
+          "string"
+        ],
+        "rows[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "rows[].source.merchantData.location": [
+          "object"
+        ],
+        "rows[].source.merchantData.location.city": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.state": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.country": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "rows[].internal": [
+          "object"
+        ],
+        "rows[].internal.customerId": [
+          "string"
+        ],
+        "rows[].internal.customerName": [
+          "string"
+        ],
+        "rows[].internal.email": [
+          "string"
+        ],
+        "rows[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "rows[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "rows[].internal.syncError": [
+          "null"
+        ],
+        "rows[].internal.matchingStatus": [
+          "string"
+        ],
+        "rows[].internal.assumption": [
+          "string"
+        ],
+        "rows[].internal.platform": [
+          "string"
+        ],
+        "rows[].internal.entityId": [
+          "string"
+        ],
+        "rows[].internal.scenarioId": [
+          "string"
+        ],
+        "rows[].internal.version": [
+          "number"
+        ],
+        "rows[].internal.namespace": [
+          "string"
+        ],
+        "rows[].currency": [
+          "string"
+        ],
+        "rows[].amount": [
+          "string"
+        ],
+        "rows[].direction": [
+          "string"
+        ],
+        "rows[].statusLabel": [
+          "string"
+        ],
+        "rows[].detailedStatusLabel": [
+          "string"
+        ],
+        "rows[].dateMeaning": [
+          "string"
+        ],
+        "rows[].postedAt": [
+          "string",
+          "null"
+        ],
+        "rows[].source.declineReason": [
+          "string"
+        ],
+        "rows[].source.originalCurrency": [
+          "object"
+        ],
+        "rows[].source.originalCurrency.code": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.amountCents": [
+          "number"
+        ],
+        "rows[].source.originalCurrency.conversionRate": [
+          "number"
+        ],
+        "rows[].source.fxFeeInfo": [
+          "object"
+        ],
+        "rows[].source.fxFeeInfo.amountCents": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "virtual-accounts",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.name": [
+          "string"
+        ],
+        "rows[].source.accountId": [
+          "string"
+        ],
+        "rows[].source.accountType": [
+          "string"
+        ],
+        "rows[].internal": [
+          "object"
+        ],
+        "rows[].internal.customerId": [
+          "string"
+        ],
+        "rows[].internal.customerName": [
+          "string"
+        ],
+        "rows[].internal.email": [
+          "string"
+        ],
+        "rows[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "rows[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "rows[].internal.syncError": [
+          "null"
+        ],
+        "rows[].internal.matchingStatus": [
+          "string"
+        ],
+        "rows[].internal.assumption": [
+          "string"
+        ],
+        "rows[].internal.platform": [
+          "string"
+        ],
+        "rows[].internal.entityId": [
+          "string"
+        ],
+        "rows[].internal.scenarioId": [
+          "string"
+        ],
+        "rows[].internal.version": [
+          "number"
+        ],
+        "rows[].internal.namespace": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "portal/state",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "balance": [
+          "number"
+        ],
+        "finance": [
+          "object"
+        ],
+        "finance.usdt": [
+          "number"
+        ],
+        "finance.heldUsdt": [
+          "number"
+        ],
+        "finance.heldUsd": [
+          "number"
+        ],
+        "finance.addresses": [
+          "array"
+        ],
+        "finance.addresses[]": [
+          "object"
+        ],
+        "finance.addresses[].id": [
+          "string"
+        ],
+        "finance.addresses[].label": [
+          "string"
+        ],
+        "finance.addresses[].address": [
+          "string"
+        ],
+        "finance.addresses[].network": [
+          "string"
+        ],
+        "finance.addresses[].enabled": [
+          "boolean"
+        ],
+        "finance.orders": [
+          "array"
+        ],
+        "finance.orders[]": [
+          "object"
+        ],
+        "finance.orders[].kind": [
+          "string"
+        ],
+        "finance.orders[].currency": [
+          "string"
+        ],
+        "finance.orders[].toCurrency": [
+          "string"
+        ],
+        "finance.orders[].amount": [
+          "number"
+        ],
+        "finance.orders[].fee": [
+          "number"
+        ],
+        "finance.orders[].receive": [
+          "number"
+        ],
+        "finance.orders[].status": [
+          "string"
+        ],
+        "finance.orders[].address": [
+          "string"
+        ],
+        "finance.orders[].network": [
+          "string"
+        ],
+        "finance.orders[].target": [
+          "string"
+        ],
+        "finance.orders[].id": [
+          "string"
+        ],
+        "finance.orders[].created": [
+          "string"
+        ],
+        "finance.orders[].history": [
+          "array"
+        ],
+        "finance.orders[].history[]": [
+          "object"
+        ],
+        "finance.orders[].history[].time": [
+          "string"
+        ],
+        "finance.orders[].history[].text": [
+          "string"
+        ],
+        "finance.orders[].cardId": [
+          "string"
+        ],
+        "finance.orders[].tx": [
+          "string"
+        ],
+        "finance.quotes": [
+          "array"
+        ],
+        "finance.events": [
+          "array"
+        ],
+        "finance.events[]": [
+          "string"
+        ],
+        "finance.subBalances": [
+          "object"
+        ],
+        "finance.legacyRestrictedUsd": [
+          "number"
+        ],
+        "cards": [
+          "array"
+        ],
+        "cards[]": [
+          "object"
+        ],
+        "cards[].id": [
+          "string"
+        ],
+        "cards[].name": [
+          "string"
+        ],
+        "cards[].platform": [
+          "string"
+        ],
+        "cards[].project": [
+          "string"
+        ],
+        "cards[].createdAt": [
+          "string"
+        ],
+        "cards[].balance": [
+          "number"
+        ],
+        "cards[].frozen": [
+          "boolean"
+        ],
+        "cards[].riskFrozen": [
+          "boolean"
+        ],
+        "cards[].balanceKind": [
+          "string"
+        ],
+        "cards[].last4": [
+          "string"
+        ],
+        "cards[].slash": [
+          "object"
+        ],
+        "cards[].slash.id": [
+          "string"
+        ],
+        "cards[].slash.kind": [
+          "string"
+        ],
+        "cards[].slash.source": [
+          "object"
+        ],
+        "cards[].slash.source.id": [
+          "string"
+        ],
+        "cards[].slash.source.accountId": [
+          "string"
+        ],
+        "cards[].slash.source.virtualAccountId": [
+          "string"
+        ],
+        "cards[].slash.source.last4": [
+          "string"
+        ],
+        "cards[].slash.source.name": [
+          "string"
+        ],
+        "cards[].slash.source.expiryMonth": [
+          "string"
+        ],
+        "cards[].slash.source.expiryYear": [
+          "string"
+        ],
+        "cards[].slash.source.status": [
+          "string"
+        ],
+        "cards[].slash.source.isPhysical": [
+          "boolean"
+        ],
+        "cards[].slash.source.isSingleUse": [
+          "boolean"
+        ],
+        "cards[].slash.source.cardGroupId": [
+          "string"
+        ],
+        "cards[].slash.source.cardGroupName": [
+          "string"
+        ],
+        "cards[].slash.source.createdAt": [
+          "string"
+        ],
+        "cards[].slash.source.cardProductId": [
+          "string"
+        ],
+        "cards[].slash.source.spendingConstraint": [
+          "object"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule": [
+          "object"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule.utilizationLimitV2": [
+          "array"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule.utilizationLimitV2[]": [
+          "object"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule.utilizationLimitV2[].preset": [
+          "string"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule.utilizationLimitV2[].timezone": [
+          "string"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount": [
+          "object"
+        ],
+        "cards[].slash.source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount.amountCents": [
+          "number"
+        ],
+        "cards[].slash.internal": [
+          "object"
+        ],
+        "cards[].slash.internal.customerId": [
+          "string"
+        ],
+        "cards[].slash.internal.customerName": [
+          "string"
+        ],
+        "cards[].slash.internal.email": [
+          "string"
+        ],
+        "cards[].slash.internal.firstCollectedAt": [
+          "string"
+        ],
+        "cards[].slash.internal.lastSyncedAt": [
+          "string"
+        ],
+        "cards[].slash.internal.syncError": [
+          "null"
+        ],
+        "cards[].slash.internal.matchingStatus": [
+          "string"
+        ],
+        "cards[].slash.internal.assumption": [
+          "string"
+        ],
+        "cards[].slash.internal.platform": [
+          "string"
+        ],
+        "cards[].slash.internal.entityId": [
+          "string"
+        ],
+        "cards[].slash.internal.scenarioId": [
+          "string"
+        ],
+        "cards[].slash.internal.version": [
+          "number"
+        ],
+        "cards[].slash.internal.namespace": [
+          "string"
+        ],
+        "cards[].sourceBalance": [
+          "object"
+        ],
+        "cards[].sourceBalance.accountId": [
+          "string"
+        ],
+        "cards[].sourceBalance.type": [
+          "string"
+        ],
+        "cards[].sourceBalance.timestamp": [
+          "string"
+        ],
+        "cards[].sourceBalance.available": [
+          "object"
+        ],
+        "cards[].sourceBalance.available.amountCents": [
+          "number"
+        ],
+        "cards[].sourceBalance.posted": [
+          "object"
+        ],
+        "cards[].sourceBalance.posted.amountCents": [
+          "number"
+        ],
+        "entries": [
+          "array"
+        ],
+        "entries[]": [
+          "object"
+        ],
+        "entries[].id": [
+          "string"
+        ],
+        "entries[].time": [
+          "string"
+        ],
+        "entries[].kind": [
+          "string"
+        ],
+        "entries[].name": [
+          "string"
+        ],
+        "entries[].amount": [
+          "number"
+        ],
+        "entries[].status": [
+          "string"
+        ],
+        "entries[].card": [
+          "string"
+        ],
+        "entries[].orderId": [
+          "string"
+        ],
+        "entries[].currency": [
+          "string"
+        ],
+        "entries[].statusText": [
+          "string"
+        ],
+        "entries[].cardSummary": [
+          "object"
+        ],
+        "entries[].cardSummary.id": [
+          "string"
+        ],
+        "entries[].cardSummary.name": [
+          "string"
+        ],
+        "entries[].cardSummary.last4": [
+          "string"
+        ],
+        "entries[].financeSummary": [
+          "object"
+        ],
+        "entries[].financeSummary.id": [
+          "string"
+        ],
+        "entries[].financeSummary.status": [
+          "string"
+        ],
+        "entries[].financeSummary.currency": [
+          "string"
+        ],
+        "entries[].financeSummary.toCurrency": [
+          "string"
+        ],
+        "entries[].financeSummary.fee": [
+          "number"
+        ],
+        "entries[].financeSummary.receive": [
+          "number"
+        ],
+        "notices": [
+          "array"
+        ],
+        "notices[]": [
+          "object"
+        ],
+        "notices[].id": [
+          "string"
+        ],
+        "notices[].createdAt": [
+          "string"
+        ],
+        "notices[].category": [
+          "string"
+        ],
+        "notices[].title": [
+          "string"
+        ],
+        "notices[].orderId": [
+          "string"
+        ],
+        "notices[].text": [
+          "string"
+        ],
+        "notices[].read": [
+          "boolean"
+        ],
+        "notices[].cardId": [
+          "string"
+        ],
+        "onboarding": [
+          "string"
+        ],
+        "tickets": [
+          "array"
+        ],
+        "unified": [
+          "boolean"
+        ],
+        "revision": [
+          "number"
+        ],
+        "entryCount": [
+          "number"
+        ],
+        "analytics": [
+          "object"
+        ],
+        "analytics.7": [
+          "array"
+        ],
+        "analytics.7[]": [
+          "object"
+        ],
+        "analytics.7[].day": [
+          "string"
+        ],
+        "analytics.7[].spend": [
+          "number"
+        ],
+        "analytics.7[].refund": [
+          "number"
+        ],
+        "analytics.30": [
+          "array"
+        ],
+        "analytics.30[]": [
+          "object"
+        ],
+        "analytics.30[].day": [
+          "string"
+        ],
+        "analytics.30[].spend": [
+          "number"
+        ],
+        "analytics.30[].refund": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/portal/model.ts:State",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "portal/transactions",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "groupCounts": [
+          "object"
+        ],
+        "groupCounts.transactions": [
+          "number"
+        ],
+        "groupCounts.funds": [
+          "number"
+        ],
+        "groupCounts.activity": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].time": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].amount": [
+          "number"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].card": [
+          "string"
+        ],
+        "rows[].orderId": [
+          "string"
+        ],
+        "rows[].currency": [
+          "string"
+        ],
+        "rows[].statusText": [
+          "string"
+        ],
+        "rows[].cardSummary": [
+          "object"
+        ],
+        "rows[].cardSummary.id": [
+          "string"
+        ],
+        "rows[].cardSummary.name": [
+          "string"
+        ],
+        "rows[].cardSummary.last4": [
+          "string"
+        ],
+        "rows[].financeSummary": [
+          "object"
+        ],
+        "rows[].financeSummary.id": [
+          "string"
+        ],
+        "rows[].financeSummary.status": [
+          "string"
+        ],
+        "rows[].financeSummary.currency": [
+          "string"
+        ],
+        "rows[].financeSummary.toCurrency": [
+          "string"
+        ],
+        "rows[].financeSummary.fee": [
+          "number"
+        ],
+        "rows[].financeSummary.receive": [
+          "number"
+        ],
+        "rows[].slash": [
+          "object"
+        ],
+        "rows[].slash.id": [
+          "string"
+        ],
+        "rows[].slash.kind": [
+          "string"
+        ],
+        "rows[].slash.source": [
+          "object"
+        ],
+        "rows[].slash.source.id": [
+          "string"
+        ],
+        "rows[].slash.source.date": [
+          "string"
+        ],
+        "rows[].slash.source.description": [
+          "string"
+        ],
+        "rows[].slash.source.memo": [
+          "string"
+        ],
+        "rows[].slash.source.amountCents": [
+          "number"
+        ],
+        "rows[].slash.source.status": [
+          "string"
+        ],
+        "rows[].slash.source.detailedStatus": [
+          "string"
+        ],
+        "rows[].slash.source.accountId": [
+          "string"
+        ],
+        "rows[].slash.source.virtualAccountId": [
+          "string"
+        ],
+        "rows[].slash.source.accountSubtype": [
+          "string"
+        ],
+        "rows[].slash.source.cardId": [
+          "string"
+        ],
+        "rows[].slash.source.orderId": [
+          "string"
+        ],
+        "rows[].slash.source.referenceNumber": [
+          "string"
+        ],
+        "rows[].slash.source.merchantData": [
+          "object"
+        ],
+        "rows[].slash.source.merchantData.description": [
+          "string"
+        ],
+        "rows[].slash.source.merchantData.categoryCode": [
+          "string"
+        ],
+        "rows[].slash.source.merchantData.location": [
+          "object"
+        ],
+        "rows[].slash.source.merchantData.location.city": [
+          "string"
+        ],
+        "rows[].slash.source.merchantData.location.state": [
+          "string"
+        ],
+        "rows[].slash.source.merchantData.location.country": [
+          "string"
+        ],
+        "rows[].slash.source.merchantData.location.zip": [
+          "string"
+        ],
+        "rows[].slash.internal": [
+          "object"
+        ],
+        "rows[].slash.internal.customerId": [
+          "string"
+        ],
+        "rows[].slash.internal.customerName": [
+          "string"
+        ],
+        "rows[].slash.internal.email": [
+          "string"
+        ],
+        "rows[].slash.internal.firstCollectedAt": [
+          "string"
+        ],
+        "rows[].slash.internal.lastSyncedAt": [
+          "string"
+        ],
+        "rows[].slash.internal.syncError": [
+          "null"
+        ],
+        "rows[].slash.internal.matchingStatus": [
+          "string"
+        ],
+        "rows[].slash.internal.assumption": [
+          "string"
+        ],
+        "rows[].slash.internal.platform": [
+          "string"
+        ],
+        "rows[].slash.internal.entityId": [
+          "string"
+        ],
+        "rows[].slash.internal.scenarioId": [
+          "string"
+        ],
+        "rows[].slash.internal.version": [
+          "number"
+        ],
+        "rows[].slash.internal.namespace": [
+          "string"
+        ],
+        "rows[].slash.currency": [
+          "string"
+        ],
+        "rows[].slash.amount": [
+          "string"
+        ],
+        "rows[].slash.direction": [
+          "string"
+        ],
+        "rows[].slash.statusLabel": [
+          "string"
+        ],
+        "rows[].slash.detailedStatusLabel": [
+          "string"
+        ],
+        "rows[].slash.dateMeaning": [
+          "string"
+        ],
+        "rows[].slash.postedAt": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "postedSpendCents": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "portal/messages",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].text": [
+          "string"
+        ],
+        "rows[].read": [
+          "boolean"
+        ],
+        "rows[].title": [
+          "string"
+        ],
+        "rows[].category": [
+          "string"
+        ],
+        "rows[].createdAt": [
+          "string"
+        ],
+        "rows[].orderId": [
+          "string"
+        ],
+        "rows[].orderName": [
+          "string"
+        ],
+        "rows[].cardId": [
+          "string"
+        ],
+        "rows[].cardName": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "counts": [
+          "object"
+        ],
+        "counts.all": [
+          "number"
+        ],
+        "counts.unread": [
+          "number"
+        ],
+        "counts.read": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "portal/bin-products",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].binPrefix": [
+          "string"
+        ],
+        "rows[].network": [
+          "string"
+        ],
+        "rows[].currency": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].description": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].maxCards": [
+          "number"
+        ],
+        "rows[].issuedCount": [
+          "number"
+        ],
+        "rows[].remaining": [
+          "number"
+        ],
+        "rows[].mode": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "accounts/DEMO-SLASH-S01-R001-ACCOUNT",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "source": [
+          "object"
+        ],
+        "source.id": [
+          "string"
+        ],
+        "source.status": [
+          "string"
+        ],
+        "source.name": [
+          "string"
+        ],
+        "source.createdAt": [
+          "string"
+        ],
+        "source.type": [
+          "string"
+        ],
+        "source.balances": [
+          "array"
+        ],
+        "source.balances[]": [
+          "string"
+        ],
+        "internal": [
+          "object"
+        ],
+        "internal.customerId": [
+          "string"
+        ],
+        "internal.customerName": [
+          "string"
+        ],
+        "internal.email": [
+          "string"
+        ],
+        "internal.firstCollectedAt": [
+          "string"
+        ],
+        "internal.lastSyncedAt": [
+          "string"
+        ],
+        "internal.syncError": [
+          "null"
+        ],
+        "internal.matchingStatus": [
+          "string"
+        ],
+        "internal.assumption": [
+          "string"
+        ],
+        "internal.openingBalanceCents": [
+          "number"
+        ],
+        "internal.currency": [
+          "string"
+        ],
+        "internal.platform": [
+          "string"
+        ],
+        "internal.entityId": [
+          "string"
+        ],
+        "internal.scenarioId": [
+          "string"
+        ],
+        "internal.version": [
+          "number"
+        ],
+        "internal.namespace": [
+          "string"
+        ],
+        "versions": [
+          "array"
+        ],
+        "versions[]": [
+          "object"
+        ],
+        "versions[].version": [
+          "number"
+        ],
+        "versions[].source": [
+          "object"
+        ],
+        "versions[].source.id": [
+          "string"
+        ],
+        "versions[].source.status": [
+          "string"
+        ],
+        "versions[].source.name": [
+          "string"
+        ],
+        "versions[].source.createdAt": [
+          "string"
+        ],
+        "versions[].source.type": [
+          "string"
+        ],
+        "versions[].source.balances": [
+          "array"
+        ],
+        "versions[].source.balances[]": [
+          "string"
+        ],
+        "versions[].collectedAt": [
+          "string"
+        ],
+        "events": [
+          "array"
+        ],
+        "deliveries": [
+          "array"
+        ],
+        "relations": [
+          "array"
+        ],
+        "adjustments": [
+          "array"
+        ],
+        "fees": [
+          "array"
+        ],
+        "balances": [
+          "array"
+        ],
+        "balances[]": [
+          "object"
+        ],
+        "balances[].id": [
+          "string"
+        ],
+        "balances[].kind": [
+          "string"
+        ],
+        "balances[].source": [
+          "object"
+        ],
+        "balances[].source.accountId": [
+          "string"
+        ],
+        "balances[].source.type": [
+          "string"
+        ],
+        "balances[].source.timestamp": [
+          "string"
+        ],
+        "balances[].source.available": [
+          "object"
+        ],
+        "balances[].source.available.amountCents": [
+          "number"
+        ],
+        "balances[].source.posted": [
+          "object"
+        ],
+        "balances[].source.posted.amountCents": [
+          "number"
+        ],
+        "balances[].internal": [
+          "object"
+        ],
+        "balances[].internal.customerId": [
+          "string"
+        ],
+        "balances[].internal.customerName": [
+          "string"
+        ],
+        "balances[].internal.email": [
+          "string"
+        ],
+        "balances[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "balances[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "balances[].internal.syncError": [
+          "null"
+        ],
+        "balances[].internal.matchingStatus": [
+          "string"
+        ],
+        "balances[].internal.assumption": [
+          "string"
+        ],
+        "balances[].internal.currency": [
+          "string"
+        ],
+        "balances[].internal.platform": [
+          "string"
+        ],
+        "balances[].internal.entityId": [
+          "string"
+        ],
+        "balances[].internal.scenarioId": [
+          "string"
+        ],
+        "balances[].internal.version": [
+          "number"
+        ],
+        "balances[].internal.namespace": [
+          "string"
+        ],
+        "virtualAccounts": [
+          "array"
+        ],
+        "virtualAccounts[]": [
+          "object"
+        ],
+        "virtualAccounts[].id": [
+          "string"
+        ],
+        "virtualAccounts[].kind": [
+          "string"
+        ],
+        "virtualAccounts[].source": [
+          "object"
+        ],
+        "virtualAccounts[].source.id": [
+          "string"
+        ],
+        "virtualAccounts[].source.name": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountId": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountType": [
+          "string"
+        ],
+        "virtualAccounts[].internal": [
+          "object"
+        ],
+        "virtualAccounts[].internal.customerId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.customerName": [
+          "string"
+        ],
+        "virtualAccounts[].internal.email": [
+          "string"
+        ],
+        "virtualAccounts[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.syncError": [
+          "null"
+        ],
+        "virtualAccounts[].internal.matchingStatus": [
+          "string"
+        ],
+        "virtualAccounts[].internal.assumption": [
+          "string"
+        ],
+        "virtualAccounts[].internal.platform": [
+          "string"
+        ],
+        "virtualAccounts[].internal.entityId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.scenarioId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.version": [
+          "number"
+        ],
+        "virtualAccounts[].internal.namespace": [
+          "string"
+        ],
+        "snapshots": [
+          "array"
+        ],
+        "snapshots[]": [
+          "object"
+        ],
+        "snapshots[].namespace": [
+          "string"
+        ],
+        "snapshots[].id": [
+          "string"
+        ],
+        "snapshots[].scenario_id": [
+          "string"
+        ],
+        "snapshots[].account_id": [
+          "string"
+        ],
+        "snapshots[].currency": [
+          "string"
+        ],
+        "snapshots[].balance_type": [
+          "string"
+        ],
+        "snapshots[].available_cents": [
+          "number"
+        ],
+        "snapshots[].posted_cents": [
+          "number"
+        ],
+        "snapshots[].timestamp": [
+          "string"
+        ],
+        "snapshots[].step": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/slash/types.ts:SourceDetail",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "cards/DEMO-SLASH-S01-R001-CARD",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "source": [
+          "object"
+        ],
+        "source.id": [
+          "string"
+        ],
+        "source.accountId": [
+          "string"
+        ],
+        "source.virtualAccountId": [
+          "string"
+        ],
+        "source.last4": [
+          "string"
+        ],
+        "source.name": [
+          "string"
+        ],
+        "source.expiryMonth": [
+          "string"
+        ],
+        "source.expiryYear": [
+          "string"
+        ],
+        "source.status": [
+          "string"
+        ],
+        "source.isPhysical": [
+          "boolean"
+        ],
+        "source.isSingleUse": [
+          "boolean"
+        ],
+        "source.cardGroupId": [
+          "string"
+        ],
+        "source.cardGroupName": [
+          "string"
+        ],
+        "source.createdAt": [
+          "string"
+        ],
+        "source.cardProductId": [
+          "string"
+        ],
+        "source.spendingConstraint": [
+          "object"
+        ],
+        "source.spendingConstraint.spendingRule": [
+          "object"
+        ],
+        "source.spendingConstraint.spendingRule.utilizationLimitV2": [
+          "array"
+        ],
+        "source.spendingConstraint.spendingRule.utilizationLimitV2[]": [
+          "object"
+        ],
+        "source.spendingConstraint.spendingRule.utilizationLimitV2[].preset": [
+          "string"
+        ],
+        "source.spendingConstraint.spendingRule.utilizationLimitV2[].timezone": [
+          "string"
+        ],
+        "source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount": [
+          "object"
+        ],
+        "source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount.amountCents": [
+          "number"
+        ],
+        "internal": [
+          "object"
+        ],
+        "internal.customerId": [
+          "string"
+        ],
+        "internal.customerName": [
+          "string"
+        ],
+        "internal.email": [
+          "string"
+        ],
+        "internal.firstCollectedAt": [
+          "string"
+        ],
+        "internal.lastSyncedAt": [
+          "string"
+        ],
+        "internal.syncError": [
+          "null"
+        ],
+        "internal.matchingStatus": [
+          "string"
+        ],
+        "internal.assumption": [
+          "string"
+        ],
+        "internal.platform": [
+          "string"
+        ],
+        "internal.entityId": [
+          "string"
+        ],
+        "internal.scenarioId": [
+          "string"
+        ],
+        "internal.version": [
+          "number"
+        ],
+        "internal.namespace": [
+          "string"
+        ],
+        "versions": [
+          "array"
+        ],
+        "versions[]": [
+          "object"
+        ],
+        "versions[].version": [
+          "number"
+        ],
+        "versions[].source": [
+          "object"
+        ],
+        "versions[].source.id": [
+          "string"
+        ],
+        "versions[].source.accountId": [
+          "string"
+        ],
+        "versions[].source.virtualAccountId": [
+          "string"
+        ],
+        "versions[].source.last4": [
+          "string"
+        ],
+        "versions[].source.name": [
+          "string"
+        ],
+        "versions[].source.expiryMonth": [
+          "string"
+        ],
+        "versions[].source.expiryYear": [
+          "string"
+        ],
+        "versions[].source.status": [
+          "string"
+        ],
+        "versions[].source.isPhysical": [
+          "boolean"
+        ],
+        "versions[].source.isSingleUse": [
+          "boolean"
+        ],
+        "versions[].source.cardGroupId": [
+          "string"
+        ],
+        "versions[].source.cardGroupName": [
+          "string"
+        ],
+        "versions[].source.createdAt": [
+          "string"
+        ],
+        "versions[].source.cardProductId": [
+          "string"
+        ],
+        "versions[].source.spendingConstraint": [
+          "object"
+        ],
+        "versions[].source.spendingConstraint.spendingRule": [
+          "object"
+        ],
+        "versions[].source.spendingConstraint.spendingRule.utilizationLimitV2": [
+          "array"
+        ],
+        "versions[].source.spendingConstraint.spendingRule.utilizationLimitV2[]": [
+          "object"
+        ],
+        "versions[].source.spendingConstraint.spendingRule.utilizationLimitV2[].preset": [
+          "string"
+        ],
+        "versions[].source.spendingConstraint.spendingRule.utilizationLimitV2[].timezone": [
+          "string"
+        ],
+        "versions[].source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount": [
+          "object"
+        ],
+        "versions[].source.spendingConstraint.spendingRule.utilizationLimitV2[].limitAmount.amountCents": [
+          "number"
+        ],
+        "versions[].collectedAt": [
+          "string"
+        ],
+        "events": [
+          "array"
+        ],
+        "deliveries": [
+          "array"
+        ],
+        "relations": [
+          "array"
+        ],
+        "adjustments": [
+          "array"
+        ],
+        "fees": [
+          "array"
+        ],
+        "balances": [
+          "array"
+        ],
+        "balances[]": [
+          "object"
+        ],
+        "balances[].id": [
+          "string"
+        ],
+        "balances[].kind": [
+          "string"
+        ],
+        "balances[].source": [
+          "object"
+        ],
+        "balances[].source.accountId": [
+          "string"
+        ],
+        "balances[].source.type": [
+          "string"
+        ],
+        "balances[].source.timestamp": [
+          "string"
+        ],
+        "balances[].source.available": [
+          "object"
+        ],
+        "balances[].source.available.amountCents": [
+          "number"
+        ],
+        "balances[].source.posted": [
+          "object"
+        ],
+        "balances[].source.posted.amountCents": [
+          "number"
+        ],
+        "balances[].internal": [
+          "object"
+        ],
+        "balances[].internal.customerId": [
+          "string"
+        ],
+        "balances[].internal.customerName": [
+          "string"
+        ],
+        "balances[].internal.email": [
+          "string"
+        ],
+        "balances[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "balances[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "balances[].internal.syncError": [
+          "null"
+        ],
+        "balances[].internal.matchingStatus": [
+          "string"
+        ],
+        "balances[].internal.assumption": [
+          "string"
+        ],
+        "balances[].internal.currency": [
+          "string"
+        ],
+        "balances[].internal.platform": [
+          "string"
+        ],
+        "balances[].internal.entityId": [
+          "string"
+        ],
+        "balances[].internal.scenarioId": [
+          "string"
+        ],
+        "balances[].internal.version": [
+          "number"
+        ],
+        "balances[].internal.namespace": [
+          "string"
+        ],
+        "virtualAccounts": [
+          "array"
+        ],
+        "virtualAccounts[]": [
+          "object"
+        ],
+        "virtualAccounts[].id": [
+          "string"
+        ],
+        "virtualAccounts[].kind": [
+          "string"
+        ],
+        "virtualAccounts[].source": [
+          "object"
+        ],
+        "virtualAccounts[].source.id": [
+          "string"
+        ],
+        "virtualAccounts[].source.name": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountId": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountType": [
+          "string"
+        ],
+        "virtualAccounts[].internal": [
+          "object"
+        ],
+        "virtualAccounts[].internal.customerId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.customerName": [
+          "string"
+        ],
+        "virtualAccounts[].internal.email": [
+          "string"
+        ],
+        "virtualAccounts[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.syncError": [
+          "null"
+        ],
+        "virtualAccounts[].internal.matchingStatus": [
+          "string"
+        ],
+        "virtualAccounts[].internal.assumption": [
+          "string"
+        ],
+        "virtualAccounts[].internal.platform": [
+          "string"
+        ],
+        "virtualAccounts[].internal.entityId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.scenarioId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.version": [
+          "number"
+        ],
+        "virtualAccounts[].internal.namespace": [
+          "string"
+        ],
+        "snapshots": [
+          "array"
+        ],
+        "snapshots[]": [
+          "object"
+        ],
+        "snapshots[].namespace": [
+          "string"
+        ],
+        "snapshots[].id": [
+          "string"
+        ],
+        "snapshots[].scenario_id": [
+          "string"
+        ],
+        "snapshots[].account_id": [
+          "string"
+        ],
+        "snapshots[].currency": [
+          "string"
+        ],
+        "snapshots[].balance_type": [
+          "string"
+        ],
+        "snapshots[].available_cents": [
+          "number"
+        ],
+        "snapshots[].posted_cents": [
+          "number"
+        ],
+        "snapshots[].timestamp": [
+          "string"
+        ],
+        "snapshots[].step": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/slash/types.ts:SourceDetail",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "transactions/DEMO-SLASH-S01-R001-T1",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "source": [
+          "object"
+        ],
+        "source.id": [
+          "string"
+        ],
+        "source.date": [
+          "string"
+        ],
+        "source.description": [
+          "string"
+        ],
+        "source.memo": [
+          "string"
+        ],
+        "source.amountCents": [
+          "number"
+        ],
+        "source.status": [
+          "string"
+        ],
+        "source.detailedStatus": [
+          "string"
+        ],
+        "source.accountId": [
+          "string"
+        ],
+        "source.virtualAccountId": [
+          "string"
+        ],
+        "source.accountSubtype": [
+          "string"
+        ],
+        "source.cardId": [
+          "string"
+        ],
+        "source.orderId": [
+          "string"
+        ],
+        "source.referenceNumber": [
+          "string"
+        ],
+        "source.authorizedAt": [
+          "string"
+        ],
+        "source.providerAuthorizationId": [
+          "string"
+        ],
+        "source.merchantData": [
+          "object"
+        ],
+        "source.merchantData.description": [
+          "string"
+        ],
+        "source.merchantData.categoryCode": [
+          "string"
+        ],
+        "source.merchantData.location": [
+          "object"
+        ],
+        "source.merchantData.location.city": [
+          "string"
+        ],
+        "source.merchantData.location.state": [
+          "string"
+        ],
+        "source.merchantData.location.country": [
+          "string"
+        ],
+        "source.merchantData.location.zip": [
+          "string"
+        ],
+        "internal": [
+          "object"
+        ],
+        "internal.customerId": [
+          "string"
+        ],
+        "internal.customerName": [
+          "string"
+        ],
+        "internal.email": [
+          "string"
+        ],
+        "internal.firstCollectedAt": [
+          "string"
+        ],
+        "internal.lastSyncedAt": [
+          "string"
+        ],
+        "internal.syncError": [
+          "null"
+        ],
+        "internal.matchingStatus": [
+          "string"
+        ],
+        "internal.assumption": [
+          "string"
+        ],
+        "internal.platform": [
+          "string"
+        ],
+        "internal.entityId": [
+          "string"
+        ],
+        "internal.scenarioId": [
+          "string"
+        ],
+        "internal.version": [
+          "number"
+        ],
+        "internal.namespace": [
+          "string"
+        ],
+        "currency": [
+          "string"
+        ],
+        "amount": [
+          "string"
+        ],
+        "direction": [
+          "string"
+        ],
+        "statusLabel": [
+          "string"
+        ],
+        "detailedStatusLabel": [
+          "string"
+        ],
+        "dateMeaning": [
+          "string"
+        ],
+        "postedAt": [
+          "string"
+        ],
+        "versions": [
+          "array"
+        ],
+        "versions[]": [
+          "object"
+        ],
+        "versions[].version": [
+          "number"
+        ],
+        "versions[].source": [
+          "object"
+        ],
+        "versions[].source.id": [
+          "string"
+        ],
+        "versions[].source.date": [
+          "string"
+        ],
+        "versions[].source.description": [
+          "string"
+        ],
+        "versions[].source.memo": [
+          "string"
+        ],
+        "versions[].source.amountCents": [
+          "number"
+        ],
+        "versions[].source.status": [
+          "string"
+        ],
+        "versions[].source.detailedStatus": [
+          "string"
+        ],
+        "versions[].source.accountId": [
+          "string"
+        ],
+        "versions[].source.virtualAccountId": [
+          "string"
+        ],
+        "versions[].source.accountSubtype": [
+          "string"
+        ],
+        "versions[].source.cardId": [
+          "string"
+        ],
+        "versions[].source.orderId": [
+          "string"
+        ],
+        "versions[].source.referenceNumber": [
+          "string"
+        ],
+        "versions[].source.authorizedAt": [
+          "string"
+        ],
+        "versions[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "versions[].source.merchantData": [
+          "object"
+        ],
+        "versions[].source.merchantData.description": [
+          "string"
+        ],
+        "versions[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "versions[].source.merchantData.location": [
+          "object"
+        ],
+        "versions[].source.merchantData.location.city": [
+          "string"
+        ],
+        "versions[].source.merchantData.location.state": [
+          "string"
+        ],
+        "versions[].source.merchantData.location.country": [
+          "string"
+        ],
+        "versions[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "versions[].collectedAt": [
+          "string"
+        ],
+        "events": [
+          "array"
+        ],
+        "events[]": [
+          "object"
+        ],
+        "events[].event": [
+          "string"
+        ],
+        "events[].eventId": [
+          "string"
+        ],
+        "events[].entityId": [
+          "string"
+        ],
+        "events[].eventTimestamp": [
+          "string"
+        ],
+        "events[].collectedAt": [
+          "string"
+        ],
+        "deliveries": [
+          "array"
+        ],
+        "deliveries[]": [
+          "object"
+        ],
+        "deliveries[].namespace": [
+          "string"
+        ],
+        "deliveries[].id": [
+          "string"
+        ],
+        "deliveries[].event_id": [
+          "string"
+        ],
+        "deliveries[].source_id": [
+          "string"
+        ],
+        "deliveries[].received_at": [
+          "string"
+        ],
+        "deliveries[].result": [
+          "string"
+        ],
+        "relations": [
+          "array"
+        ],
+        "adjustments": [
+          "array"
+        ],
+        "fees": [
+          "array"
+        ],
+        "balances": [
+          "array"
+        ],
+        "balances[]": [
+          "object"
+        ],
+        "balances[].id": [
+          "string"
+        ],
+        "balances[].kind": [
+          "string"
+        ],
+        "balances[].source": [
+          "object"
+        ],
+        "balances[].source.accountId": [
+          "string"
+        ],
+        "balances[].source.type": [
+          "string"
+        ],
+        "balances[].source.timestamp": [
+          "string"
+        ],
+        "balances[].source.available": [
+          "object"
+        ],
+        "balances[].source.available.amountCents": [
+          "number"
+        ],
+        "balances[].source.posted": [
+          "object"
+        ],
+        "balances[].source.posted.amountCents": [
+          "number"
+        ],
+        "balances[].internal": [
+          "object"
+        ],
+        "balances[].internal.customerId": [
+          "string"
+        ],
+        "balances[].internal.customerName": [
+          "string"
+        ],
+        "balances[].internal.email": [
+          "string"
+        ],
+        "balances[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "balances[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "balances[].internal.syncError": [
+          "null"
+        ],
+        "balances[].internal.matchingStatus": [
+          "string"
+        ],
+        "balances[].internal.assumption": [
+          "string"
+        ],
+        "balances[].internal.currency": [
+          "string"
+        ],
+        "balances[].internal.platform": [
+          "string"
+        ],
+        "balances[].internal.entityId": [
+          "string"
+        ],
+        "balances[].internal.scenarioId": [
+          "string"
+        ],
+        "balances[].internal.version": [
+          "number"
+        ],
+        "balances[].internal.namespace": [
+          "string"
+        ],
+        "virtualAccounts": [
+          "array"
+        ],
+        "virtualAccounts[]": [
+          "object"
+        ],
+        "virtualAccounts[].id": [
+          "string"
+        ],
+        "virtualAccounts[].kind": [
+          "string"
+        ],
+        "virtualAccounts[].source": [
+          "object"
+        ],
+        "virtualAccounts[].source.id": [
+          "string"
+        ],
+        "virtualAccounts[].source.name": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountId": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountType": [
+          "string"
+        ],
+        "virtualAccounts[].internal": [
+          "object"
+        ],
+        "virtualAccounts[].internal.customerId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.customerName": [
+          "string"
+        ],
+        "virtualAccounts[].internal.email": [
+          "string"
+        ],
+        "virtualAccounts[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.syncError": [
+          "null"
+        ],
+        "virtualAccounts[].internal.matchingStatus": [
+          "string"
+        ],
+        "virtualAccounts[].internal.assumption": [
+          "string"
+        ],
+        "virtualAccounts[].internal.platform": [
+          "string"
+        ],
+        "virtualAccounts[].internal.entityId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.scenarioId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.version": [
+          "number"
+        ],
+        "virtualAccounts[].internal.namespace": [
+          "string"
+        ],
+        "snapshots": [
+          "array"
+        ],
+        "snapshots[]": [
+          "object"
+        ],
+        "snapshots[].namespace": [
+          "string"
+        ],
+        "snapshots[].id": [
+          "string"
+        ],
+        "snapshots[].scenario_id": [
+          "string"
+        ],
+        "snapshots[].account_id": [
+          "string"
+        ],
+        "snapshots[].currency": [
+          "string"
+        ],
+        "snapshots[].balance_type": [
+          "string"
+        ],
+        "snapshots[].available_cents": [
+          "number"
+        ],
+        "snapshots[].posted_cents": [
+          "number"
+        ],
+        "snapshots[].timestamp": [
+          "string"
+        ],
+        "snapshots[].step": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/slash/types.ts:SourceDetail",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "virtual-accounts/DEMO-SLASH-S01-R001-VA",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "source": [
+          "object"
+        ],
+        "source.id": [
+          "string"
+        ],
+        "source.name": [
+          "string"
+        ],
+        "source.accountId": [
+          "string"
+        ],
+        "source.accountType": [
+          "string"
+        ],
+        "internal": [
+          "object"
+        ],
+        "internal.customerId": [
+          "string"
+        ],
+        "internal.customerName": [
+          "string"
+        ],
+        "internal.email": [
+          "string"
+        ],
+        "internal.firstCollectedAt": [
+          "string"
+        ],
+        "internal.lastSyncedAt": [
+          "string"
+        ],
+        "internal.syncError": [
+          "null"
+        ],
+        "internal.matchingStatus": [
+          "string"
+        ],
+        "internal.assumption": [
+          "string"
+        ],
+        "internal.platform": [
+          "string"
+        ],
+        "internal.entityId": [
+          "string"
+        ],
+        "internal.scenarioId": [
+          "string"
+        ],
+        "internal.version": [
+          "number"
+        ],
+        "internal.namespace": [
+          "string"
+        ],
+        "versions": [
+          "array"
+        ],
+        "versions[]": [
+          "object"
+        ],
+        "versions[].version": [
+          "number"
+        ],
+        "versions[].source": [
+          "object"
+        ],
+        "versions[].source.id": [
+          "string"
+        ],
+        "versions[].source.name": [
+          "string"
+        ],
+        "versions[].source.accountId": [
+          "string"
+        ],
+        "versions[].source.accountType": [
+          "string"
+        ],
+        "versions[].collectedAt": [
+          "string"
+        ],
+        "events": [
+          "array"
+        ],
+        "deliveries": [
+          "array"
+        ],
+        "relations": [
+          "array"
+        ],
+        "adjustments": [
+          "array"
+        ],
+        "fees": [
+          "array"
+        ],
+        "balances": [
+          "array"
+        ],
+        "balances[]": [
+          "object"
+        ],
+        "balances[].id": [
+          "string"
+        ],
+        "balances[].kind": [
+          "string"
+        ],
+        "balances[].source": [
+          "object"
+        ],
+        "balances[].source.accountId": [
+          "string"
+        ],
+        "balances[].source.type": [
+          "string"
+        ],
+        "balances[].source.timestamp": [
+          "string"
+        ],
+        "balances[].source.available": [
+          "object"
+        ],
+        "balances[].source.available.amountCents": [
+          "number"
+        ],
+        "balances[].source.posted": [
+          "object"
+        ],
+        "balances[].source.posted.amountCents": [
+          "number"
+        ],
+        "balances[].internal": [
+          "object"
+        ],
+        "balances[].internal.customerId": [
+          "string"
+        ],
+        "balances[].internal.customerName": [
+          "string"
+        ],
+        "balances[].internal.email": [
+          "string"
+        ],
+        "balances[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "balances[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "balances[].internal.syncError": [
+          "null"
+        ],
+        "balances[].internal.matchingStatus": [
+          "string"
+        ],
+        "balances[].internal.assumption": [
+          "string"
+        ],
+        "balances[].internal.currency": [
+          "string"
+        ],
+        "balances[].internal.platform": [
+          "string"
+        ],
+        "balances[].internal.entityId": [
+          "string"
+        ],
+        "balances[].internal.scenarioId": [
+          "string"
+        ],
+        "balances[].internal.version": [
+          "number"
+        ],
+        "balances[].internal.namespace": [
+          "string"
+        ],
+        "virtualAccounts": [
+          "array"
+        ],
+        "virtualAccounts[]": [
+          "object"
+        ],
+        "virtualAccounts[].id": [
+          "string"
+        ],
+        "virtualAccounts[].kind": [
+          "string"
+        ],
+        "virtualAccounts[].source": [
+          "object"
+        ],
+        "virtualAccounts[].source.id": [
+          "string"
+        ],
+        "virtualAccounts[].source.name": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountId": [
+          "string"
+        ],
+        "virtualAccounts[].source.accountType": [
+          "string"
+        ],
+        "virtualAccounts[].internal": [
+          "object"
+        ],
+        "virtualAccounts[].internal.customerId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.customerName": [
+          "string"
+        ],
+        "virtualAccounts[].internal.email": [
+          "string"
+        ],
+        "virtualAccounts[].internal.firstCollectedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.lastSyncedAt": [
+          "string"
+        ],
+        "virtualAccounts[].internal.syncError": [
+          "null"
+        ],
+        "virtualAccounts[].internal.matchingStatus": [
+          "string"
+        ],
+        "virtualAccounts[].internal.assumption": [
+          "string"
+        ],
+        "virtualAccounts[].internal.platform": [
+          "string"
+        ],
+        "virtualAccounts[].internal.entityId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.scenarioId": [
+          "string"
+        ],
+        "virtualAccounts[].internal.version": [
+          "number"
+        ],
+        "virtualAccounts[].internal.namespace": [
+          "string"
+        ],
+        "snapshots": [
+          "array"
+        ],
+        "snapshots[]": [
+          "object"
+        ],
+        "snapshots[].namespace": [
+          "string"
+        ],
+        "snapshots[].id": [
+          "string"
+        ],
+        "snapshots[].scenario_id": [
+          "string"
+        ],
+        "snapshots[].account_id": [
+          "string"
+        ],
+        "snapshots[].currency": [
+          "string"
+        ],
+        "snapshots[].balance_type": [
+          "string"
+        ],
+        "snapshots[].available_cents": [
+          "number"
+        ],
+        "snapshots[].posted_cents": [
+          "number"
+        ],
+        "snapshots[].timestamp": [
+          "string"
+        ],
+        "snapshots[].step": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "portal/transactions/DEMO-PORTAL-SEED-CARD-TOPUP",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "time": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "name": [
+          "string"
+        ],
+        "amount": [
+          "number"
+        ],
+        "status": [
+          "string"
+        ],
+        "card": [
+          "string"
+        ],
+        "orderId": [
+          "string"
+        ],
+        "currency": [
+          "string"
+        ],
+        "statusText": [
+          "string"
+        ],
+        "cardSummary": [
+          "object"
+        ],
+        "cardSummary.id": [
+          "string"
+        ],
+        "cardSummary.name": [
+          "string"
+        ],
+        "cardSummary.last4": [
+          "string"
+        ],
+        "financeSummary": [
+          "object"
+        ],
+        "financeSummary.id": [
+          "string"
+        ],
+        "financeSummary.status": [
+          "string"
+        ],
+        "financeSummary.currency": [
+          "string"
+        ],
+        "financeSummary.toCurrency": [
+          "string"
+        ],
+        "financeSummary.fee": [
+          "number"
+        ],
+        "financeSummary.receive": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "portal/messages/DEMO-PORTAL-SEED-WITHDRAW",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "text": [
+          "string"
+        ],
+        "read": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ],
+        "category": [
+          "string"
+        ],
+        "createdAt": [
+          "string"
+        ],
+        "orderId": [
+          "string"
+        ],
+        "orderName": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/session",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "actor": [
+          "string"
+        ],
+        "mode": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/catalog",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "feeKinds": [
+          "array"
+        ],
+        "feeKinds[]": [
+          "object"
+        ],
+        "feeKinds[].kind": [
+          "string"
+        ],
+        "feeKinds[].label": [
+          "string"
+        ],
+        "feeKinds[].currency": [
+          "string"
+        ],
+        "feeKinds[].precision": [
+          "number"
+        ],
+        "feeKinds[].bps": [
+          "number"
+        ],
+        "feeKinds[].fixedMinor": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/users",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].group_id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].email": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].groupName": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/management/api.ts:User",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/groups",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].namespace": [
+          "string"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].description": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].memberCount": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/management/api.ts:Group",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/console/overview",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "asOf": [
+          "string"
+        ],
+        "namespace": [
+          "string"
+        ],
+        "settings": [
+          "object"
+        ],
+        "settings.workspaceName": [
+          "string"
+        ],
+        "settings.notice": [
+          "string"
+        ],
+        "settings.revision": [
+          "number"
+        ],
+        "settings.updatedAt": [
+          "null"
+        ],
+        "users": [
+          "array"
+        ],
+        "users[]": [
+          "object"
+        ],
+        "users[].status": [
+          "string"
+        ],
+        "users[].count": [
+          "number"
+        ],
+        "groups": [
+          "array"
+        ],
+        "groups[]": [
+          "object"
+        ],
+        "groups[].status": [
+          "string"
+        ],
+        "groups[].count": [
+          "number"
+        ],
+        "customFeeUsers": [
+          "number"
+        ],
+        "pending": [
+          "object"
+        ],
+        "pending.page": [
+          "number"
+        ],
+        "pending.pageSize": [
+          "number"
+        ],
+        "pending.total": [
+          "number"
+        ],
+        "pending.rows": [
+          "array"
+        ],
+        "pending.rows[]": [
+          "object"
+        ],
+        "pending.rows[].id": [
+          "string"
+        ],
+        "pending.rows[].group_id": [
+          "string"
+        ],
+        "pending.rows[].name": [
+          "string"
+        ],
+        "pending.rows[].email": [
+          "string"
+        ],
+        "pending.rows[].status": [
+          "string"
+        ],
+        "pending.rows[].revision": [
+          "number"
+        ],
+        "pending.rows[].created_at": [
+          "string"
+        ],
+        "pending.rows[].groupName": [
+          "string"
+        ],
+        "audit": [
+          "object"
+        ],
+        "audit.page": [
+          "number"
+        ],
+        "audit.pageSize": [
+          "number"
+        ],
+        "audit.total": [
+          "number"
+        ],
+        "audit.rows": [
+          "array"
+        ],
+        "audit.actions": [
+          "array"
+        ],
+        "source": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/admin/AdminConsolePage.tsx:Overview",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/console/orders",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].amount": [
+          "number"
+        ],
+        "rows[].currency": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].time": [
+          "string"
+        ],
+        "rows[].orderId": [
+          "string"
+        ],
+        "rows[].card": [
+          "object"
+        ],
+        "rows[].card.id": [
+          "string"
+        ],
+        "rows[].card.name": [
+          "string"
+        ],
+        "rows[].card.last4": [
+          "string"
+        ],
+        "rows[].finance": [
+          "object"
+        ],
+        "rows[].finance.id": [
+          "string"
+        ],
+        "rows[].finance.status": [
+          "string"
+        ],
+        "rows[].finance.currency": [
+          "string"
+        ],
+        "rows[].finance.toCurrency": [
+          "string"
+        ],
+        "rows[].finance.fee": [
+          "number"
+        ],
+        "rows[].finance.receive": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/admin/AdminConsolePage.tsx:Order",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/console/audit",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "actions": [
+          "array"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/console/settings",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "workspaceName": [
+          "string"
+        ],
+        "notice": [
+          "string"
+        ],
+        "revision": [
+          "number"
+        ],
+        "updatedAt": [
+          "null"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/console/system",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "namespace": [
+          "string"
+        ],
+        "checkedAt": [
+          "string"
+        ],
+        "storage": [
+          "string"
+        ],
+        "migrations": [
+          "array"
+        ],
+        "migrations[]": [
+          "number"
+        ],
+        "sourceRecords": [
+          "array"
+        ],
+        "sourceRecords[]": [
+          "object"
+        ],
+        "sourceRecords[].kind": [
+          "string"
+        ],
+        "sourceRecords[].count": [
+          "number"
+        ],
+        "latestCollectedAt": [
+          "string"
+        ],
+        "roles": [
+          "array"
+        ],
+        "roles[]": [
+          "object"
+        ],
+        "roles[].id": [
+          "string"
+        ],
+        "roles[].label": [
+          "string"
+        ],
+        "roles[].permissions": [
+          "array"
+        ],
+        "roles[].permissions[]": [
+          "string"
+        ],
+        "channels": [
+          "array"
+        ],
+        "channels[]": [
+          "object"
+        ],
+        "channels[].id": [
+          "string"
+        ],
+        "channels[].name": [
+          "string"
+        ],
+        "channels[].mode": [
+          "string"
+        ],
+        "channels[].description": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/admin/AdminConsolePage.tsx:System",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/bins",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].binPrefix": [
+          "string"
+        ],
+        "rows[].network": [
+          "string"
+        ],
+        "rows[].currency": [
+          "string"
+        ],
+        "rows[].platform": [
+          "string"
+        ],
+        "rows[].upstreamProductId": [
+          "null"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].maxCards": [
+          "number"
+        ],
+        "rows[].description": [
+          "string"
+        ],
+        "rows[].internalNote": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].createdAt": [
+          "string"
+        ],
+        "rows[].updatedAt": [
+          "string"
+        ],
+        "rows[].issuedCount": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/bins/types.ts:BinProduct",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/channels",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/bins/ChannelManagement.tsx:Channel",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/card-admin/identity",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "actor": [
+          "string"
+        ],
+        "permissions": [
+          "array"
+        ],
+        "permissions[]": [
+          "string"
+        ],
+        "mode": [
+          "string"
+        ],
+        "identities": [
+          "array"
+        ],
+        "identities[]": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/card-admin/cards",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].namespace": [
+          "string"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].owner_id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].last4": [
+          "null",
+          "string"
+        ],
+        "rows[].provider_status": [
+          "string"
+        ],
+        "rows[].self_frozen": [
+          "number"
+        ],
+        "rows[].risk_frozen": [
+          "number"
+        ],
+        "rows[].reason": [
+          "null",
+          "string"
+        ],
+        "rows[].actor": [
+          "null"
+        ],
+        "rows[].operated_at": [
+          "null"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].provider_mode": [
+          "string"
+        ],
+        "rows[].balance": [
+          "null",
+          "object"
+        ],
+        "rows[].actions": [
+          "object"
+        ],
+        "rows[].actions.freeze": [
+          "object"
+        ],
+        "rows[].actions.freeze.allowed": [
+          "boolean"
+        ],
+        "rows[].actions.freeze.reason": [
+          "null",
+          "string"
+        ],
+        "rows[].actions.unfreeze": [
+          "object"
+        ],
+        "rows[].actions.unfreeze.allowed": [
+          "boolean"
+        ],
+        "rows[].actions.unfreeze.reason": [
+          "string",
+          "null"
+        ],
+        "rows[].actions.debit": [
+          "object"
+        ],
+        "rows[].actions.debit.allowed": [
+          "boolean"
+        ],
+        "rows[].actions.debit.reason": [
+          "string",
+          "null"
+        ],
+        "rows[].actions.transfer_in": [
+          "object"
+        ],
+        "rows[].actions.transfer_in.allowed": [
+          "boolean"
+        ],
+        "rows[].actions.transfer_in.reason": [
+          "string",
+          "null"
+        ],
+        "rows[].actions.transfer_out": [
+          "object"
+        ],
+        "rows[].actions.transfer_out.allowed": [
+          "boolean"
+        ],
+        "rows[].actions.transfer_out.reason": [
+          "string",
+          "null"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].executionMode": [
+          "string"
+        ],
+        "rows[].fundingNote": [
+          "string"
+        ],
+        "rows[].balance.namespace": [
+          "string"
+        ],
+        "rows[].balance.id": [
+          "string"
+        ],
+        "rows[].balance.owner_id": [
+          "string"
+        ],
+        "rows[].balance.card_id": [
+          "string"
+        ],
+        "rows[].balance.currency": [
+          "string"
+        ],
+        "rows[].balance.kind": [
+          "string"
+        ],
+        "rows[].balance.postedMinor": [
+          "string"
+        ],
+        "rows[].balance.heldMinor": [
+          "string"
+        ],
+        "rows[].balance.availableMinor": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/card-admin/CardAdminPage.tsx:Card",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/card-admin/operations",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/meta",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "namespace": [
+          "string"
+        ],
+        "scenarios": [
+          "array"
+        ],
+        "scenarios[]": [
+          "array"
+        ],
+        "scenarios[][]": [
+          "string"
+        ],
+        "asOf": [
+          "string"
+        ],
+        "assumption": [
+          "string"
+        ],
+        "records": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/transactions",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].sourceKind": [
+          "string"
+        ],
+        "rows[].crossCurrency": [
+          "string"
+        ],
+        "rows[].sourceId": [
+          "string"
+        ],
+        "rows[].connectionId": [
+          "string"
+        ],
+        "rows[].entityId": [
+          "string"
+        ],
+        "rows[].platform": [
+          "string"
+        ],
+        "rows[].scenario": [
+          "string"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.date": [
+          "string"
+        ],
+        "rows[].source.description": [
+          "string"
+        ],
+        "rows[].source.amountCents": [
+          "string"
+        ],
+        "rows[].source.status": [
+          "string"
+        ],
+        "rows[].source.detailedStatus": [
+          "string"
+        ],
+        "rows[].source.accountId": [
+          "string"
+        ],
+        "rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "rows[].source.accountSubtype": [
+          "string"
+        ],
+        "rows[].source.cardId": [
+          "string"
+        ],
+        "rows[].source.orderId": [
+          "string"
+        ],
+        "rows[].source.referenceNumber": [
+          "string"
+        ],
+        "rows[].source.authorizedAt": [
+          "string"
+        ],
+        "rows[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "rows[].source.merchantData": [
+          "object"
+        ],
+        "rows[].source.merchantData.description": [
+          "string"
+        ],
+        "rows[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "rows[].source.merchantData.location": [
+          "object"
+        ],
+        "rows[].source.merchantData.location.city": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.state": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.country": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "rows[].source.originalCurrency": [
+          "object"
+        ],
+        "rows[].source.originalCurrency.code": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.amountCents": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.conversionRate": [
+          "string"
+        ],
+        "rows[].sourceNumericEncoding": [
+          "string"
+        ],
+        "rows[].category": [
+          "string"
+        ],
+        "rows[].balanceType": [
+          "string"
+        ],
+        "rows[].accountAmount": [
+          "object"
+        ],
+        "rows[].accountAmount.minor": [
+          "string"
+        ],
+        "rows[].accountAmount.currency": [
+          "string"
+        ],
+        "rows[].accountAmount.scale": [
+          "number"
+        ],
+        "rows[].originalAmount": [
+          "object",
+          "null"
+        ],
+        "rows[].originalAmount.minor": [
+          "string"
+        ],
+        "rows[].originalAmount.currency": [
+          "string"
+        ],
+        "rows[].originalAmount.scale": [
+          "number"
+        ],
+        "rows[].originalCurrency": [
+          "string"
+        ],
+        "rows[].originalRawMinor": [
+          "string",
+          "null"
+        ],
+        "rows[].providerRate": [
+          "string",
+          "null"
+        ],
+        "rows[].displayRatio": [
+          "string",
+          "null"
+        ],
+        "rows[].ratioBasis": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].statusLabel": [
+          "string"
+        ],
+        "rows[].detailedStatus": [
+          "string"
+        ],
+        "rows[].detailedStatusLabel": [
+          "string"
+        ],
+        "rows[].authorizedAt": [
+          "string",
+          "null"
+        ],
+        "rows[].sourceDate": [
+          "string"
+        ],
+        "rows[].postedAt": [
+          "null",
+          "string"
+        ],
+        "rows[].dateMeaning": [
+          "string"
+        ],
+        "rows[].collectedAt": [
+          "string"
+        ],
+        "rows[].feeTreatment": [
+          "string"
+        ],
+        "rows[].matching": [
+          "string"
+        ],
+        "rows[].syncState": [
+          "string"
+        ],
+        "rows[].issues": [
+          "array"
+        ],
+        "rows[].issues[]": [
+          "string"
+        ],
+        "rows[].assumption": [
+          "string"
+        ],
+        "rows[].sourceComplete": [
+          "boolean"
+        ],
+        "rows[].source.feeInfo": [
+          "object"
+        ],
+        "rows[].source.feeInfo.relatedTransaction": [
+          "object"
+        ],
+        "rows[].source.feeInfo.relatedTransaction.id": [
+          "string"
+        ],
+        "rows[].source.feeInfo.relatedTransaction.amount": [
+          "string"
+        ],
+        "rows[].source.fxFeeInfo": [
+          "object"
+        ],
+        "rows[].source.fxFeeInfo.amountCents": [
+          "string"
+        ],
+        "rows[].source.cashbackInfo": [
+          "object"
+        ],
+        "rows[].source.cashbackInfo.amountCents": [
+          "string"
+        ],
+        "rows[].source.cashbackInfo.rate": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "context": [
+          "object"
+        ],
+        "context.from": [
+          "string"
+        ],
+        "context.to": [
+          "string"
+        ],
+        "context.timezone": [
+          "string"
+        ],
+        "context.basis": [
+          "string"
+        ],
+        "context.platform": [
+          "string"
+        ],
+        "context.account": [
+          "string"
+        ],
+        "context.currency": [
+          "string"
+        ],
+        "context.scenario": [
+          "string"
+        ],
+        "context.asOf": [
+          "string"
+        ],
+        "context.completeness": [
+          "string"
+        ],
+        "context.basisLabel": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/fx/types.ts:Transaction",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/report",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "context": [
+          "object"
+        ],
+        "context.from": [
+          "string"
+        ],
+        "context.to": [
+          "string"
+        ],
+        "context.timezone": [
+          "string"
+        ],
+        "context.basis": [
+          "string"
+        ],
+        "context.platform": [
+          "string"
+        ],
+        "context.account": [
+          "string"
+        ],
+        "context.currency": [
+          "string"
+        ],
+        "context.scenario": [
+          "string"
+        ],
+        "context.asOf": [
+          "string"
+        ],
+        "context.completeness": [
+          "string"
+        ],
+        "context.basisLabel": [
+          "string"
+        ],
+        "accountTotal": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "dailyPage": [
+          "number"
+        ],
+        "dailyTotal": [
+          "number"
+        ],
+        "accounts": [
+          "array"
+        ],
+        "accounts[]": [
+          "object"
+        ],
+        "accounts[].accountId": [
+          "string"
+        ],
+        "accounts[].connectionId": [
+          "string"
+        ],
+        "accounts[].balanceType": [
+          "string"
+        ],
+        "accounts[].currency": [
+          "string"
+        ],
+        "accounts[].scale": [
+          "number"
+        ],
+        "accounts[].posted": [
+          "object"
+        ],
+        "accounts[].posted.fee": [
+          "string"
+        ],
+        "accounts[].posted.purchase": [
+          "string"
+        ],
+        "accounts[].posted.refund": [
+          "string"
+        ],
+        "accounts[].pending": [
+          "object"
+        ],
+        "accounts[].inflow": [
+          "string"
+        ],
+        "accounts[].outflow": [
+          "string"
+        ],
+        "accounts[].net": [
+          "string"
+        ],
+        "accounts[].issues": [
+          "number"
+        ],
+        "accounts[].count": [
+          "number"
+        ],
+        "accounts[].posted.cashback": [
+          "string"
+        ],
+        "accounts[].posted.cashback_adjustment": [
+          "string"
+        ],
+        "accounts[].pending.cashback": [
+          "string"
+        ],
+        "accounts[].pending.purchase": [
+          "string"
+        ],
+        "originals": [
+          "array"
+        ],
+        "originals[]": [
+          "object"
+        ],
+        "originals[].currency": [
+          "string"
+        ],
+        "originals[].scale": [
+          "number"
+        ],
+        "originals[].purchase": [
+          "string"
+        ],
+        "originals[].refund": [
+          "string"
+        ],
+        "originals[].unknown": [
+          "number"
+        ],
+        "originals[].net": [
+          "string"
+        ],
+        "daily": [
+          "array"
+        ],
+        "daily[]": [
+          "object"
+        ],
+        "daily[].day": [
+          "string"
+        ],
+        "daily[].accountId": [
+          "string"
+        ],
+        "daily[].balanceType": [
+          "string"
+        ],
+        "daily[].currency": [
+          "string"
+        ],
+        "daily[].scale": [
+          "number"
+        ],
+        "daily[].net": [
+          "string"
+        ],
+        "unassigned": [
+          "number"
+        ],
+        "complete": [
+          "boolean"
+        ],
+        "note": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/balances",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].accountId": [
+          "string"
+        ],
+        "rows[].type": [
+          "string"
+        ],
+        "rows[].available": [
+          "object"
+        ],
+        "rows[].available.minor": [
+          "string"
+        ],
+        "rows[].available.currency": [
+          "string"
+        ],
+        "rows[].available.scale": [
+          "number"
+        ],
+        "rows[].posted": [
+          "object"
+        ],
+        "rows[].posted.minor": [
+          "string"
+        ],
+        "rows[].posted.currency": [
+          "string"
+        ],
+        "rows[].posted.scale": [
+          "number"
+        ],
+        "rows[].timestamp": [
+          "string"
+        ],
+        "rows[].collectedAt": [
+          "string"
+        ],
+        "rows[].expected": [
+          "object",
+          "null"
+        ],
+        "rows[].expected.minor": [
+          "string"
+        ],
+        "rows[].expected.currency": [
+          "string"
+        ],
+        "rows[].expected.scale": [
+          "number"
+        ],
+        "rows[].difference": [
+          "object",
+          "null"
+        ],
+        "rows[].difference.minor": [
+          "string"
+        ],
+        "rows[].difference.currency": [
+          "string"
+        ],
+        "rows[].difference.scale": [
+          "number"
+        ],
+        "rows[].state": [
+          "string"
+        ],
+        "rows[].note": [
+          "string"
+        ],
+        "limitedTo": [
+          "number"
+        ],
+        "note": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/differences",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].sourceKind": [
+          "string"
+        ],
+        "rows[].crossCurrency": [
+          "string"
+        ],
+        "rows[].sourceId": [
+          "string"
+        ],
+        "rows[].connectionId": [
+          "string"
+        ],
+        "rows[].entityId": [
+          "string"
+        ],
+        "rows[].platform": [
+          "string"
+        ],
+        "rows[].scenario": [
+          "string"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.date": [
+          "string"
+        ],
+        "rows[].source.description": [
+          "string"
+        ],
+        "rows[].source.amountCents": [
+          "string"
+        ],
+        "rows[].source.status": [
+          "string"
+        ],
+        "rows[].source.detailedStatus": [
+          "string"
+        ],
+        "rows[].source.accountId": [
+          "string"
+        ],
+        "rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "rows[].source.accountSubtype": [
+          "string"
+        ],
+        "rows[].source.cardId": [
+          "string"
+        ],
+        "rows[].source.orderId": [
+          "string"
+        ],
+        "rows[].source.referenceNumber": [
+          "string"
+        ],
+        "rows[].source.authorizedAt": [
+          "string"
+        ],
+        "rows[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "rows[].source.merchantData": [
+          "object"
+        ],
+        "rows[].source.merchantData.description": [
+          "string"
+        ],
+        "rows[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "rows[].source.merchantData.location": [
+          "object"
+        ],
+        "rows[].source.merchantData.location.city": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.state": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.country": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "rows[].source.originalCurrency": [
+          "object"
+        ],
+        "rows[].source.originalCurrency.code": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.amountCents": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.conversionRate": [
+          "string"
+        ],
+        "rows[].sourceNumericEncoding": [
+          "string"
+        ],
+        "rows[].category": [
+          "string"
+        ],
+        "rows[].balanceType": [
+          "string"
+        ],
+        "rows[].accountAmount": [
+          "object"
+        ],
+        "rows[].accountAmount.minor": [
+          "string"
+        ],
+        "rows[].accountAmount.currency": [
+          "string"
+        ],
+        "rows[].accountAmount.scale": [
+          "number"
+        ],
+        "rows[].originalAmount": [
+          "object",
+          "null"
+        ],
+        "rows[].originalAmount.minor": [
+          "string"
+        ],
+        "rows[].originalAmount.currency": [
+          "string"
+        ],
+        "rows[].originalAmount.scale": [
+          "number"
+        ],
+        "rows[].originalCurrency": [
+          "string"
+        ],
+        "rows[].originalRawMinor": [
+          "string",
+          "null"
+        ],
+        "rows[].providerRate": [
+          "string",
+          "null"
+        ],
+        "rows[].displayRatio": [
+          "string",
+          "null"
+        ],
+        "rows[].ratioBasis": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].statusLabel": [
+          "string"
+        ],
+        "rows[].detailedStatus": [
+          "string"
+        ],
+        "rows[].detailedStatusLabel": [
+          "string"
+        ],
+        "rows[].authorizedAt": [
+          "string",
+          "null"
+        ],
+        "rows[].sourceDate": [
+          "string"
+        ],
+        "rows[].postedAt": [
+          "null",
+          "string"
+        ],
+        "rows[].dateMeaning": [
+          "string"
+        ],
+        "rows[].collectedAt": [
+          "string"
+        ],
+        "rows[].feeTreatment": [
+          "string"
+        ],
+        "rows[].matching": [
+          "string"
+        ],
+        "rows[].syncState": [
+          "string"
+        ],
+        "rows[].issues": [
+          "array"
+        ],
+        "rows[].issues[]": [
+          "string"
+        ],
+        "rows[].assumption": [
+          "string"
+        ],
+        "rows[].sourceComplete": [
+          "boolean"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "context": [
+          "object"
+        ],
+        "context.from": [
+          "string"
+        ],
+        "context.to": [
+          "string"
+        ],
+        "context.timezone": [
+          "string"
+        ],
+        "context.basis": [
+          "string"
+        ],
+        "context.platform": [
+          "string"
+        ],
+        "context.account": [
+          "string"
+        ],
+        "context.currency": [
+          "string"
+        ],
+        "context.scenario": [
+          "string"
+        ],
+        "context.asOf": [
+          "string"
+        ],
+        "context.completeness": [
+          "string"
+        ],
+        "context.basisLabel": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/export",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "csv": [
+          "string"
+        ],
+        "count": [
+          "number"
+        ],
+        "context": [
+          "object"
+        ],
+        "context.from": [
+          "string"
+        ],
+        "context.to": [
+          "string"
+        ],
+        "context.timezone": [
+          "string"
+        ],
+        "context.basis": [
+          "string"
+        ],
+        "context.platform": [
+          "string"
+        ],
+        "context.account": [
+          "string"
+        ],
+        "context.currency": [
+          "string"
+        ],
+        "context.scenario": [
+          "string"
+        ],
+        "context.asOf": [
+          "string"
+        ],
+        "context.completeness": [
+          "string"
+        ],
+        "context.basisLabel": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/context",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "actor": [
+          "string"
+        ],
+        "permissions": [
+          "array"
+        ],
+        "permissions[]": [
+          "string"
+        ],
+        "wallets": [
+          "array"
+        ],
+        "wallets[]": [
+          "object"
+        ],
+        "wallets[].namespace": [
+          "string"
+        ],
+        "wallets[].id": [
+          "string"
+        ],
+        "wallets[].customer": [
+          "string"
+        ],
+        "wallets[].asset": [
+          "string"
+        ],
+        "wallets[].network": [
+          "string"
+        ],
+        "wallets[].scale": [
+          "number"
+        ],
+        "wallets[].kind": [
+          "string"
+        ],
+        "wallets[].postedMinor": [
+          "string"
+        ],
+        "wallets[].heldMinor": [
+          "string"
+        ],
+        "wallets[].availableMinor": [
+          "string"
+        ],
+        "counts": [
+          "object"
+        ],
+        "counts.pending": [
+          "number"
+        ],
+        "counts.approved": [
+          "number"
+        ],
+        "counts.processing": [
+          "number"
+        ],
+        "counts.completed": [
+          "number"
+        ],
+        "counts.rejected": [
+          "number"
+        ],
+        "counts.exception": [
+          "number"
+        ],
+        "customers": [
+          "array"
+        ],
+        "customers[]": [
+          "string"
+        ],
+        "mode": [
+          "string"
+        ],
+        "formalPolicy": [
+          "string"
+        ],
+        "fixedPrice": [
+          "object"
+        ],
+        "fixedPrice.version": [
+          "number"
+        ],
+        "fixedPrice.usdPerUsdt": [
+          "string"
+        ],
+        "fixedPrice.actor": [
+          "string"
+        ],
+        "fixedPrice.reason": [
+          "string"
+        ],
+        "fixedPrice.updatedAt": [
+          "string"
+        ],
+        "fixedPrice.mode": [
+          "string"
+        ],
+        "fixedPrice.scope": [
+          "string"
+        ],
+        "withdrawalPolicy": [
+          "object"
+        ],
+        "withdrawalPolicy.feeMinor": [
+          "string"
+        ],
+        "withdrawalPolicy.minMinor": [
+          "string"
+        ],
+        "withdrawalPolicy.maxMinor": [
+          "string"
+        ],
+        "withdrawalPolicy.asset": [
+          "string"
+        ],
+        "withdrawalPolicy.network": [
+          "string"
+        ],
+        "policy": [
+          "string"
+        ],
+        "approvalTiers": [
+          "array"
+        ],
+        "approvalTiers[]": [
+          "object"
+        ],
+        "approvalTiers[].upToMinor": [
+          "string"
+        ],
+        "approvalTiers[].nodes": [
+          "array"
+        ],
+        "approvalTiers[].nodes[]": [
+          "string"
+        ],
+        "directions": [
+          "array"
+        ],
+        "directions[]": [
+          "string"
+        ],
+        "channel": [
+          "string"
+        ],
+        "risk": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/finance/types.ts:Context",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/orders",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].reason": [
+          "string"
+        ],
+        "rows[].evidence": [
+          "null",
+          "string"
+        ],
+        "rows[].accounting": [
+          "string"
+        ],
+        "rows[].chain": [
+          "string"
+        ],
+        "rows[].deliveredMinor": [
+          "string"
+        ],
+        "rows[].feePostedMinor": [
+          "string"
+        ],
+        "rows[].policyVersion": [
+          "string"
+        ],
+        "rows[].requiredNodes": [
+          "array"
+        ],
+        "rows[].requiredNodes[]": [
+          "string"
+        ],
+        "rows[].error": [
+          "null",
+          "string"
+        ],
+        "rows[].source": [
+          "string"
+        ],
+        "rows[].target": [
+          "string"
+        ],
+        "rows[].address": [
+          "string",
+          "null"
+        ],
+        "rows[].memo": [
+          "null"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].customer": [
+          "string"
+        ],
+        "rows[].asset": [
+          "string"
+        ],
+        "rows[].network": [
+          "string"
+        ],
+        "rows[].amount_minor": [
+          "string"
+        ],
+        "rows[].fee_minor": [
+          "string"
+        ],
+        "rows[].approval": [
+          "string"
+        ],
+        "rows[].execution": [
+          "string"
+        ],
+        "rows[].state": [
+          "string"
+        ],
+        "rows[].risk": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].requester": [
+          "string"
+        ],
+        "rows[].parent_id": [
+          "null",
+          "string"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].updated_at": [
+          "string"
+        ],
+        "rows[].remainingMinor": [
+          "string"
+        ],
+        "rows[].expectedReceiptMinor": [
+          "string"
+        ],
+        "rows[].actualReceiptMinor": [
+          "string"
+        ],
+        "rows[].feeTreatment": [
+          "string"
+        ],
+        "rows[].dataMode": [
+          "string"
+        ],
+        "rows[].formalPolicy": [
+          "string"
+        ],
+        "rows[].quoteId": [
+          "string"
+        ],
+        "rows[].quote": [
+          "object"
+        ],
+        "rows[].quote.sellAsset": [
+          "string"
+        ],
+        "rows[].quote.buyAsset": [
+          "string"
+        ],
+        "rows[].quote.sellMinor": [
+          "string"
+        ],
+        "rows[].quote.buyMinor": [
+          "string"
+        ],
+        "rows[].quote.feeMinor": [
+          "string"
+        ],
+        "rows[].quote.mode": [
+          "string"
+        ],
+        "rows[].quote.priceVersion": [
+          "number"
+        ],
+        "rows[].quote.usdPerUsdt": [
+          "string"
+        ],
+        "rows[].quote.rate": [
+          "null"
+        ],
+        "rows[].quote.rateNumerator": [
+          "string"
+        ],
+        "rows[].quote.rateDenominator": [
+          "string"
+        ],
+        "rows[].quote.rateDirection": [
+          "string"
+        ],
+        "rows[].quote.source": [
+          "string"
+        ],
+        "rows[].quote.lockCondition": [
+          "string"
+        ],
+        "rows[].quote.expiresAt": [
+          "null"
+        ],
+        "rows[].counterparty": [
+          "string"
+        ],
+        "rows[].receiptState": [
+          "string"
+        ],
+        "rows[].paymentState": [
+          "string"
+        ],
+        "rows[].confirmations": [
+          "number"
+        ],
+        "rows[].channelReference": [
+          "string"
+        ],
+        "rows[].txHash": [
+          "null"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "totals": [
+          "array"
+        ],
+        "meta": [
+          "object"
+        ],
+        "meta.dataMode": [
+          "string"
+        ],
+        "meta.namespace": [
+          "string"
+        ],
+        "meta.asOf": [
+          "string"
+        ],
+        "meta.timezone": [
+          "string"
+        ],
+        "meta.timeBasis": [
+          "string"
+        ],
+        "meta.complete": [
+          "boolean"
+        ],
+        "meta.coverage": [
+          "string"
+        ],
+        "meta.pagination": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/finance/types.ts:Order",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/flows",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].order_id": [
+          "string"
+        ],
+        "rows[].journal_id": [
+          "string"
+        ],
+        "rows[].account_id": [
+          "string"
+        ],
+        "rows[].customer": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].asset": [
+          "string"
+        ],
+        "rows[].network": [
+          "string"
+        ],
+        "rows[].amount_minor": [
+          "string"
+        ],
+        "rows[].before_minor": [
+          "string"
+        ],
+        "rows[].after_minor": [
+          "string"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].direction": [
+          "string"
+        ],
+        "rows[].order": [
+          "object"
+        ],
+        "rows[].order.reason": [
+          "string"
+        ],
+        "rows[].order.evidence": [
+          "null",
+          "string"
+        ],
+        "rows[].order.accounting": [
+          "string"
+        ],
+        "rows[].order.chain": [
+          "string"
+        ],
+        "rows[].order.deliveredMinor": [
+          "string"
+        ],
+        "rows[].order.feePostedMinor": [
+          "string"
+        ],
+        "rows[].order.policyVersion": [
+          "string"
+        ],
+        "rows[].order.requiredNodes": [
+          "array"
+        ],
+        "rows[].order.requiredNodes[]": [
+          "string"
+        ],
+        "rows[].order.error": [
+          "null"
+        ],
+        "rows[].order.source": [
+          "string"
+        ],
+        "rows[].order.target": [
+          "string"
+        ],
+        "rows[].order.address": [
+          "string",
+          "null"
+        ],
+        "rows[].order.memo": [
+          "null"
+        ],
+        "rows[].order.confirmations": [
+          "number"
+        ],
+        "rows[].order.channelReference": [
+          "string"
+        ],
+        "rows[].order.txHash": [
+          "null"
+        ],
+        "rows[].order.id": [
+          "string"
+        ],
+        "rows[].order.kind": [
+          "string"
+        ],
+        "rows[].order.customer": [
+          "string"
+        ],
+        "rows[].order.asset": [
+          "string"
+        ],
+        "rows[].order.network": [
+          "string"
+        ],
+        "rows[].order.amount_minor": [
+          "string"
+        ],
+        "rows[].order.fee_minor": [
+          "string"
+        ],
+        "rows[].order.approval": [
+          "string"
+        ],
+        "rows[].order.execution": [
+          "string"
+        ],
+        "rows[].order.state": [
+          "string"
+        ],
+        "rows[].order.risk": [
+          "string"
+        ],
+        "rows[].order.revision": [
+          "number"
+        ],
+        "rows[].order.requester": [
+          "string"
+        ],
+        "rows[].order.parent_id": [
+          "null",
+          "string"
+        ],
+        "rows[].order.created_at": [
+          "string"
+        ],
+        "rows[].order.updated_at": [
+          "string"
+        ],
+        "rows[].order.remainingMinor": [
+          "string"
+        ],
+        "rows[].order.expectedReceiptMinor": [
+          "string"
+        ],
+        "rows[].order.actualReceiptMinor": [
+          "string"
+        ],
+        "rows[].order.feeTreatment": [
+          "string"
+        ],
+        "rows[].order.dataMode": [
+          "string"
+        ],
+        "rows[].order.formalPolicy": [
+          "string"
+        ],
+        "rows[].order.quoteId": [
+          "string"
+        ],
+        "rows[].order.quote": [
+          "object"
+        ],
+        "rows[].order.quote.sellAsset": [
+          "string"
+        ],
+        "rows[].order.quote.buyAsset": [
+          "string"
+        ],
+        "rows[].order.quote.sellMinor": [
+          "string"
+        ],
+        "rows[].order.quote.buyMinor": [
+          "string"
+        ],
+        "rows[].order.quote.feeMinor": [
+          "string"
+        ],
+        "rows[].order.quote.mode": [
+          "string"
+        ],
+        "rows[].order.quote.priceVersion": [
+          "number"
+        ],
+        "rows[].order.quote.usdPerUsdt": [
+          "string"
+        ],
+        "rows[].order.quote.rate": [
+          "null"
+        ],
+        "rows[].order.quote.rateNumerator": [
+          "string"
+        ],
+        "rows[].order.quote.rateDenominator": [
+          "string"
+        ],
+        "rows[].order.quote.rateDirection": [
+          "string"
+        ],
+        "rows[].order.quote.source": [
+          "string"
+        ],
+        "rows[].order.quote.lockCondition": [
+          "string"
+        ],
+        "rows[].order.quote.expiresAt": [
+          "null"
+        ],
+        "rows[].order.counterparty": [
+          "string"
+        ],
+        "rows[].order.receiptState": [
+          "string"
+        ],
+        "rows[].order.paymentState": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "totals": [
+          "array"
+        ],
+        "totals[]": [
+          "object"
+        ],
+        "totals[].asset": [
+          "string"
+        ],
+        "totals[].network": [
+          "string"
+        ],
+        "totals[].inMinor": [
+          "string"
+        ],
+        "totals[].outMinor": [
+          "string"
+        ],
+        "totals[].netMinor": [
+          "string"
+        ],
+        "meta": [
+          "object"
+        ],
+        "meta.dataMode": [
+          "string"
+        ],
+        "meta.namespace": [
+          "string"
+        ],
+        "meta.asOf": [
+          "string"
+        ],
+        "meta.timezone": [
+          "string"
+        ],
+        "meta.timeBasis": [
+          "string"
+        ],
+        "meta.complete": [
+          "boolean"
+        ],
+        "meta.coverage": [
+          "string"
+        ],
+        "meta.pagination": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/finance/types.ts:Movement",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/export",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "filename": [
+          "string"
+        ],
+        "csv": [
+          "string"
+        ],
+        "count": [
+          "number"
+        ],
+        "meta": [
+          "object"
+        ],
+        "meta.dataMode": [
+          "string"
+        ],
+        "meta.namespace": [
+          "string"
+        ],
+        "meta.asOf": [
+          "string"
+        ],
+        "meta.timezone": [
+          "string"
+        ],
+        "meta.timeBasis": [
+          "string"
+        ],
+        "meta.complete": [
+          "boolean"
+        ],
+        "meta.coverage": [
+          "string"
+        ],
+        "meta.pagination": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/live/status",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "configured": [
+          "boolean"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/users/DEMO-USER-001",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "group_id": [
+          "string"
+        ],
+        "name": [
+          "string"
+        ],
+        "email": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "review_note": [
+          "null"
+        ],
+        "revision": [
+          "number"
+        ],
+        "credential_version": [
+          "number"
+        ],
+        "created_at": [
+          "string"
+        ],
+        "password_set": [
+          "number"
+        ],
+        "fees": [
+          "array"
+        ],
+        "fees[]": [
+          "object"
+        ],
+        "fees[].kind": [
+          "string"
+        ],
+        "fees[].label": [
+          "string"
+        ],
+        "fees[].currency": [
+          "string"
+        ],
+        "fees[].precision": [
+          "number"
+        ],
+        "fees[].bps": [
+          "number"
+        ],
+        "fees[].fixedMinor": [
+          "number"
+        ],
+        "fees[].overridden": [
+          "boolean"
+        ],
+        "fees[].source": [
+          "string"
+        ],
+        "groupName": [
+          "string"
+        ],
+        "accounts": [
+          "array"
+        ],
+        "accounts[]": [
+          "object"
+        ],
+        "accounts[].id": [
+          "string"
+        ],
+        "accounts[].currency": [
+          "string"
+        ],
+        "accounts[].available_minor": [
+          "number"
+        ],
+        "accounts[].posted_minor": [
+          "number"
+        ],
+        "audit": [
+          "array"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/groups/DEMO-GROUP-PARTNER",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "namespace": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "name": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "revision": [
+          "number"
+        ],
+        "created_at": [
+          "string"
+        ],
+        "fees": [
+          "array"
+        ],
+        "fees[]": [
+          "object"
+        ],
+        "fees[].kind": [
+          "string"
+        ],
+        "fees[].label": [
+          "string"
+        ],
+        "fees[].currency": [
+          "string"
+        ],
+        "fees[].precision": [
+          "number"
+        ],
+        "fees[].bps": [
+          "number"
+        ],
+        "fees[].fixedMinor": [
+          "number"
+        ],
+        "fees[].overridden": [
+          "boolean"
+        ],
+        "fees[].source": [
+          "string"
+        ],
+        "audit": [
+          "array"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/bins/DEMO-BIN-USD-MC",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "name": [
+          "string"
+        ],
+        "binPrefix": [
+          "string"
+        ],
+        "network": [
+          "string"
+        ],
+        "currency": [
+          "string"
+        ],
+        "platform": [
+          "string"
+        ],
+        "upstreamProductId": [
+          "null"
+        ],
+        "status": [
+          "string"
+        ],
+        "maxCards": [
+          "number"
+        ],
+        "description": [
+          "string"
+        ],
+        "internalNote": [
+          "string"
+        ],
+        "revision": [
+          "number"
+        ],
+        "createdAt": [
+          "string"
+        ],
+        "updatedAt": [
+          "string"
+        ],
+        "issuedCount": [
+          "number"
+        ],
+        "audit": [
+          "array"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/console/orders/DEMO-PORTAL-SEED-CARD-TOPUP",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "id": [
+          "string"
+        ],
+        "name": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "amount": [
+          "number"
+        ],
+        "currency": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "time": [
+          "string"
+        ],
+        "orderId": [
+          "string"
+        ],
+        "card": [
+          "object"
+        ],
+        "card.id": [
+          "string"
+        ],
+        "card.name": [
+          "string"
+        ],
+        "card.last4": [
+          "string"
+        ],
+        "finance": [
+          "object"
+        ],
+        "finance.id": [
+          "string"
+        ],
+        "finance.status": [
+          "string"
+        ],
+        "finance.currency": [
+          "string"
+        ],
+        "finance.toCurrency": [
+          "string"
+        ],
+        "finance.fee": [
+          "number"
+        ],
+        "finance.receive": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/card-admin/cards/1001",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "card": [
+          "object"
+        ],
+        "card.namespace": [
+          "string"
+        ],
+        "card.id": [
+          "string"
+        ],
+        "card.owner_id": [
+          "string"
+        ],
+        "card.name": [
+          "string"
+        ],
+        "card.last4": [
+          "null"
+        ],
+        "card.provider_status": [
+          "string"
+        ],
+        "card.self_frozen": [
+          "number"
+        ],
+        "card.risk_frozen": [
+          "number"
+        ],
+        "card.reason": [
+          "null"
+        ],
+        "card.actor": [
+          "null"
+        ],
+        "card.operated_at": [
+          "null"
+        ],
+        "card.revision": [
+          "number"
+        ],
+        "card.provider_mode": [
+          "string"
+        ],
+        "card.balance": [
+          "null"
+        ],
+        "card.actions": [
+          "object"
+        ],
+        "card.actions.freeze": [
+          "object"
+        ],
+        "card.actions.freeze.allowed": [
+          "boolean"
+        ],
+        "card.actions.freeze.reason": [
+          "null"
+        ],
+        "card.actions.unfreeze": [
+          "object"
+        ],
+        "card.actions.unfreeze.allowed": [
+          "boolean"
+        ],
+        "card.actions.unfreeze.reason": [
+          "string"
+        ],
+        "card.actions.debit": [
+          "object"
+        ],
+        "card.actions.debit.allowed": [
+          "boolean"
+        ],
+        "card.actions.debit.reason": [
+          "string"
+        ],
+        "card.actions.transfer_in": [
+          "object"
+        ],
+        "card.actions.transfer_in.allowed": [
+          "boolean"
+        ],
+        "card.actions.transfer_in.reason": [
+          "string"
+        ],
+        "card.actions.transfer_out": [
+          "object"
+        ],
+        "card.actions.transfer_out.allowed": [
+          "boolean"
+        ],
+        "card.actions.transfer_out.reason": [
+          "string"
+        ],
+        "card.status": [
+          "string"
+        ],
+        "card.executionMode": [
+          "string"
+        ],
+        "card.fundingNote": [
+          "string"
+        ],
+        "accounts": [
+          "array"
+        ],
+        "operations": [
+          "object"
+        ],
+        "operations.page": [
+          "number"
+        ],
+        "operations.pageSize": [
+          "number"
+        ],
+        "operations.total": [
+          "number"
+        ],
+        "operations.rows": [
+          "array"
+        ],
+        "audit": [
+          "array"
+        ],
+        "ledger": [
+          "array"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/card-admin/CardAdminPage.tsx:Detail",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/transactions/FX-R001-FX09-T1",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "record": [
+          "object"
+        ],
+        "record.id": [
+          "string"
+        ],
+        "record.sourceKind": [
+          "string"
+        ],
+        "record.crossCurrency": [
+          "string"
+        ],
+        "record.sourceId": [
+          "string"
+        ],
+        "record.connectionId": [
+          "string"
+        ],
+        "record.entityId": [
+          "string"
+        ],
+        "record.platform": [
+          "string"
+        ],
+        "record.scenario": [
+          "string"
+        ],
+        "record.source": [
+          "object"
+        ],
+        "record.source.id": [
+          "string"
+        ],
+        "record.source.date": [
+          "string"
+        ],
+        "record.source.description": [
+          "string"
+        ],
+        "record.source.amountCents": [
+          "string"
+        ],
+        "record.source.status": [
+          "string"
+        ],
+        "record.source.detailedStatus": [
+          "string"
+        ],
+        "record.source.accountId": [
+          "string"
+        ],
+        "record.source.virtualAccountId": [
+          "string"
+        ],
+        "record.source.accountSubtype": [
+          "string"
+        ],
+        "record.source.cardId": [
+          "string"
+        ],
+        "record.source.orderId": [
+          "string"
+        ],
+        "record.source.referenceNumber": [
+          "string"
+        ],
+        "record.source.authorizedAt": [
+          "string"
+        ],
+        "record.source.providerAuthorizationId": [
+          "string"
+        ],
+        "record.source.merchantData": [
+          "object"
+        ],
+        "record.source.merchantData.description": [
+          "string"
+        ],
+        "record.source.merchantData.categoryCode": [
+          "string"
+        ],
+        "record.source.merchantData.location": [
+          "object"
+        ],
+        "record.source.merchantData.location.city": [
+          "string"
+        ],
+        "record.source.merchantData.location.state": [
+          "string"
+        ],
+        "record.source.merchantData.location.country": [
+          "string"
+        ],
+        "record.source.merchantData.location.zip": [
+          "string"
+        ],
+        "record.source.originalCurrency": [
+          "object"
+        ],
+        "record.source.originalCurrency.code": [
+          "string"
+        ],
+        "record.source.originalCurrency.amountCents": [
+          "string"
+        ],
+        "record.source.originalCurrency.conversionRate": [
+          "string"
+        ],
+        "record.sourceNumericEncoding": [
+          "string"
+        ],
+        "record.category": [
+          "string"
+        ],
+        "record.balanceType": [
+          "string"
+        ],
+        "record.accountAmount": [
+          "object"
+        ],
+        "record.accountAmount.minor": [
+          "string"
+        ],
+        "record.accountAmount.currency": [
+          "string"
+        ],
+        "record.accountAmount.scale": [
+          "number"
+        ],
+        "record.originalAmount": [
+          "object"
+        ],
+        "record.originalAmount.minor": [
+          "string"
+        ],
+        "record.originalAmount.currency": [
+          "string"
+        ],
+        "record.originalAmount.scale": [
+          "number"
+        ],
+        "record.originalCurrency": [
+          "string"
+        ],
+        "record.originalRawMinor": [
+          "string"
+        ],
+        "record.providerRate": [
+          "string"
+        ],
+        "record.displayRatio": [
+          "string"
+        ],
+        "record.ratioBasis": [
+          "string"
+        ],
+        "record.status": [
+          "string"
+        ],
+        "record.statusLabel": [
+          "string"
+        ],
+        "record.detailedStatus": [
+          "string"
+        ],
+        "record.detailedStatusLabel": [
+          "string"
+        ],
+        "record.authorizedAt": [
+          "string"
+        ],
+        "record.sourceDate": [
+          "string"
+        ],
+        "record.postedAt": [
+          "null"
+        ],
+        "record.dateMeaning": [
+          "string"
+        ],
+        "record.collectedAt": [
+          "string"
+        ],
+        "record.feeTreatment": [
+          "string"
+        ],
+        "record.matching": [
+          "string"
+        ],
+        "record.syncState": [
+          "string"
+        ],
+        "record.issues": [
+          "array"
+        ],
+        "record.issues[]": [
+          "string"
+        ],
+        "record.assumption": [
+          "string"
+        ],
+        "record.sourceComplete": [
+          "boolean"
+        ],
+        "history": [
+          "object"
+        ],
+        "history.rows": [
+          "array"
+        ],
+        "history.rows[]": [
+          "object"
+        ],
+        "history.rows[].requestSequence": [
+          "number"
+        ],
+        "history.rows[].source": [
+          "object"
+        ],
+        "history.rows[].source.id": [
+          "string"
+        ],
+        "history.rows[].source.date": [
+          "string"
+        ],
+        "history.rows[].source.description": [
+          "string"
+        ],
+        "history.rows[].source.amountCents": [
+          "string"
+        ],
+        "history.rows[].source.status": [
+          "string"
+        ],
+        "history.rows[].source.detailedStatus": [
+          "string"
+        ],
+        "history.rows[].source.accountId": [
+          "string"
+        ],
+        "history.rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "history.rows[].source.accountSubtype": [
+          "string"
+        ],
+        "history.rows[].source.cardId": [
+          "string"
+        ],
+        "history.rows[].source.orderId": [
+          "string"
+        ],
+        "history.rows[].source.referenceNumber": [
+          "string"
+        ],
+        "history.rows[].source.authorizedAt": [
+          "string"
+        ],
+        "history.rows[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "history.rows[].source.merchantData": [
+          "object"
+        ],
+        "history.rows[].source.merchantData.description": [
+          "string"
+        ],
+        "history.rows[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "history.rows[].source.merchantData.location": [
+          "object"
+        ],
+        "history.rows[].source.merchantData.location.city": [
+          "string"
+        ],
+        "history.rows[].source.merchantData.location.state": [
+          "string"
+        ],
+        "history.rows[].source.merchantData.location.country": [
+          "string"
+        ],
+        "history.rows[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "history.rows[].source.originalCurrency": [
+          "object"
+        ],
+        "history.rows[].source.originalCurrency.code": [
+          "string"
+        ],
+        "history.rows[].source.originalCurrency.amountCents": [
+          "string"
+        ],
+        "history.rows[].source.originalCurrency.conversionRate": [
+          "string"
+        ],
+        "history.rows[].accountAmount": [
+          "object"
+        ],
+        "history.rows[].accountAmount.minor": [
+          "string"
+        ],
+        "history.rows[].accountAmount.currency": [
+          "string"
+        ],
+        "history.rows[].accountAmount.scale": [
+          "number"
+        ],
+        "history.rows[].originalAmount": [
+          "object"
+        ],
+        "history.rows[].originalAmount.minor": [
+          "string"
+        ],
+        "history.rows[].originalAmount.currency": [
+          "string"
+        ],
+        "history.rows[].originalAmount.scale": [
+          "number"
+        ],
+        "history.rows[].collectedAt": [
+          "string"
+        ],
+        "history.rows[].result": [
+          "string"
+        ],
+        "history.complete": [
+          "boolean"
+        ],
+        "history.note": [
+          "string"
+        ],
+        "relations": [
+          "array"
+        ],
+        "events": [
+          "array"
+        ],
+        "feeDetails": [
+          "array"
+        ],
+        "authorizationAmount": [
+          "object"
+        ],
+        "authorizationAmount.minor": [
+          "string"
+        ],
+        "authorizationAmount.currency": [
+          "string"
+        ],
+        "authorizationAmount.scale": [
+          "number"
+        ],
+        "net": [
+          "object"
+        ],
+        "net.scopeId": [
+          "string"
+        ],
+        "net.scopeKind": [
+          "string"
+        ],
+        "net.account": [
+          "object"
+        ],
+        "net.account.minor": [
+          "string"
+        ],
+        "net.account.currency": [
+          "string"
+        ],
+        "net.account.scale": [
+          "number"
+        ],
+        "net.original": [
+          "null"
+        ],
+        "net.refund": [
+          "object"
+        ],
+        "net.refund.minor": [
+          "string"
+        ],
+        "net.refund.currency": [
+          "string"
+        ],
+        "net.refund.scale": [
+          "number"
+        ],
+        "net.confirmedWithinDemo": [
+          "boolean"
+        ],
+        "net.issues": [
+          "array"
+        ],
+        "net.issues[]": [
+          "string"
+        ],
+        "net.note": [
+          "string"
+        ],
+        "fees": [
+          "object"
+        ],
+        "fees.fx": [
+          "null"
+        ],
+        "fees.cashback": [
+          "null"
+        ],
+        "fees.treatment": [
+          "string"
+        ],
+        "fees.note": [
+          "string"
+        ],
+        "asOf": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/fx/types.ts:Detail",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/transactions/FX-R001-FX09-T1/timeline",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].requestSequence": [
+          "number"
+        ],
+        "rows[].source": [
+          "object"
+        ],
+        "rows[].source.id": [
+          "string"
+        ],
+        "rows[].source.date": [
+          "string"
+        ],
+        "rows[].source.description": [
+          "string"
+        ],
+        "rows[].source.amountCents": [
+          "string"
+        ],
+        "rows[].source.status": [
+          "string"
+        ],
+        "rows[].source.detailedStatus": [
+          "string"
+        ],
+        "rows[].source.accountId": [
+          "string"
+        ],
+        "rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "rows[].source.accountSubtype": [
+          "string"
+        ],
+        "rows[].source.cardId": [
+          "string"
+        ],
+        "rows[].source.orderId": [
+          "string"
+        ],
+        "rows[].source.referenceNumber": [
+          "string"
+        ],
+        "rows[].source.authorizedAt": [
+          "string"
+        ],
+        "rows[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "rows[].source.merchantData": [
+          "object"
+        ],
+        "rows[].source.merchantData.description": [
+          "string"
+        ],
+        "rows[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "rows[].source.merchantData.location": [
+          "object"
+        ],
+        "rows[].source.merchantData.location.city": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.state": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.country": [
+          "string"
+        ],
+        "rows[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "rows[].source.originalCurrency": [
+          "object"
+        ],
+        "rows[].source.originalCurrency.code": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.amountCents": [
+          "string"
+        ],
+        "rows[].source.originalCurrency.conversionRate": [
+          "string"
+        ],
+        "rows[].accountAmount": [
+          "object"
+        ],
+        "rows[].accountAmount.minor": [
+          "string"
+        ],
+        "rows[].accountAmount.currency": [
+          "string"
+        ],
+        "rows[].accountAmount.scale": [
+          "number"
+        ],
+        "rows[].originalAmount": [
+          "object"
+        ],
+        "rows[].originalAmount.minor": [
+          "string"
+        ],
+        "rows[].originalAmount.currency": [
+          "string"
+        ],
+        "rows[].originalAmount.scale": [
+          "number"
+        ],
+        "rows[].collectedAt": [
+          "string"
+        ],
+        "rows[].result": [
+          "string"
+        ],
+        "complete": [
+          "boolean"
+        ],
+        "note": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/transactions/FX-R001-FX09-T1/relations",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/fx/cards/FX-R001-FX09-CARD",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "card": [
+          "object"
+        ],
+        "card.id": [
+          "string"
+        ],
+        "card.accountId": [
+          "string"
+        ],
+        "card.last4": [
+          "string"
+        ],
+        "card.status": [
+          "string"
+        ],
+        "transactions": [
+          "object"
+        ],
+        "transactions.rows": [
+          "array"
+        ],
+        "transactions.rows[]": [
+          "object"
+        ],
+        "transactions.rows[].id": [
+          "string"
+        ],
+        "transactions.rows[].sourceKind": [
+          "string"
+        ],
+        "transactions.rows[].crossCurrency": [
+          "string"
+        ],
+        "transactions.rows[].sourceId": [
+          "string"
+        ],
+        "transactions.rows[].connectionId": [
+          "string"
+        ],
+        "transactions.rows[].entityId": [
+          "string"
+        ],
+        "transactions.rows[].platform": [
+          "string"
+        ],
+        "transactions.rows[].scenario": [
+          "string"
+        ],
+        "transactions.rows[].source": [
+          "object"
+        ],
+        "transactions.rows[].source.id": [
+          "string"
+        ],
+        "transactions.rows[].source.date": [
+          "string"
+        ],
+        "transactions.rows[].source.description": [
+          "string"
+        ],
+        "transactions.rows[].source.amountCents": [
+          "string"
+        ],
+        "transactions.rows[].source.status": [
+          "string"
+        ],
+        "transactions.rows[].source.detailedStatus": [
+          "string"
+        ],
+        "transactions.rows[].source.accountId": [
+          "string"
+        ],
+        "transactions.rows[].source.virtualAccountId": [
+          "string"
+        ],
+        "transactions.rows[].source.accountSubtype": [
+          "string"
+        ],
+        "transactions.rows[].source.cardId": [
+          "string"
+        ],
+        "transactions.rows[].source.orderId": [
+          "string"
+        ],
+        "transactions.rows[].source.referenceNumber": [
+          "string"
+        ],
+        "transactions.rows[].source.authorizedAt": [
+          "string"
+        ],
+        "transactions.rows[].source.providerAuthorizationId": [
+          "string"
+        ],
+        "transactions.rows[].source.merchantData": [
+          "object"
+        ],
+        "transactions.rows[].source.merchantData.description": [
+          "string"
+        ],
+        "transactions.rows[].source.merchantData.categoryCode": [
+          "string"
+        ],
+        "transactions.rows[].source.merchantData.location": [
+          "object"
+        ],
+        "transactions.rows[].source.merchantData.location.city": [
+          "string"
+        ],
+        "transactions.rows[].source.merchantData.location.state": [
+          "string"
+        ],
+        "transactions.rows[].source.merchantData.location.country": [
+          "string"
+        ],
+        "transactions.rows[].source.merchantData.location.zip": [
+          "string"
+        ],
+        "transactions.rows[].source.originalCurrency": [
+          "object"
+        ],
+        "transactions.rows[].source.originalCurrency.code": [
+          "string"
+        ],
+        "transactions.rows[].source.originalCurrency.amountCents": [
+          "string"
+        ],
+        "transactions.rows[].source.originalCurrency.conversionRate": [
+          "string"
+        ],
+        "transactions.rows[].sourceNumericEncoding": [
+          "string"
+        ],
+        "transactions.rows[].category": [
+          "string"
+        ],
+        "transactions.rows[].balanceType": [
+          "string"
+        ],
+        "transactions.rows[].accountAmount": [
+          "object"
+        ],
+        "transactions.rows[].accountAmount.minor": [
+          "string"
+        ],
+        "transactions.rows[].accountAmount.currency": [
+          "string"
+        ],
+        "transactions.rows[].accountAmount.scale": [
+          "number"
+        ],
+        "transactions.rows[].originalAmount": [
+          "object"
+        ],
+        "transactions.rows[].originalAmount.minor": [
+          "string"
+        ],
+        "transactions.rows[].originalAmount.currency": [
+          "string"
+        ],
+        "transactions.rows[].originalAmount.scale": [
+          "number"
+        ],
+        "transactions.rows[].originalCurrency": [
+          "string"
+        ],
+        "transactions.rows[].originalRawMinor": [
+          "string"
+        ],
+        "transactions.rows[].providerRate": [
+          "string"
+        ],
+        "transactions.rows[].displayRatio": [
+          "string"
+        ],
+        "transactions.rows[].ratioBasis": [
+          "string"
+        ],
+        "transactions.rows[].status": [
+          "string"
+        ],
+        "transactions.rows[].statusLabel": [
+          "string"
+        ],
+        "transactions.rows[].detailedStatus": [
+          "string"
+        ],
+        "transactions.rows[].detailedStatusLabel": [
+          "string"
+        ],
+        "transactions.rows[].authorizedAt": [
+          "string"
+        ],
+        "transactions.rows[].sourceDate": [
+          "string"
+        ],
+        "transactions.rows[].postedAt": [
+          "null"
+        ],
+        "transactions.rows[].dateMeaning": [
+          "string"
+        ],
+        "transactions.rows[].collectedAt": [
+          "string"
+        ],
+        "transactions.rows[].feeTreatment": [
+          "string"
+        ],
+        "transactions.rows[].matching": [
+          "string"
+        ],
+        "transactions.rows[].syncState": [
+          "string"
+        ],
+        "transactions.rows[].issues": [
+          "array"
+        ],
+        "transactions.rows[].issues[]": [
+          "string"
+        ],
+        "transactions.rows[].assumption": [
+          "string"
+        ],
+        "transactions.rows[].sourceComplete": [
+          "boolean"
+        ],
+        "transactions.total": [
+          "number"
+        ],
+        "transactions.page": [
+          "number"
+        ],
+        "transactions.pageSize": [
+          "number"
+        ],
+        "transactions.context": [
+          "object"
+        ],
+        "transactions.context.from": [
+          "string"
+        ],
+        "transactions.context.to": [
+          "string"
+        ],
+        "transactions.context.timezone": [
+          "string"
+        ],
+        "transactions.context.basis": [
+          "string"
+        ],
+        "transactions.context.platform": [
+          "string"
+        ],
+        "transactions.context.account": [
+          "string"
+        ],
+        "transactions.context.currency": [
+          "string"
+        ],
+        "transactions.context.scenario": [
+          "string"
+        ],
+        "transactions.context.asOf": [
+          "string"
+        ],
+        "transactions.context.completeness": [
+          "string"
+        ],
+        "transactions.context.basisLabel": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/orders/FIN-4ef6af97-cfde-44c2-ae8a-248372f5b348",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "order": [
+          "object"
+        ],
+        "order.reason": [
+          "string"
+        ],
+        "order.evidence": [
+          "null"
+        ],
+        "order.accounting": [
+          "string"
+        ],
+        "order.chain": [
+          "string"
+        ],
+        "order.deliveredMinor": [
+          "string"
+        ],
+        "order.feePostedMinor": [
+          "string"
+        ],
+        "order.policyVersion": [
+          "string"
+        ],
+        "order.requiredNodes": [
+          "array"
+        ],
+        "order.requiredNodes[]": [
+          "string"
+        ],
+        "order.error": [
+          "null"
+        ],
+        "order.source": [
+          "string"
+        ],
+        "order.target": [
+          "string"
+        ],
+        "order.address": [
+          "string"
+        ],
+        "order.memo": [
+          "null"
+        ],
+        "order.id": [
+          "string"
+        ],
+        "order.kind": [
+          "string"
+        ],
+        "order.customer": [
+          "string"
+        ],
+        "order.asset": [
+          "string"
+        ],
+        "order.network": [
+          "string"
+        ],
+        "order.amount_minor": [
+          "string"
+        ],
+        "order.fee_minor": [
+          "string"
+        ],
+        "order.approval": [
+          "string"
+        ],
+        "order.execution": [
+          "string"
+        ],
+        "order.state": [
+          "string"
+        ],
+        "order.risk": [
+          "string"
+        ],
+        "order.revision": [
+          "number"
+        ],
+        "order.requester": [
+          "string"
+        ],
+        "order.parent_id": [
+          "null"
+        ],
+        "order.created_at": [
+          "string"
+        ],
+        "order.updated_at": [
+          "string"
+        ],
+        "order.remainingMinor": [
+          "string"
+        ],
+        "order.expectedReceiptMinor": [
+          "string"
+        ],
+        "order.actualReceiptMinor": [
+          "string"
+        ],
+        "order.feeTreatment": [
+          "string"
+        ],
+        "order.dataMode": [
+          "string"
+        ],
+        "order.formalPolicy": [
+          "string"
+        ],
+        "wallet": [
+          "object"
+        ],
+        "wallet.namespace": [
+          "string"
+        ],
+        "wallet.id": [
+          "string"
+        ],
+        "wallet.customer": [
+          "string"
+        ],
+        "wallet.asset": [
+          "string"
+        ],
+        "wallet.network": [
+          "string"
+        ],
+        "wallet.scale": [
+          "number"
+        ],
+        "wallet.kind": [
+          "string"
+        ],
+        "wallet.postedMinor": [
+          "string"
+        ],
+        "wallet.heldMinor": [
+          "string"
+        ],
+        "wallet.availableMinor": [
+          "string"
+        ],
+        "reviews": [
+          "array"
+        ],
+        "reviews[]": [
+          "object"
+        ],
+        "reviews[].revision": [
+          "number"
+        ],
+        "reviews[].actor": [
+          "string"
+        ],
+        "reviews[].node": [
+          "string"
+        ],
+        "reviews[].decision": [
+          "string"
+        ],
+        "reviews[].note": [
+          "string"
+        ],
+        "reviews[].created_at": [
+          "string"
+        ],
+        "timeline": [
+          "array"
+        ],
+        "timeline[]": [
+          "object"
+        ],
+        "timeline[].id": [
+          "string"
+        ],
+        "timeline[].actor": [
+          "string"
+        ],
+        "timeline[].action": [
+          "string"
+        ],
+        "timeline[].note": [
+          "string"
+        ],
+        "timeline[].created_at": [
+          "string"
+        ],
+        "events": [
+          "array"
+        ],
+        "movements": [
+          "array"
+        ],
+        "related": [
+          "array"
+        ],
+        "job": [
+          "null"
+        ]
+      },
+      "errors": [],
+      "frontendType": "src/finance/types.ts:Detail",
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/flows/FIN-WITHDRAW-PARTIAL%3Adelivery%3A100000000%3ADEMO-C001%3AUSDT",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "movement": [
+          "object"
+        ],
+        "movement.id": [
+          "string"
+        ],
+        "movement.order_id": [
+          "string"
+        ],
+        "movement.journal_id": [
+          "string"
+        ],
+        "movement.account_id": [
+          "string"
+        ],
+        "movement.customer": [
+          "string"
+        ],
+        "movement.kind": [
+          "string"
+        ],
+        "movement.asset": [
+          "string"
+        ],
+        "movement.network": [
+          "string"
+        ],
+        "movement.amount_minor": [
+          "string"
+        ],
+        "movement.before_minor": [
+          "string"
+        ],
+        "movement.after_minor": [
+          "string"
+        ],
+        "movement.created_at": [
+          "string"
+        ],
+        "order": [
+          "object"
+        ],
+        "order.reason": [
+          "string"
+        ],
+        "order.evidence": [
+          "null"
+        ],
+        "order.accounting": [
+          "string"
+        ],
+        "order.chain": [
+          "string"
+        ],
+        "order.deliveredMinor": [
+          "string"
+        ],
+        "order.feePostedMinor": [
+          "string"
+        ],
+        "order.policyVersion": [
+          "string"
+        ],
+        "order.requiredNodes": [
+          "array"
+        ],
+        "order.requiredNodes[]": [
+          "string"
+        ],
+        "order.error": [
+          "null"
+        ],
+        "order.source": [
+          "string"
+        ],
+        "order.target": [
+          "string"
+        ],
+        "order.address": [
+          "string"
+        ],
+        "order.memo": [
+          "null"
+        ],
+        "order.confirmations": [
+          "number"
+        ],
+        "order.channelReference": [
+          "string"
+        ],
+        "order.txHash": [
+          "null"
+        ],
+        "order.id": [
+          "string"
+        ],
+        "order.kind": [
+          "string"
+        ],
+        "order.customer": [
+          "string"
+        ],
+        "order.asset": [
+          "string"
+        ],
+        "order.network": [
+          "string"
+        ],
+        "order.amount_minor": [
+          "string"
+        ],
+        "order.fee_minor": [
+          "string"
+        ],
+        "order.approval": [
+          "string"
+        ],
+        "order.execution": [
+          "string"
+        ],
+        "order.state": [
+          "string"
+        ],
+        "order.risk": [
+          "string"
+        ],
+        "order.revision": [
+          "number"
+        ],
+        "order.requester": [
+          "string"
+        ],
+        "order.parent_id": [
+          "null"
+        ],
+        "order.created_at": [
+          "string"
+        ],
+        "order.updated_at": [
+          "string"
+        ],
+        "order.remainingMinor": [
+          "string"
+        ],
+        "order.expectedReceiptMinor": [
+          "string"
+        ],
+        "order.actualReceiptMinor": [
+          "string"
+        ],
+        "order.feeTreatment": [
+          "string"
+        ],
+        "order.dataMode": [
+          "string"
+        ],
+        "order.formalPolicy": [
+          "string"
+        ],
+        "wallet": [
+          "object"
+        ],
+        "wallet.namespace": [
+          "string"
+        ],
+        "wallet.id": [
+          "string"
+        ],
+        "wallet.customer": [
+          "string"
+        ],
+        "wallet.asset": [
+          "string"
+        ],
+        "wallet.network": [
+          "string"
+        ],
+        "wallet.scale": [
+          "number"
+        ],
+        "wallet.kind": [
+          "string"
+        ],
+        "wallet.postedMinor": [
+          "string"
+        ],
+        "wallet.heldMinor": [
+          "string"
+        ],
+        "wallet.availableMinor": [
+          "string"
+        ],
+        "reviews": [
+          "array"
+        ],
+        "reviews[]": [
+          "object"
+        ],
+        "reviews[].revision": [
+          "number"
+        ],
+        "reviews[].actor": [
+          "string"
+        ],
+        "reviews[].node": [
+          "string"
+        ],
+        "reviews[].decision": [
+          "string"
+        ],
+        "reviews[].note": [
+          "string"
+        ],
+        "reviews[].created_at": [
+          "string"
+        ],
+        "timeline": [
+          "array"
+        ],
+        "timeline[]": [
+          "object"
+        ],
+        "timeline[].id": [
+          "string"
+        ],
+        "timeline[].actor": [
+          "string"
+        ],
+        "timeline[].action": [
+          "string"
+        ],
+        "timeline[].note": [
+          "string"
+        ],
+        "timeline[].created_at": [
+          "string"
+        ],
+        "events": [
+          "array"
+        ],
+        "events[]": [
+          "object"
+        ],
+        "events[].event_id": [
+          "string"
+        ],
+        "events[].result": [
+          "string"
+        ],
+        "events[].received_at": [
+          "string"
+        ],
+        "events[].payload": [
+          "object"
+        ],
+        "events[].payload.eventId": [
+          "string"
+        ],
+        "events[].payload.orderId": [
+          "string"
+        ],
+        "events[].payload.submissionKey": [
+          "string"
+        ],
+        "events[].payload.revision": [
+          "number"
+        ],
+        "events[].payload.cumulativeMinor": [
+          "string"
+        ],
+        "events[].payload.confirmations": [
+          "number"
+        ],
+        "events[].payload.status": [
+          "string"
+        ],
+        "movements": [
+          "array"
+        ],
+        "movements[]": [
+          "object"
+        ],
+        "movements[].id": [
+          "string"
+        ],
+        "movements[].order_id": [
+          "string"
+        ],
+        "movements[].journal_id": [
+          "string"
+        ],
+        "movements[].account_id": [
+          "string"
+        ],
+        "movements[].customer": [
+          "string"
+        ],
+        "movements[].kind": [
+          "string"
+        ],
+        "movements[].asset": [
+          "string"
+        ],
+        "movements[].network": [
+          "string"
+        ],
+        "movements[].amount_minor": [
+          "string"
+        ],
+        "movements[].before_minor": [
+          "string"
+        ],
+        "movements[].after_minor": [
+          "string"
+        ],
+        "movements[].created_at": [
+          "string"
+        ],
+        "related": [
+          "array"
+        ],
+        "job": [
+          "object"
+        ],
+        "job.submission_key": [
+          "string"
+        ],
+        "job.revision": [
+          "number"
+        ],
+        "job.queries": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/orders?kind=otc",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].reason": [
+          "string"
+        ],
+        "rows[].evidence": [
+          "null"
+        ],
+        "rows[].accounting": [
+          "string"
+        ],
+        "rows[].chain": [
+          "string"
+        ],
+        "rows[].deliveredMinor": [
+          "string"
+        ],
+        "rows[].feePostedMinor": [
+          "string"
+        ],
+        "rows[].policyVersion": [
+          "string"
+        ],
+        "rows[].requiredNodes": [
+          "array"
+        ],
+        "rows[].requiredNodes[]": [
+          "string"
+        ],
+        "rows[].error": [
+          "null"
+        ],
+        "rows[].source": [
+          "string"
+        ],
+        "rows[].target": [
+          "string"
+        ],
+        "rows[].address": [
+          "null"
+        ],
+        "rows[].memo": [
+          "null"
+        ],
+        "rows[].quoteId": [
+          "string"
+        ],
+        "rows[].quote": [
+          "object"
+        ],
+        "rows[].quote.sellAsset": [
+          "string"
+        ],
+        "rows[].quote.buyAsset": [
+          "string"
+        ],
+        "rows[].quote.sellMinor": [
+          "string"
+        ],
+        "rows[].quote.buyMinor": [
+          "string"
+        ],
+        "rows[].quote.feeMinor": [
+          "string"
+        ],
+        "rows[].quote.mode": [
+          "string"
+        ],
+        "rows[].quote.priceVersion": [
+          "number"
+        ],
+        "rows[].quote.usdPerUsdt": [
+          "string"
+        ],
+        "rows[].quote.rate": [
+          "null"
+        ],
+        "rows[].quote.rateNumerator": [
+          "string"
+        ],
+        "rows[].quote.rateDenominator": [
+          "string"
+        ],
+        "rows[].quote.rateDirection": [
+          "string"
+        ],
+        "rows[].quote.source": [
+          "string"
+        ],
+        "rows[].quote.lockCondition": [
+          "string"
+        ],
+        "rows[].quote.expiresAt": [
+          "null"
+        ],
+        "rows[].counterparty": [
+          "string"
+        ],
+        "rows[].receiptState": [
+          "string"
+        ],
+        "rows[].paymentState": [
+          "string"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].customer": [
+          "string"
+        ],
+        "rows[].asset": [
+          "string"
+        ],
+        "rows[].network": [
+          "string"
+        ],
+        "rows[].amount_minor": [
+          "string"
+        ],
+        "rows[].fee_minor": [
+          "string"
+        ],
+        "rows[].approval": [
+          "string"
+        ],
+        "rows[].execution": [
+          "string"
+        ],
+        "rows[].state": [
+          "string"
+        ],
+        "rows[].risk": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].requester": [
+          "string"
+        ],
+        "rows[].parent_id": [
+          "null"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].updated_at": [
+          "string"
+        ],
+        "rows[].remainingMinor": [
+          "string"
+        ],
+        "rows[].expectedReceiptMinor": [
+          "string"
+        ],
+        "rows[].actualReceiptMinor": [
+          "string"
+        ],
+        "rows[].feeTreatment": [
+          "string"
+        ],
+        "rows[].dataMode": [
+          "string"
+        ],
+        "rows[].formalPolicy": [
+          "string"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "totals": [
+          "array"
+        ],
+        "meta": [
+          "object"
+        ],
+        "meta.dataMode": [
+          "string"
+        ],
+        "meta.namespace": [
+          "string"
+        ],
+        "meta.asOf": [
+          "string"
+        ],
+        "meta.timezone": [
+          "string"
+        ],
+        "meta.timeBasis": [
+          "string"
+        ],
+        "meta.complete": [
+          "boolean"
+        ],
+        "meta.coverage": [
+          "string"
+        ],
+        "meta.pagination": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/finance/orders?kind=withdrawal",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].reason": [
+          "string"
+        ],
+        "rows[].evidence": [
+          "null"
+        ],
+        "rows[].accounting": [
+          "string"
+        ],
+        "rows[].chain": [
+          "string"
+        ],
+        "rows[].deliveredMinor": [
+          "string"
+        ],
+        "rows[].feePostedMinor": [
+          "string"
+        ],
+        "rows[].policyVersion": [
+          "string"
+        ],
+        "rows[].requiredNodes": [
+          "array"
+        ],
+        "rows[].requiredNodes[]": [
+          "string"
+        ],
+        "rows[].error": [
+          "null",
+          "string"
+        ],
+        "rows[].source": [
+          "string"
+        ],
+        "rows[].target": [
+          "string"
+        ],
+        "rows[].address": [
+          "string"
+        ],
+        "rows[].memo": [
+          "null"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].kind": [
+          "string"
+        ],
+        "rows[].customer": [
+          "string"
+        ],
+        "rows[].asset": [
+          "string"
+        ],
+        "rows[].network": [
+          "string"
+        ],
+        "rows[].amount_minor": [
+          "string"
+        ],
+        "rows[].fee_minor": [
+          "string"
+        ],
+        "rows[].approval": [
+          "string"
+        ],
+        "rows[].execution": [
+          "string"
+        ],
+        "rows[].state": [
+          "string"
+        ],
+        "rows[].risk": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].requester": [
+          "string"
+        ],
+        "rows[].parent_id": [
+          "null"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].updated_at": [
+          "string"
+        ],
+        "rows[].remainingMinor": [
+          "string"
+        ],
+        "rows[].expectedReceiptMinor": [
+          "string"
+        ],
+        "rows[].actualReceiptMinor": [
+          "string"
+        ],
+        "rows[].feeTreatment": [
+          "string"
+        ],
+        "rows[].dataMode": [
+          "string"
+        ],
+        "rows[].formalPolicy": [
+          "string"
+        ],
+        "rows[].confirmations": [
+          "number"
+        ],
+        "rows[].channelReference": [
+          "string"
+        ],
+        "rows[].txHash": [
+          "null"
+        ],
+        "total": [
+          "number"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "totals": [
+          "array"
+        ],
+        "meta": [
+          "object"
+        ],
+        "meta.dataMode": [
+          "string"
+        ],
+        "meta.namespace": [
+          "string"
+        ],
+        "meta.asOf": [
+          "string"
+        ],
+        "meta.timezone": [
+          "string"
+        ],
+        "meta.timeBasis": [
+          "string"
+        ],
+        "meta.complete": [
+          "boolean"
+        ],
+        "meta.coverage": [
+          "string"
+        ],
+        "meta.pagination": [
+          "string"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/groups?status=disabled",
+      "status": 200,
+      "expectedStatus": 200,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "page": [
+          "number"
+        ],
+        "pageSize": [
+          "number"
+        ],
+        "total": [
+          "number"
+        ],
+        "rows": [
+          "array"
+        ],
+        "rows[]": [
+          "object"
+        ],
+        "rows[].namespace": [
+          "string"
+        ],
+        "rows[].id": [
+          "string"
+        ],
+        "rows[].name": [
+          "string"
+        ],
+        "rows[].status": [
+          "string"
+        ],
+        "rows[].description": [
+          "string"
+        ],
+        "rows[].revision": [
+          "number"
+        ],
+        "rows[].created_at": [
+          "string"
+        ],
+        "rows[].memberCount": [
+          "number"
+        ]
+      },
+      "errors": [],
+      "gatewayAllowed": true
+    },
+    {
+      "path": "management/live/cards",
+      "status": 503,
+      "expectedStatus": 503,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "configured": [
+          "boolean"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "path": "management/not-an-endpoint",
+      "status": 404,
+      "expectedStatus": 404,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "message": [
+          "string"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "path": "accounts/not-an-account",
+      "status": 404,
+      "expectedStatus": 404,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "message": [
+          "string"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "path": "management/users",
+      "status": 401,
+      "expectedStatus": 401,
+      "fields": {
+        "$": [
+          "object"
+        ],
+        "message": [
+          "string"
+        ]
+      },
+      "errors": []
+    }
+  ]
+}

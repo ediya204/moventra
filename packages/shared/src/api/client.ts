@@ -9,10 +9,12 @@ type AllowRule = {
 };
 
 const READ_ONLY_ALLOWLIST: AllowRule[] = [
+  {method:'GET',path:/^\/local-slash-demo\/management\/card-ownership\/cards\/[^/]+$/,purpose:'内部用户归属查询'},
+  {method:'POST',path:/^\/local-slash-demo\/management\/card-ownership\/cards\/[^/]+$/,purpose:'本地内部用户绑定，不操作渠道'},
   {method:'GET',path:/^\/local-slash-demo\/management\/live\/(status|cards|transactions)(\/[^/]+)?$/,purpose:'本地授权的真实Slash只读投影'},
   {method:'POST',path:/^\/local-slash-demo\/management\/live\/sync$/,purpose:'触发本地只读同步，不调用渠道写接口'},
   {method:'GET',path:/^\/local-slash-demo\/management\/finance\/(context|export|flows(\/[^/]+)?|orders(\/[^/]+)?)$/,purpose:'隔离数字货币账本与订单查询'},
-  {method:'POST',path:/^\/local-slash-demo\/management\/finance\/(quotes|orders|orders\/[^/]+\/(confirm|review|amend|cancel|return|risk-check|execute|reconcile|payout))$/,purpose:'隔离内部兑换与出金审批'},
+  {method:'POST',path:/^\/local-slash-demo\/management\/finance\/(pricing|quotes|orders|orders\/[^/]+\/(confirm|review|amend|cancel|return|risk-check|execute|reconcile|payout))$/,purpose:'隔离内部兑换与出金审批'},
   {method:'GET',path:/^\/local-slash-demo\/management\/card-admin\/(identity|cards|operations)(\/[^/]+)?$/,purpose:'隔离卡片管理查询'},
   {method:'POST',path:/^\/local-slash-demo\/management\/card-admin\/(cards\/[^/]+\/(preview|operations)|operations\/[^/]+\/(review|refresh))$/,purpose:'隔离卡片权限审批与账本'},
   {method:'GET',path:/^\/local-slash-demo\/management\/fx\/(meta|report|balances|differences|export|cards\/[^/]+|transactions(\/[^/]+(\/(timeline|relations))?)?)$/,purpose:'本地精确跨币种查询'},

@@ -20,6 +20,7 @@ export interface SourceFields extends SlashTransactionSource {
 }
 export interface SourceRecord {
  id:string;kind:string;source:SourceFields;
+ balances?:SourceRecord[];
  internal:{platform:string;entityId:string;scenarioId:string;namespace:string;version:number;customerId?:string;customerName?:string;email?:string;firstCollectedAt?:string;lastSyncedAt?:string;syncError?:string|null;matchingStatus?:string;assumption?:string;openingBalanceCents?:number;currency?:string};
  currency?:string;amount?:string;direction?:string;statusLabel?:string;detailedStatusLabel?:string;dateMeaning?:string;postedAt?:string|null;
 }

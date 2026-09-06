@@ -82,6 +82,7 @@ export default function DemoApp() {
       {["transactions/fx/:id","transactions/report","transactions/balances","transactions/differences","transactions/cards/:id"].map(path=><Route key={path} path={path} element={<FxPage/>}/>)}
       <Route path="card-bins/*" element={<BinManagementPage/>}/>
       <Route path="user-groups/*" element={<ManagementPage />} />
+      <Route path="pricing/plans/*" element={<ManagementPage />} />
       {['workbench','approvals','pricing','finance/orders','finance/orders/:id','system/audit','system/channels','system/access','system/settings'].map(path=><Route key={path} path={path} element={<AdminConsolePage/>}/>)}
       <Route path="cards/:id/source" element={<SourceDemoPage/>}/>
       {['cards/:id','card-operations','card-operations/:id'].map(path=><Route key={path} path={path} element={<CardAdminPage/>}/>)}

@@ -4,6 +4,7 @@ import {Alert,Box,Breadcrumbs,Button,Card,CardContent,Chip,CircularProgress,Divi
 import {zhCN} from '@mui/x-data-grid/locales';
 import {DataGrid,GridToolbarColumnsButton,GridToolbarContainer,type GridColDef,type GridSortModel} from '@mui/x-data-grid';
 import {Link as ReactRouterLink,useLocation,useNavigate,useSearchParams,type LinkProps} from 'react-router-dom';
+import AccountDetail,{accountTime,AccountStatus} from './AccountDetail';
 import {MetricCard} from '../components/MetricCard';
 import {ChartCard} from '../components/ChartCard';
 import {readDemo,money,statusLabels,detailLabels,matchingLabels} from './api';
@@ -26,22 +27,23 @@ function Section({title,children}:{title:string;children:React.ReactNode}){retur
 function Fields({children}:{children:React.ReactNode}){return <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',md:'repeat(2,minmax(0,1fr))'},gap:2.5}}>{children}</Box>;}
 function RecordLink({kind,id,label,href}:{kind:string;id?:string;label?:string;href?:string}){const portal=useLocation().pathname.startsWith('/portal');if(!id)return <>—</>;if(portal&&kind==='account')return <>{label||id}</>;return <Link component={RouterLink} title={id} to={href||`/${kind==='account'?'customers':kind==='card'?'cards':'transactions'}/${encodeURIComponent(id)}`} >{label||id}</Link>;}
 function Status({raw,detailed=false}:{raw?:string;detailed?:boolean}){const label=raw?(detailed?detailLabels:statusLabels)[raw]:null;return <Chip size="small" variant="outlined" color={!label?'warning':raw==='failed'||raw==='declined'?'error':'default'} label={raw?`${label||'未知状态'} · ${raw}`:'—'}/>;}
-function Toolbar(){return <GridToolbarContainer><GridToolbarColumnsButton/><Typography variant="caption" color="text.secondary" sx={{ml:1}}>列选择 · 点击列标题排序 · 后端分页</Typography></GridToolbarContainer>;}
+function Toolbar(){return <GridToolbarContainer><GridToolbarColumnsButton/><Typography variant="caption" color="text.secondary" sx={{ml:1}}>点击行查看详情 · 后端筛选与分页</Typography></GridToolbarContainer>;}
 const blankPage={rows:[],total:0,page:0,pageSize:25};
-function RecordList({kind='transactions',risk=false,cardId}:{kind?:string;risk?:boolean;cardId?:string}){
+function RecordList({kind='transactions',risk=false,cardId,accountId}:{kind?:string;risk?:boolean;cardId?:string;accountId?:string}){
  const location=useLocation();const navigate=useNavigate();const portal=location.pathname.startsWith('/portal');
  const demoBase=sourceApiBase(portal);
- const href=(id:string)=>portal?clientDetailHref(kind,id,location.pathname+location.search,cardId):`/${kind==='accounts'?'customers':kind}/${encodeURIComponent(id)}`;
+ const href=(id:string)=>portal?clientDetailHref(kind,id,location.pathname+location.search,cardId):`/${kind==='accounts'?'customers':kind}/${encodeURIComponent(id)}${kind==='accounts'?'?returnTo='+encodeURIComponent(location.pathname+location.search):''}`;
  const [params,setParams]=useSearchParams();const [keyword,setKeyword]=useState(params.get('keyword')||'');
- const query=Object.fromEntries(params);const pagination={page:Number(query.page||0),pageSize:Number(query.pageSize||25)};
- const {data,error,loading}=useRemote<Page<SourceRecord>>(kind,{...query,...pagination,...(risk?{risk:'1'}:{}),...(cardId?{cardId}:{})});
+ const query=Object.fromEntries(params);const scope={...(cardId?{cardId}:{}),...(accountId?{accountId}:{})};const pagination={page:Number(query.page||0),pageSize:Number(query.pageSize||25)};
+ const {data,error,loading}=useRemote<Page<SourceRecord>>(kind,{...query,...pagination,...(risk?{risk:'1'}:{}),...scope});
  const update=(change:Record<string,string>)=>setParams({...query,page:'0',...change});
  const tx=kind==='transactions';
- const common:GridColDef<SourceRecord>[]=[{field:'detail',headerName:'查看详情',width:115,sortable:false,hideable:false,disableColumnMenu:true,renderCell:p=><Button component={RouterLink} to={href(p.row.id)} aria-label={`查看${kind==='cards'?'卡片':'交易'}详情 ${p.row.id}`} size="small" endIcon={<Icon icon="solar:alt-arrow-right-linear"/>}>查看详情</Button>},{field:'id',headerName:tx?'平台交易 ID':kind==='cards'?'卡片 ID':'账户 ID',width:255,renderCell:p=><RecordLink kind={tx?'transaction':kind==='cards'?'card':'account'} id={p.row.id} href={href(p.row.id)}/>},
+ const action:GridColDef<SourceRecord>={field:'detail',headerName:'操作',width:112,align:'right',headerAlign:'right',sortable:false,hideable:false,disableColumnMenu:true,renderCell:p=><Button component={RouterLink} to={href(p.row.id)} aria-label={`查看${kind==='cards'?'卡片':kind==='accounts'?'账户':'交易'}详情 ${p.row.id}`} size="small" endIcon={<Icon icon="solar:alt-arrow-right-linear"/>}>查看详情</Button>};
+ const common:GridColDef<SourceRecord>[]=[{field:'id',headerName:tx?'平台交易 ID':kind==='cards'?'卡片 ID':'账户 ID',width:255,renderCell:p=><RecordLink kind={tx?'transaction':kind==='cards'?'card':'account'} id={p.row.id} href={href(p.row.id)}/>},
  {field:'scenario',headerName:'场景',width:125,valueGetter:(_,r)=>r.internal.scenarioId,sortable:false},
- {field:'status',headerName:'来源状态',width:145,renderCell:p=><Status raw={p.row.source.status}/>},
+ {field:'status',headerName:kind==='cards'?'状态':'来源状态',width:145,renderCell:p=><Status raw={p.row.source.status}/>},
  ];
- const columns:GridColDef<SourceRecord>[]=tx?[...common,
+ const baseColumns:GridColDef<SourceRecord>[]=tx?[...common,
  {field:'detailedStatus',headerName:'详细状态',width:155,renderCell:p=><Status raw={p.row.source.detailedStatus} detailed/>},
  {field:'amount',headerName:'账户币金额',width:175,type:'number',valueGetter:(_,r)=>r.source.amountCents,renderCell:p=>money(p.row.source.amountCents,p.row.currency)},
  {field:'merchant',headerName:'商户',width:220,sortable:false,valueGetter:(_,r)=>r.source.merchantData?.description??'—'},
@@ -58,24 +60,34 @@ function RecordList({kind='transactions',risk=false,cardId}:{kind?:string;risk?:
  {field:'mcc',headerName:'MCC',width:90,sortable:false,valueGetter:(_,r)=>r.source.merchantData?.categoryCode??'—'},
  {field:'platform',headerName:'平台',width:110,sortable:false,valueGetter:(_,r)=>r.internal.platform},
  {field:'matching',headerName:'对账关联',width:190,sortable:false,valueGetter:(_,r)=>matchingLabels[r.internal.matchingStatus||'']||'待确认'},
- ]:[...common,{field:'name',headerName:'名称',width:230,sortable:false,valueGetter:(_,r)=>r.source.name},
- ...(kind==='cards'?[{field:'last4',headerName:'后四位',width:100,sortable:false,valueGetter:(_:unknown,r:SourceRecord)=>r.source.last4},{field:'expiry',headerName:'有效期',width:110,sortable:false,valueGetter:(_:unknown,r:SourceRecord)=>`${r.source.expiryMonth??'—'}/${r.source.expiryYear??'—'}`}]:[{field:'type',headerName:'账户类型',width:130,sortable:false,valueGetter:(_:unknown,r:SourceRecord)=>r.source.type}]),
- {field:'customer',headerName:'内部客户 / Demo映射',width:240,sortable:false,valueGetter:(_,r)=>r.internal.email}];
+ ]:[...common,{field:'name',headerName:'卡片名称',width:230,sortable:false,valueGetter:(_,r)=>r.source.name},
+ ...(kind==='cards'?[{field:'last4',headerName:'卡号后四位',width:115,sortable:false,valueGetter:(_:unknown,r:SourceRecord)=>r.source.last4},{field:'expiry',headerName:'有效期',width:110,sortable:false,valueGetter:(_:unknown,r:SourceRecord)=>`${r.source.expiryMonth??'—'}/${r.source.expiryYear??'—'}`}]:[{field:'type',headerName:'账户类型',width:130,sortable:false,valueGetter:(_:unknown,r:SourceRecord)=>r.source.type}]),
+ {field:'customer',headerName:'所属用户',width:240,sortable:false,valueGetter:(_,r)=>r.internal.email}];
+ const accountColumns:GridColDef<SourceRecord>[]=[
+ {field:'name',headerName:'账户名称',minWidth:190,flex:1,sortable:false,valueGetter:(_,r)=>r.source.name??'—'},
+ {field:'email',headerName:'邮件地址',minWidth:250,flex:1,sortable:false,valueGetter:(_,r)=>r.internal.email||'—'},
+ {field:'status',headerName:'状态',width:120,renderCell:p=><AccountStatus value={p.row.source.status}/>},
+ {field:'balance',headerName:'余额',description:'可用余额 available；按币种和余额类型分别展示，已入账余额见详情。',minWidth:200,flex:0.8,align:'right',headerAlign:'right',sortable:false,renderCell:p=><Stack gap={0.5} sx={{width:'100%',py:1,textAlign:'right',fontVariantNumeric:'tabular-nums'}}>{p.row.balances?.length?p.row.balances.map(b=><Typography key={b.id} variant="body2" title={`可用余额 · ${b.source.type||'类型未提供'} · ${accountTime(b.source.timestamp)} UTC`}>{b.internal.currency?money(b.source.available?.amountCents,b.internal.currency):'—'}{p.row.balances!.length>1?` · ${b.source.type||'类型未提供'}`:''}</Typography>):'—'}</Stack>},
+ ];
+ const cardOrder=['name','last4','status','expiry','customer','id','scenario'];
+ const orderedColumns=kind==='cards'?[...baseColumns].sort((a,b)=>cardOrder.indexOf(a.field)-cardOrder.indexOf(b.field)):baseColumns;
+ const columns=[...(kind==='accounts'?accountColumns:orderedColumns),action];
+ const reset=()=>{setKeyword('');setParams({...((cardId||accountId)&&query.tab?{tab:query.tab}:{}),...(query.returnTo?{returnTo:query.returnTo}:{})});};
  const select=(label:string,key:string,values:Record<string,string>)=><TextField select size="small" label={label} value={query[key]||''} onChange={e=>update({[key]:e.target.value})} sx={{minWidth:155}}><MenuItem value="">全部</MenuItem>{Object.entries(values).map(([v,l])=><MenuItem key={v} value={v}>{l}</MenuItem>)}</TextField>;
  return <Stack gap={2.5}>
   {risk&&<Alert severity="warning">仅展示待确认或未匹配记录。Demo关联证据不代表生产对账成功；原始已入账金额仍参与资金统计。</Alert>}
   <Card variant="outlined"><CardContent><Stack component="form" onSubmit={e=>{e.preventDefault();update({keyword});}} gap={2}>
-   <Stack direction={{xs:'column',sm:'row'}} gap={1.5}><TextField size="small" label="ID、场景、订单、商户或事件 ID" value={keyword} onChange={e=>setKeyword(e.target.value)} fullWidth/><Button type="submit" variant="contained" startIcon={<Icon icon="solar:magnifer-linear"/>}>查询</Button><Button onClick={()=>{setKeyword('');setParams(cardId?{tab:'transactions',...(query.returnTo?{returnTo:query.returnTo}:{})}:{});}}>重置</Button></Stack>
-   <Stack direction="row" gap={1.5} flexWrap="wrap">
+   <Stack direction={{xs:'column',sm:'row'}} gap={1.5}><TextField size="small" label={kind==='accounts'?'搜索账户名称、账户 ID 或用户邮箱':kind==='cards'?'搜索卡片名称、尾号或卡片 ID':'ID、场景、订单、商户或事件 ID'} value={keyword} onChange={e=>setKeyword(e.target.value)} fullWidth/>{kind==='accounts'&&select('状态','status',{open:'已开立',closed:'已关闭'})}<Button type="submit" variant="contained" sx={{minWidth:88,whiteSpace:'nowrap',flexShrink:0}} startIcon={<Icon icon="solar:magnifer-linear"/>}>查询</Button><Button sx={{minWidth:64,flexShrink:0}} onClick={reset}>重置</Button></Stack>
+   {kind!=='accounts'&&<Stack direction="row" gap={1.5} flexWrap="wrap">
     {select('状态','status',tx?{pending:'处理中',posted:'已入账',failed:'未入账 / 失败'}:kind==='cards'?{active:'启用',paused:'暂停',inactive:'未激活',closed:'关闭'}:{open:'已开立',closed:'关闭'})}
     {tx&&<>{select('详细状态','detailedStatus',detailLabels)}{select('入账币种','currency',{USD:'USD'})}{select('原币','originalCurrency',{EUR:'EUR',USD:'USD（显式提供）'})}{select('平台','platform',{slash:'Slash'})}{select('时间口径','timeBasis',{date:'来源日期',authorizedAt:'授权时间'})}
     <TextField type="date" size="small" label="开始日期 UTC" InputLabelProps={{shrink:true}} value={query.from||''} onChange={e=>update({from:e.target.value})}/><TextField type="date" size="small" label="结束日期 UTC" InputLabelProps={{shrink:true}} value={query.to||''} onChange={e=>update({to:e.target.value})}/></>}
-   </Stack>
+   </Stack>}
    {query.scenario&&<Chip sx={{alignSelf:'flex-start'}} label={`场景 ${query.scenario}`} onDelete={()=>update({scenario:''})}/>}
   </Stack></CardContent></Card>
   <Notice error={error} loading={loading}/>
-  <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="caption" color="text.secondary">{tx?'负数为支出，正数为收入。处理中金额不计入已入账支出。':'来源状态独立保留；未提供的信息显示 —。'}</Typography><Button component="a" href={`${demoBase}/${kind}.csv?${new URLSearchParams({...query,...(risk?{risk:'1'}:{}),...(cardId?{cardId}:{})})}`} startIcon={<Icon icon="solar:download-linear"/>}>导出筛选结果 CSV</Button></Stack>
-  <Card variant="outlined"><DataGrid localeText={zhCN.components.MuiDataGrid.defaultProps.localeText} autoHeight rows={(data||blankPage).rows} rowCount={data?.total||0} loading={loading} columns={columns} onRowDoubleClick={p=>navigate(href(String(p.id)))} disableRowSelectionOnClick disableColumnFilter paginationMode="server" sortingMode="server" paginationModel={pagination} onPaginationModelChange={m=>update({page:String(m.page),pageSize:String(m.pageSize)})} pageSizeOptions={[10,25,50,100]} sortModel={query.sort?[{field:query.sort,sort:query.order==='desc'?'desc':'asc'}]:[]} onSortModelChange={(m:GridSortModel)=>update({sort:m[0]?.field||'',order:m[0]?.sort||''})} slots={{toolbar:Toolbar}} initialState={{columns:{columnVisibilityModel:{scenario:false,merchant:false,dateMeaning:false,authorizedAt:false,accountId:false,virtualAccountId:false,cardId:false,originalCurrency:false,originalAmount:false,conversionRate:false,orderId:false,referenceNumber:false,providerAuthorizationId:false,mcc:false,platform:false}}}} sx={{border:0,'& .MuiDataGrid-cell':{display:'flex',alignItems:'center'}}}/></Card>
+  <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="caption" color="text.secondary">{tx?'负数为支出，正数为收入。处理中金额不计入已入账支出。':kind==='accounts'?'余额为可用余额；不同币种与余额类型分别展示，未采集显示 —。':'来源状态独立保留；未提供的信息显示 —。'}</Typography><Button component="a" href={`${demoBase}/${kind}.csv?${new URLSearchParams({...query,...(risk?{risk:'1'}:{}),...scope})}`} startIcon={<Icon icon="solar:download-linear"/>}>导出筛选结果 CSV</Button></Stack>
+  <Card variant="outlined"><DataGrid localeText={zhCN.components.MuiDataGrid.defaultProps.localeText} autoHeight rows={(data||blankPage).rows} getRowHeight={kind==='accounts'?()=> 'auto':undefined} rowCount={data?.total||0} loading={loading} columns={columns} onRowClick={(p,e)=>{if(!(e.target as HTMLElement).closest('a,button,input,[role=checkbox]'))navigate(href(String(p.id)));}} disableRowSelectionOnClick disableColumnFilter paginationMode="server" sortingMode="server" paginationModel={pagination} onPaginationModelChange={m=>update({page:String(m.page),pageSize:String(m.pageSize)})} pageSizeOptions={[10,25,50,100]} sortModel={query.sort?[{field:query.sort,sort:query.order==='desc'?'desc':'asc'}]:[]} onSortModelChange={(m:GridSortModel)=>update({sort:m[0]?.field||'',order:m[0]?.sort||''})} slots={{toolbar:Toolbar}} initialState={{columns:{columnVisibilityModel:{scenario:false,merchant:false,dateMeaning:false,authorizedAt:false,accountId:false,virtualAccountId:false,cardId:false,originalCurrency:false,originalAmount:false,conversionRate:false,orderId:false,referenceNumber:false,providerAuthorizationId:false,mcc:false,platform:kind==='accounts',...(['accounts','cards'].includes(kind)?{id:false,lastSyncedAt:false}:{})}}}} sx={{border:0,'& .MuiDataGrid-cell':{display:'flex',alignItems:'center'},'& .MuiDataGrid-row':{cursor:'pointer'},'& .MuiDataGrid-cell:focus-within':{outlineOffset:-2}}}/></Card>
  </Stack>;
 }
 function ScenarioList(){
@@ -93,6 +105,7 @@ export function DetailPage({kind,id}:{kind:string;id:string}){
  const {data:d,error,loading}=useRemote<SourceDetail>(`${kind}/${encodeURIComponent(id)}`);
  if(!d)return <Stack gap={2}><Button component={RouterLink} to={back}>返回列表</Button><Notice error={error} loading={loading}/></Stack>;
  if(parentCard&&d.source.cardId!==parentCard)return <Stack gap={2}><Alert severity="warning">该交易不属于当前卡片，请从卡片交易列表重新选择。</Alert><Button component={RouterLink} to={fallback}>返回卡片交易</Button></Stack>;
+ if(kind==='accounts'&&!portal)return <AccountDetail data={d} renderRecords={resource=><RecordList key={`${id}-${resource}`} kind={resource} accountId={id}/>}/>;
  const s=d.source,i=d.internal,tx=kind==='transactions';
  const related=(d.relations||[]).map(r=>({...r,target:r.from_id===id?r.to_id:r.from_id}));
  return <Stack gap={2.5}>
@@ -137,8 +150,8 @@ function Overview({report=false}:{report?:boolean}){
 export default function SourceDemoPage(){
  const {pathname}=useLocation();const portal=pathname.startsWith('/portal');const parts=sourceViewPath(pathname).split('/').filter(Boolean);let title=portal?'工作台':'运营工作台',view:React.ReactNode=<Overview/>;
  if(parts[0]==='demo'){title='清算 Demo 场景';view=<ScenarioList/>;}
- if(['transactions','cards','customers'].includes(parts[0])){const kind=parts[0]==='customers'?'accounts':parts[0];title=kind==='transactions'?'卡交易流水':kind==='cards'?'卡片中心':'账户目录';view=parts[1]?<DetailPage key={pathname} kind={kind} id={decodeURIComponent(parts[1])}/>:<RecordList key={pathname} kind={kind}/>;if(parts[1])title+=' · 详情';}
+ if(['transactions','cards','customers'].includes(parts[0])){const kind=parts[0]==='customers'?'accounts':parts[0];title=kind==='transactions'?'卡交易流水':kind==='cards'?'卡片中心':'账户目录';view=parts[1]?<DetailPage key={pathname} kind={kind} id={decodeURIComponent(parts[1])}/>:<RecordList key={pathname} kind={kind}/>;if(parts[1])title=kind==='accounts'?'账户详情':title+' · 详情';}
  if(parts[0]==='risk'||parts[0]==='reconciliation'){title=parts[0]==='risk'?'风险与待确认事项':'对账关联调查';view=<RecordList risk/>;}
  if(parts[0]==='reports'){title=portal?'资金中心':'资金经营报表';view=<Overview report/>;}
- return <Stack gap={3}>{!portal&&<Button component={RouterLink} to={parts[0]==='reports'?'/transactions/report':'/transactions?crossCurrency=cross'} sx={{alignSelf:'flex-start'}} startIcon={<Icon icon="solar:transfer-horizontal-linear"/>}>卡交易流水 · 跨币种筛选</Button>}<Box><Stack direction="row" alignItems="center" gap={1.5}><Typography variant="h4">{title}</Typography><Chip color="primary" variant="outlined" label="Demo / 模拟数据"/></Stack><Typography variant="body2" color="text.secondary" sx={{mt:1}}>Slash 来源字段 · 独立本地命名空间 · 金额与关联证据可追溯</Typography></Box>{portal&&parts[0]==='reports'&&<Alert severity="info">本批 Slash 数据为 USD 账户与卡交易。USDT、充值、兑换与提现不在来源数据中，未提供的资产不显示为零；原资金流程可切换至独立流程演示。</Alert>}{view}</Stack>;
+ return <Stack gap={3}>{!portal&&parts[0]!=='customers'&&<Button component={RouterLink} to={parts[0]==='reports'?'/transactions/report':'/transactions?crossCurrency=cross'} sx={{alignSelf:'flex-start'}} startIcon={<Icon icon="solar:transfer-horizontal-linear"/>}>卡交易流水 · 跨币种筛选</Button>}<Box><Stack direction="row" alignItems="center" gap={1.5}><Typography variant="h4">{title}</Typography><Chip color="primary" variant="outlined" label="Demo / 模拟数据"/></Stack><Typography variant="body2" color="text.secondary" sx={{mt:1}}>{parts[0]==='customers'?'查询账户归属、余额及关联卡片与交易':'Slash 来源字段 · 独立本地命名空间 · 金额与关联证据可追溯'}</Typography></Box>{portal&&parts[0]==='reports'&&<Alert severity="info">本批 Slash 数据为 USD 账户与卡交易。USDT、充值、兑换与提现不在来源数据中，未提供的资产不显示为零；原资金流程可切换至独立流程演示。</Alert>}{view}</Stack>;
 }

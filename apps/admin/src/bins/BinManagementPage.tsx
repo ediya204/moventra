@@ -142,7 +142,7 @@ function ProductList() {
         <Chip
           size="small"
           variant="outlined"
-          color={p.value === "active" ? "success" : "default"}
+          color={p.value === "active" ? "success" : p.value === "paused" ? "warning" : p.value === "draft" ? "info" : "default"}
           label={binStatuses[p.value] || p.value}
         />
       ),
@@ -202,7 +202,7 @@ function ProductList() {
           onChange={(e) => change("status", e.target.value)}
           sx={{ minWidth: 160 }}
         >
-          <MenuItem value="">全部</MenuItem>
+          <MenuItem value="">未归档产品</MenuItem>
           {Object.entries(binStatuses).map(([s, label]) => (
             <MenuItem key={s} value={s}>
               {label}
@@ -331,6 +331,7 @@ function ProductForm({
         component="form"
         onSubmit={async (e) => {
           e.preventDefault();
+          if (busy) return;
           setBusy(true);
           setError("");
           try {
@@ -375,6 +376,28 @@ function ProductForm({
               {error}
             </Alert>
           )}
+          <Paper variant="outlined" component="section" aria-label="产品状态管理" sx={{p:{xs:2,md:3}}}>
+            <Stack gap={2}>
+              <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1.5}>
+                <Typography variant="h6">状态管理</Typography>
+                <Chip size="small" variant="outlined" color={data.status==='active'?'success':data.status==='paused'?'warning':data.status==='draft'?'info':'default'} label={`当前：${binStatuses[data.status]||`未知状态 · ${data.status}`}`}/>
+                {draft.status!==data.status&&<Typography variant="caption" color="warning.dark">状态变更待保存</Typography>}
+              </Stack>
+              <Stack direction={{xs:'column',sm:'row'}} gap={2} alignItems={{xs:'stretch',sm:'center'}}>
+                <TextField label="产品状态" select value={draft.status} disabled={busy||data.status==='archived'} onChange={e=>edit('status',e.target.value)} sx={{minWidth:220}}>
+                  {!binStatuses[draft.status]&&<MenuItem value={draft.status} disabled>未知状态 · {draft.status}</MenuItem>}
+                  {Object.entries(binStatuses).map(([value,label])=><MenuItem key={value} value={value}>{label}</MenuItem>)}
+                </TextField>
+                <Typography variant="body2" color="text.secondary" sx={{flex:1}}>
+                  {({draft:'不展示在客户端开卡目录，适合配置未完成的产品。',active:'在客户端展示，满足渠道、上游产品和数量限制时可选择开卡。',paused:'客户端仍显示产品，但暂停新开卡；已经创建的卡片不受影响。',archived:'从客户端和默认后台列表移除，归档后不可恢复。已有卡片和记录保留。'} as Record<string,string>)[draft.status]||'请选择已支持的产品状态。'}
+                </Typography>
+                <Button type="submit" variant="contained" disabled={busy} sx={{whiteSpace:'nowrap'}}>{busy?'正在保存…':'保存产品配置'}</Button>
+              </Stack>
+              {draft.status==='archived'&&data.status!=='archived'&&<Alert severity="warning">保存后将归档此产品，不能重新上架。若只是临时停用，请选择“暂停开卡”。</Alert>}
+              {draft.status==='active'&&draft.openingBlockedReason&&<Alert severity="warning">开卡限制：{draft.openingBlockedReason}。请在下方核对渠道与产品关联，保存时由服务端重新校验。</Alert>}
+              <Typography variant="caption" color="text.secondary">此状态管理本站产品的可售与开卡范围，与下方配置一起保存，不修改渠道卡片状态。</Typography>
+            </Stack>
+          </Paper>
           <Box
             sx={{
               display: "grid",
@@ -472,24 +495,6 @@ function ProductForm({
                 <Stack gap={3}>
                   <Typography variant="h6">开卡规则</Typography>
                   <TextField
-                    label="产品状态"
-                    select
-                    value={draft.status}
-                    onChange={(e) => edit("status", e.target.value)}
-                  >
-                    {Object.entries(binStatuses).map(([s, l]) => (
-                      <MenuItem
-                        key={s}
-                        value={s}
-                        disabled={
-                          data.status === "archived" && s !== "archived"
-                        }
-                      >
-                        {l}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
                     label="本地演示开卡数量上限"
                     type="number"
                     value={draft.maxCards}
@@ -502,9 +507,6 @@ function ProductForm({
                     }}
                     helperText={`已创建 ${data.issuedCount} 张，按产品累计`}
                   />
-                  <Typography variant="body2" color="text.secondary">
-                    草稿不展示；上架后可选；暂停后显示但不可开卡；归档后不可重新上架。
-                  </Typography>
                   {locked && (
                     <Alert severity="info">
                       已有卡片，发行标识已锁定；产品名称和说明仍可维护。历史卡片保留开卡快照。

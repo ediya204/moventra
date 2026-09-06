@@ -1,3 +1,7 @@
+import {transactionRowClass} from '../components/cardTransactionFields';
+import {transactionRowStyles} from '../components/transactionRowStyles';
+import {TransactionStatusChip} from '../components/TransactionStatusChip';
+import {fieldLabels as F,utcTime} from '../components/cardTransactionFields';
 import { useEffect, useState, useRef, type ReactNode } from "react";
 import {
   Link,
@@ -66,18 +70,7 @@ export function formatMoney(m?: Money | null) {
 }
 const valueMoney = (minor: string | undefined, currency = "USD", scale = 2) =>
   minor == null ? "—" : formatMoney({ minor, currency, scale });
-const time = (s?: string | null) =>
-  s
-    ? new Intl.DateTimeFormat("zh-CN", {
-        timeZone: "UTC",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }).format(new Date(s))
-    : "—";
+const time = utcTime;
 function useData<T>(path: string, query: Record<string, unknown> = {}) {
   const [data, setData] = useState<T>(),
     [error, setError] = useState(""),
@@ -256,10 +249,10 @@ export default function FxPage() {
           value={view === "cards" ? "transactions" : view}
           variant="scrollable"
           scrollButtons="auto"
-          aria-label="跨币种管理导航"
+          aria-label="交易管理导航"
         >
           {[
-            ["transactions", "交易明细"],
+            ["transactions", "交易列表"],
             ["report", "跨币种报表"],
           ].map(([key, label]) => (
             <Tab
@@ -269,7 +262,7 @@ export default function FxPage() {
               component={Link}
               to={
                 key === "transactions"
-                  ? "/transactions"
+                  ? "/transactions?source=demo"
                   : `/transactions/${key}`
               }
             />
@@ -528,7 +521,7 @@ function TransactionList({
   const cols: GridColDef<Transaction>[] = [
     {
       field: "description",
-      headerName: "商户 / 交易",
+      headerName: F.merchant,
       minWidth: 220,
       flex: 1,
       sortable: false,
@@ -543,63 +536,44 @@ function TransactionList({
         </Stack>
       ),
     },
+    {field:"cardId",headerName:F.cardId,width:150,sortable:false,description:"平台卡片 ID，不是卡号",valueGetter:(_,r)=>r.source.cardId||null,valueFormatter:(v:string|null)=>v?`ID …${v.slice(-8)}`:'—'},
     {
       field: "original",
-      headerName: "原币金额",
+      headerName: F.original,
+      align: "right", headerAlign: "right",
       width: 170,
       sortable: false,
       renderCell: (r) => formatMoney(r.row.originalAmount),
     },
     {
       field: "amount",
-      headerName: "账户金额",
+      headerName: F.amount,
+      align: "right", headerAlign: "right",
       width: 170,
       renderCell: (r) => formatMoney(r.row.accountAmount),
     },
-    {
-      field: "status",
-      headerName: "入账 / 详细状态",
-      width: 185,
-      sortable: false,
-      renderCell: (r) => (
-        <Stack justifyContent="center" sx={{ height: "100%" }}>
-          <Typography
-            variant="body2"
-            color={
-              r.row.status === "failed"
-                ? "error.main"
-                : r.row.status === "pending"
-                  ? "warning.main"
-                  : "text.primary"
-            }
-          >
-            {r.row.statusLabel}
-          </Typography>
-          <Typography variant="caption">{r.row.detailedStatusLabel}</Typography>
-        </Stack>
-      ),
-    },
+    {field:"status",headerName:"状态",width:150,sortable:false,renderCell:r=><TransactionStatusChip status={r.row.status} detailedStatus={r.row.detailedStatus}/>},
     {
       field: "authorizedAt",
-      headerName: "授权时间 · UTC",
+      headerName: F.authorizedAt,
       width: 170,
       renderCell: (r) => time(r.row.authorizedAt),
     },
     {
       field: "postedAt",
-      headerName: "入账时间 · UTC",
+      headerName: F.postedAt,
       width: 170,
       renderCell: (r) => time(r.row.postedAt),
     },
     {
       field: "sourceDate",
-      headerName: "来源日期 · UTC",
+      headerName: F.sourceDate,
       width: 170,
       renderCell: (r) => time(r.row.sourceDate),
     },
     {
       field: "category",
-      headerName: "类型",
+      headerName: F.category,
       width: 110,
       sortable: false,
       renderCell: (r) => category[r.row.category] || r.row.category,
@@ -621,7 +595,7 @@ function TransactionList({
     },
     {
       field: "action",
-      headerName: "操作",
+      headerName: F.action,
       width: 105,
       sortable: false,
       hideable: false,
@@ -682,6 +656,7 @@ function TransactionList({
       <Notice {...state} />
       <Paper variant="outlined" sx={{ overflow: "hidden" }}>
         <DataGrid
+          getRowClassName={p=>transactionRowClass(p.row.status,p.row.detailedStatus)}
           autoHeight
           rowHeight={68}
           rows={state.data?.rows || []}
@@ -742,7 +717,7 @@ function TransactionList({
             if (!ignoresRowAction(e))
               navigate(href(r.row.id, r.row.sourceKind));
           }}
-          sx={{ border: 0, "& .MuiDataGrid-row": { cursor: "pointer" } }}
+          sx={{ ...transactionRowStyles, border: 0, "& .MuiDataGrid-cell": {fontVariantNumeric:"tabular-nums"}, "& .MuiDataGrid-row": { cursor: "pointer" } }}
         />
       </Paper>
     </Stack>

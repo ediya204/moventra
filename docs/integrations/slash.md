@@ -1,4 +1,6 @@
-# Slash 只读接入规范
+# Slash 接入规范
+
+> 当前本地实施见 [V1现状](../current-state.md)、[手动同步](../frontend/slash-manual-sync.md) 与 [卡交易状态](../frontend/transaction-status-colors.md)。来源真实数据只读；内部用户归属不来自 Slash。本文后续目标模型不代表正式 Go 已实现。5分钟轮询等历史记录已被手动同步决定取代。
 
 文档更新：2026-09-07。本次复查官方 Transaction/Balance 页面与已有来源约束，未调用租户 API。其余 SOURCE 与本租户 GET 记录沿用先前 2026-09-07 核验，不作为本次重新验证。真实 Webhook、生产接入与资金验收未执行。
 

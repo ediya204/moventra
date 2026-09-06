@@ -16,3 +16,8 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 [DemoApp.tsx](src/DemoApp.tsx) 仅在 DEV 且显式 Demo 模式加载，生产不打包该路由。审批、卡片、资金、用户组、渠道和分析页面属于保留的 Demo 源码；其历史服务及数据库不在仓库。
 
 参阅 [开发约束](../../AGENTS.md)、[文档索引](../../docs/README.md)、[认证配置](../../docs/frontend/firebase-setup.md)、[部署记录](../../deploy/README.md)。
+
+
+## 当前 DEV 业务维护
+
+卡片/交易、BIN状态、内部用户绑定、费率方案和账户目录已按最新本地口径更新，详见 [V1现状](../../docs/current-state.md)。这些页面仍通过 DEV DemoApp 加载，生产入口与产物不包含完整业务原型。手动同步、卡关联资料和资金沙盒依赖未纳入本仓库的旧本地服务，不能在正式Go接口上直接调用。

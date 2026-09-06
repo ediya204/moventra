@@ -72,7 +72,7 @@ export function CardOpeningPage({
     <Stack gap={3}>
       <Alert severity="info">
         本地演示 ·
-        BIN均为合成前缀，不代表真实发卡机构分配。生成零余额模拟卡，开卡费为0。
+        产品来源以所选卡产品为准；此页面仅生成零余额模拟卡，演示开卡免费。
       </Alert>
       <Box
         sx={{
