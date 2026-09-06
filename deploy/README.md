@@ -93,3 +93,14 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 ## 客户端首页发布（2026-09-07）
 
 代码 `7829ccc`，客户端 Worker `moventra-web` 版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`。个人/企业用户通过登录后从 /session 进入 /portal 真实客户端首页，安全设置位于 /portal/security。客户端构建、9项网关回归与 dry-run 通过；线上浏览器确认未登录 /portal 回到客户端登录页。未代替本人完成认证后首页验收。仅发布客户端，没有重新部署运营 Worker、Go、数据库或权限。共享 App.tsx 通过精确路由补丁保留其他页面改动。
+## 实际账号授权（2026-09-07）
+
+在用户明确指定并授权的独立管理员身份与客户身份之间完成受控配置。Firebase 管理员身份已创建，本地身份任务 `job-daeq4bid0e5s739i82b0` 成功；运营授权任务 `job-daeq4jf40ujc7389jj9g` 成功，日志确认两项客户只读权限、客户端无 staff_grants、MFA 仍强制。邮箱与 UID 不写入公开部署记录。
+
+Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33on74is73f097u0` 为 live，readyz 正常。没有结构迁移或真实资金变更。首次组合 shell 任务因 Render 参数解析失败而未执行命令，改为单命令任务后成功。
+
+本次隔离 PostgreSQL race 测试通过，覆盖指定客户授权、重复授权、角色混用拒绝、MFA 拦截、跨端/跨客户拒绝及审计失败事务回滚；go vet 和 go build 通过。真实目标管理员尚需本人设置密码、验证邮箱和绑定 MFA，不以授权落库代替本人登录验收。
+
+后台域名 HTTPS 再次验证 200；独立 Worker 与 Firebase authorizedDomains 配置沿用上节已发布版本。
+
+授权重复执行任务 `job-daeq4r5g1s2s73dbearg` 同样 succeeded，返回同一客户范围。授权函数 ON CONFLICT 不重复插入，只有新授权才写审计；本地数据库测试已核验授权和审计数量不增加。

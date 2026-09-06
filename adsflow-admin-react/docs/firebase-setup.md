@@ -82,3 +82,7 @@ node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --env produc
 ```
 
 本次两个构建和 9 项网关测试通过。Firebase authorizedDomains 已加入后台域名，保留已有 provider/MFA 配置。未运行新的真实用户 MFA 测试或生产业务验收。
+
+### 后续账号授权已执行
+
+用户随后明确授权真实账号开通，已通过 Render 受控任务创建管理员本地身份并授予指定个人客户的 accounts:read / transactions:read；客户身份无运营权限。前述“本次域名发布未创建或修改真实账户”仅描述域名发布当时的范围。实际执行证据见部署记录的“实际账号授权”。管理员首次使用后台“忘记密码”设置密码，然后完成邮箱验证和验证器绑定；未代用户发送邮件或绕过 MFA。
