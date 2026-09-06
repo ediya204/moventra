@@ -9,6 +9,15 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
+  registration_required: '你尚未创建 Moventra 账户，请补充信息完成注册。',
+  user_disabled: '账户已停用，请联系管理员。',
+  invalid_registration: '请填写有效姓名（1–80 个字符）。',
+  invalid_api_response: '身份服务响应异常，请稍后重试。',
+  api_unavailable: '身份服务暂时无法连接，请稍后重试。',
+  api_not_available: '当前服务尚未开放此功能，请联系管理员。',
+  'auth/weak-password': '密码强度不足，请使用更强的密码。',
+  'auth/email-already-in-use': '邮箱已关联其他账户，请使用原登录方式。',
+  'auth/provider-already-linked': '已设置密码，请重试创建账户。',
   user_not_enabled: '身份已验证，业务账户尚未开通或已停用，请联系管理员。',
   unauthenticated: '登录已失效，请退出后重新登录。',
   mfa_required: '运营访问需要验证器双重验证。',
@@ -24,6 +33,12 @@ const messages: Record<string, string> = {
   'auth/code-expired': '验证已过期，请重新登录。',
   'auth/requires-recent-login': '此操作需要重新登录，请退出后再试。',
   'auth/network-request-failed': '网络连接失败，请稍后重试。',
+  'auth/popup-blocked': '浏览器阻止了登录弹窗，请允许弹窗后重试。',
+  'auth/popup-closed-by-user': 'Google 登录已取消，请重试或使用邮箱登录。',
+  'auth/cancelled-popup-request': '登录弹窗已取消，请重新尝试。',
+  'auth/unauthorized-domain': '当前域名尚未获得 Google 登录授权，请联系管理员。',
+  'auth/operation-not-allowed': '该登录方式尚未启用，请联系管理员。',
+  'auth/account-exists-with-different-credential': '该邮箱已有其他登录方式，请先使用原方式登录，不要重复注册。',
   email_unverified: '请先验证邮箱，再继续登录。',
 };
 export function authMessage(error: unknown): string {
@@ -32,15 +47,20 @@ export function authMessage(error: unknown): string {
 }
 
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
-export async function liveGet<T>(path: string): Promise<T> {
-  if (!/^\/api\/v1\/me$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
+async function liveRequest<T>(path: string, body?: { name: string }): Promise<T> {
+  if (body !== undefined ? path !== '/api/v1/register' : !/^\/api\/v1\/me$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
   const token = await user.getIdToken();
   if (getFirebaseAuth().currentUser !== user) throw new SessionError('unauthenticated', 401);
-  const response = await fetch(path, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, cache: 'no-store', credentials: 'omit', redirect: 'error' });
-  const payload = await response.json();
-  if (!response.ok) throw new SessionError(payload.error?.code || 'temporarily_unavailable', response.status);
+  const response = await fetch(path, { method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : JSON.stringify(body), headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), Authorization: `Bearer ${token}`, Accept: 'application/json' }, cache: 'no-store', credentials: 'omit', redirect: 'error' });
+  let payload;
+  try { payload = await response.json(); } catch { throw new SessionError('invalid_api_response', response.status); }
+  if (!response.ok) throw new SessionError(payload?.error?.code || 'temporarily_unavailable', response.status);
   if (getFirebaseAuth().currentUser !== user) throw new SessionError('unauthenticated', 401);
+  if (!payload || typeof payload.data !== 'object' || payload.data === null) throw new SessionError('invalid_api_response', response.status);
   return payload.data as T;
 }
+
+export const liveGet = <T>(path: string) => liveRequest<T>(path);
+export const registerUser = (name: string) => liveRequest<{ id: string }>('/api/v1/register', { name });

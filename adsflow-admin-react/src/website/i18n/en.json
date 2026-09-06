@@ -106,6 +106,8 @@
   "请输入用户名": "Enter your username",
   "请输入密码": "Enter your password",
   "登录失败，请稍后重试。": "Unable to sign in. Please try again later.",
+  "使用 Google 登录": "Continue with Google",
+  "重新选择登录方式": "Choose another sign-in method",
   "欢迎回来": "Welcome back",
   "登录 Moventra 运营工作台": "Sign in to your Moventra workspace",
   "没有账户？": "New to Moventra?",

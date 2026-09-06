@@ -4,6 +4,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Alert, Box, Button, Chip, CircularProgress, Container, Link, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { needsRegistration } from './sessionState';
+import CompleteRegistration from './CompleteRegistration';
 import { authMessage, liveGet } from './liveApi';
 
 type Row = { id: string; name?: string; status: string; currency?: string; amountMinor?: string; scale?: number; direction?: string; occurredAt?: string };
@@ -28,6 +30,8 @@ export default function SessionPage() {
   if (!ready) return <Container sx={{py:6}}><CircularProgress /></Container>;
   if (!user) return <Navigate to="/login" replace />;
   const run = async (action: () => Promise<void>) => { setBusy(true); setError(''); try { await action(); } catch (cause) { setError(authMessage(cause)); } finally { setBusy(false); } };
+  if (needsRegistration(sessionError)) return <CompleteRegistration />;
+  if (!session && !sessionError) return <Container sx={{py:6}}><CircularProgress aria-label="正在检查账户" /></Container>;
   const options = [
     ...(session?.customers || []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
     ...(session?.staffScopes || []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),
@@ -43,7 +47,7 @@ export default function SessionPage() {
       {!user.emailVerified && <Button disabled={busy} onClick={() => void run(async () => { await sendEmailVerification(user, { url: window.location.origin + '/login' }); setNotice('验证邮件已发送，请检查收件箱。'); })}>发送邮箱验证邮件</Button>}
       <Button disabled={busy} onClick={() => void run(refreshSession)}>刷新身份和权限</Button>
     </Stack></Paper>
-    {user.emailVerified && <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
+    {user.emailVerified && session && <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
       <Typography variant="h6">验证器双重验证</Typography>
       <Typography variant="body2" color="text.secondary">使用 Google Authenticator 等验证器保护登录。请自行保管验证器密钥，不要发送给他人。</Typography>
       {multiFactor(user).enrolledFactors.length > 0 ? <Typography>已绑定验证器。需要更新时请联系账户管理员；此页面不提供绕过验证器的重置入口。</Typography> : !secret ? <Button disabled={busy} onClick={() => void run(async () => { setSecret(await TotpMultiFactorGenerator.generateSecret(await multiFactor(user).getSession())); })}>设置验证器</Button> : <>

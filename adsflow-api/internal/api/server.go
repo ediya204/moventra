@@ -44,6 +44,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		respond(w, 200, map[string]string{"status": "ready"})
 	})
+	mux.HandleFunc("POST /api/v1/register", s.register)
 	mux.Handle("GET /api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.submitUpgrade)))
 	mux.Handle("GET /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.getUpgrade)))
@@ -73,14 +74,18 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			fail(w, 401, "unauthenticated")
 			return
 		}
-		var id string
-		err = s.DB.QueryRow(r.Context(), `SELECT id::text FROM users WHERE firebase_uid=$1 AND status='active'`, identity.UID).Scan(&id)
+		var id, status string
+		err = s.DB.QueryRow(r.Context(), `SELECT id::text,status FROM users WHERE firebase_uid=$1`, identity.UID).Scan(&id, &status)
 		if errors.Is(err, pgx.ErrNoRows) {
-			fail(w, 403, "user_not_enabled")
+			fail(w, 403, "registration_required")
 			return
 		}
 		if err != nil {
 			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+		if status != "active" {
+			fail(w, 403, "user_disabled")
 			return
 		}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, principal{id, identity})))

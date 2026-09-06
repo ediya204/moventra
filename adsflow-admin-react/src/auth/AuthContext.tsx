@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { getMultiFactorResolver, onIdTokenChanged, signInWithEmailAndPassword, signOut as firebaseSignOut, TotpMultiFactorGenerator, type MultiFactorError, type MultiFactorResolver, type User } from 'firebase/auth';
+import { GoogleAuthProvider, browserPopupRedirectResolver, signInWithPopup, getMultiFactorResolver, onIdTokenChanged, signInWithEmailAndPassword, signOut as firebaseSignOut, TotpMultiFactorGenerator, type MultiFactorError, type MultiFactorResolver, type User } from 'firebase/auth';
 import { clearAccessToken, setAccessToken } from '../api/client';
 import { login as legacyLogin } from '../api/queries';
 import { getFirebaseAuth } from '../firebase';
@@ -13,6 +13,7 @@ type AuthContextValue = {
   ready: boolean; session: LiveSession | null; sessionError: unknown;
   factors: { uid: string; name: string }[];
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   completeMfa: (factorId: string, code: string) => Promise<void>;
   refreshSession: () => Promise<void>; signOut: () => void;
 };
@@ -49,6 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (current) { await current.reload(); await current.getIdToken(true); }
     await loadSession(current);
   }, [loadSession]);
+  const handleMfaError = useCallback((error: unknown) => {
+      if ((error as {code?: string}).code !== 'auth/multi-factor-auth-required') throw error;
+      const pending = getMultiFactorResolver(getFirebaseAuth(), error as MultiFactorError);
+      const hints = pending.hints.filter(f => f.factorId === TotpMultiFactorGenerator.FACTOR_ID).map(f => ({ uid: f.uid, name: f.displayName || '验证器' }));
+      if (!hints.length) throw new Error('Unsupported MFA factor');
+      resolver.current = pending; setFactors(hints);
+  }, []);
   const signIn = useCallback(async (email: string, password: string) => {
     if (!usesFirebaseAuth) {
       const result = await legacyLogin(email, password); setAccessToken(result.accessToken);
@@ -57,13 +65,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolver.current = null; setFactors([]); clearAccessToken();
     try { await signInWithEmailAndPassword(getFirebaseAuth(), email.trim(), password); }
     catch (error) {
-      if ((error as {code?: string}).code !== 'auth/multi-factor-auth-required') throw error;
-      const pending = getMultiFactorResolver(getFirebaseAuth(), error as MultiFactorError);
-      const hints = pending.hints.filter(f => f.factorId === TotpMultiFactorGenerator.FACTOR_ID).map(f => ({ uid: f.uid, name: f.displayName || '验证器' }));
-      if (!hints.length) throw new Error('Unsupported MFA factor');
-      resolver.current = pending; setFactors(hints);
+      handleMfaError(error);
     }
-  }, []);
+  }, [handleMfaError]);
+  const signInWithGoogle = useCallback(async () => {
+    if (!usesFirebaseAuth) throw new Error('Google login is unavailable in Demo mode');
+    resolver.current = null; setFactors([]); clearAccessToken();
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      // Pass the resolver explicitly because Auth uses initializeAuth with memory persistence.
+      await signInWithPopup(getFirebaseAuth(), provider, browserPopupRedirectResolver);
+    } catch (error) { handleMfaError(error); }
+  }, [handleMfaError]);
   const completeMfa = useCallback(async (factorId: string, code: string) => {
     const pending = resolver.current;
     if (!pending || !pending.hints.some(f => f.uid === factorId && f.factorId === TotpMultiFactorGenerator.FACTOR_ID)) throw new Error('MFA session expired');
@@ -74,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     generation.current++; resolver.current = null; setFactors([]); clearAccessToken(); setProfile(null); setSession(null); setUser(null); setSessionError(null);
     if (usesFirebaseAuth) void firebaseSignOut(getFirebaseAuth());
   }, []);
-  const value = useMemo(() => ({ profile, authenticated: Boolean(profile), user, ready, session, sessionError, factors, signIn, completeMfa, refreshSession, signOut }), [profile,user,ready,session,sessionError,factors,signIn,completeMfa,refreshSession,signOut]);
+  const value = useMemo(() => ({ profile, authenticated: Boolean(profile), user, ready, session, sessionError, factors, signIn, signInWithGoogle, completeMfa, refreshSession, signOut }), [profile,user,ready,session,sessionError,factors,signIn,signInWithGoogle,completeMfa,refreshSession,signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 export function useAuth() {

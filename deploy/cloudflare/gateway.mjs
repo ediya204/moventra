@@ -11,9 +11,10 @@ export async function handle(request, env, upstreamFetch = fetch) {
   const url = new URL(request.url);
   const api = /^\/(api|admin-api|client-api|local-slash-demo)(\/|$)/.test(url.pathname);
   if (!api) return env.ASSETS.fetch(request);
-  const readable = url.pathname === '/api/v1/me' || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const registration = url.pathname === '/api/v1/register';
+  const readable = registration || url.pathname === '/api/v1/me' || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
-  if (request.method !== 'GET' && !(request.method === 'POST' && upgrade.test(url.pathname))) return error(405, 'method_not_allowed');
+  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && upgrade.test(url.pathname))) return error(405, 'method_not_allowed');
 
   let origin;
   try { origin = new URL(env.API_ORIGIN); } catch { return error(503, 'api_not_configured'); }

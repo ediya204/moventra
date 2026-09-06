@@ -21,7 +21,7 @@ type fakeVerifier struct{}
 
 func (fakeVerifier) Verify(_ context.Context, token string) (Identity, error) {
 	switch token {
-	case "alice", "bob", "disabled", "staff":
+	case "alice", "bob", "disabled", "staff", "new-user":
 		return Identity{UID: token, MFA: true}, nil
 	case "staff-no-mfa":
 		return Identity{UID: "staff"}, nil
@@ -99,6 +99,57 @@ func TestPostgresBoundary(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		return w
 	}
+	t.Run("registration boundaries and replay", func(t *testing.T) {
+		w := request("GET", "/api/v1/me", "new-user", "", "")
+		if w.Code != 403 || !strings.Contains(w.Body.String(), "registration_required") {
+			t.Fatal(w.Code, w.Body)
+		}
+		for _, tc := range []struct {
+			token, body string
+			code        int
+		}{
+			{"", `{"name":"New"}`, 401},
+			{"fake", `{"name":"New"}`, 401},
+			{"new-user", `{"name":" "}`, 400},
+			{"new-user", `{"name":"New","role":"admin"}`, 400},
+			{"new-user", `{"name":"New","firebase_uid":"alice"}`, 400},
+			{"new-user", `{"name":"New"} {}`, 400},
+			{"disabled", `{"name":"New"}`, 403},
+		} {
+			w = request("POST", "/api/v1/register", tc.token, tc.body, "")
+			if w.Code != tc.code {
+				t.Fatalf("%s: %d %s", tc.token, w.Code, w.Body)
+			}
+		}
+		var group sync.WaitGroup
+		for i := 0; i < 6; i++ {
+			group.Add(1)
+			go func() {
+				defer group.Done()
+				w := request("POST", "/api/v1/register", "new-user", `{"name":"New"}`, "")
+				if w.Code != 200 {
+					t.Errorf("register: %d %s", w.Code, w.Body)
+				}
+			}()
+		}
+		group.Wait()
+		var count int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM users WHERE firebase_uid='new-user'`).Scan(&count); err != nil || count != 1 {
+			t.Fatal(count, err)
+		}
+		var name string
+		if err := pool.QueryRow(ctx, `SELECT display_name FROM users WHERE firebase_uid='disabled' AND status='disabled'`).Scan(&name); err != nil || name != "Disabled" {
+			t.Fatal(name, err)
+		}
+		w = request("GET", "/api/v1/me", "new-user", "", "")
+		if w.Code != 200 || !strings.Contains(w.Body.String(), `"customers":[]`) || !strings.Contains(w.Body.String(), `"operator":false`) {
+			t.Fatal(w.Code, w.Body)
+		}
+		w = request("GET", "/admin-api/v1/customers/"+business+"/accounts", "new-user", "", "")
+		if w.Code != 404 {
+			t.Fatal(w.Code, w.Body)
+		}
+	})
 	for _, tc := range []struct {
 		name, path, token string
 		status            int

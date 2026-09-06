@@ -1,6 +1,17 @@
 {
   "auth": {
-    "authorizedDomains": ["edi-gws-20260309-hk.firebaseapp.com", "edi-gws-20260309-hk.web.app", "moventra.apexisnetworking.work", "localhost"],
-    "providers": { "emailPassword": true }
+    "authorizedDomains": [
+      "edi-gws-20260309-hk.firebaseapp.com",
+      "edi-gws-20260309-hk.web.app",
+      "moventra.apexisnetworking.work",
+      "localhost"
+    ],
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Moventra",
+        "supportEmail": "ediyanghk@gmail.com"
+      }
+    }
   }
 }

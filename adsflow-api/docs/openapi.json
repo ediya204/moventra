@@ -216,7 +216,7 @@
             }
           },
           "403": {
-            "description": "Local user not active or staff MFA absent",
+            "description": "registration_required when verified UID has no local user; user_disabled when local user exists but is inactive. Only registration_required should offer registration.",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -1279,6 +1279,72 @@
           }
         },
         "summary": "Submit a personal-to-business upgrade intent"
+      }
+    },
+    "/api/v1/register": {
+      "post": {
+        "operationId": "registerUser",
+        "summary": "Create the verified Firebase UID login user only; no business subjects or grants",
+        "description": "Verified email and non-revoked Firebase token required. Passwords go only to Firebase. Idempotent by Firebase UID; existing users are not modified or reactivated.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created or already active user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_registration; strict JSON body up to 4096 bytes"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "user_disabled; never reactivates an account"
+          },
+          "415": {
+            "description": "invalid_content_type"
+          },
+          "503": {
+            "description": "temporarily_unavailable"
+          }
+        }
       }
     }
   },

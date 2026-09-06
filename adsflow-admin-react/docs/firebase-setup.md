@@ -24,6 +24,14 @@ Go 检查签名、issuer/audience、过期、撤销、邮箱验证、本地用�
 
 ## 配置与验证
 
+### Google 登录（2026-09-07 本轮新增）
+
+Firebase CLI 已在 `edi-gws-20260309-hk` 成功启用 Google provider（品牌 Moventra，支持邮箱 `ediyanghk@gmail.com`），保留邮箱密码入口。正式模式登录页新增 Google 弹窗按钮，使用账户选择器；弹窗 resolver 显式传入，仅内存保存 Firebase 会话。不读取或保存 Google Access Token，不申请额外 Google API 权限。
+
+Google 登录复用邮箱登录的 TOTP challenge 处理和 `/api/v1/me` 授权查询。Google 验证不代表本地业务开通，也不代表运营 MFA 已满足；不自动写入用户、主体或 staff_grants。取消、弹窗拦截、未授权域名、provider 未启用及账号方式冲突均有错误提示，账号冲突不自动合并。
+
+本轮 `pnpm build`（含 TypeScript）通过，浏览器确认本地 `/login` 显示 Google 按钮、点击进入等待状态。内置浏览器未暴露 OAuth 弹窗，未完成真实 Google 账号选择、回调和 MFA 联调；不能视为登录验收。Firebase provider 配置已生效，前端新增代码尚未部署；既有文档中的真实邮箱/TOTP 测试属于历史证据，本轮未重跑。
+
 `firebase.json` 保存邮箱密码 provider；CLI 部署后运行 `node deploy/firebase/configure-auth.mjs` 合并域名、启用 TOTP（相邻窗口 1）与邮箱枚举保护。脚本不打印包含密码哈希签名材料的完整项目配置，不覆盖其他 provider。
 
 常规检查：前端 `pnpm build`；后端 `bash scripts/test-postgres.sh`、`go vet ./...`。
@@ -42,3 +50,13 @@ node adsflow-admin-react/tests/firebase-live.mjs
 本轮 16 项真实联调、既有 24 项数据库子用例与认证提前拒绝、独立依赖前端构建通过。账户持有人的密码设置、邮箱验证与本人验证器绑定需要本人完成，测试用户通过不能替代本人验收。
 
 官方依据：[TOTP MFA](https://firebase.google.com/docs/auth/web/totp-mfa)、[Token 验证](https://firebase.google.com/docs/auth/admin/verify-id-tokens)、[配置 API](https://cloud.google.com/identity-platform/docs/reference/rest/v2/projects/updateConfig)。
+
+## 2026-09-07 Google 登录后注册分流（本地新增，未部署）
+
+已存在的有效本地用户继续进入 `/session`，运营仍要求 MFA 和资源授权。已验证 UID 不存在时 `/api/v1/me` 返回 `403 registration_required`，进入姓名/密码补全表单；停用用户返回 `403 user_disabled`。旧 `user_not_enabled`、网络异常和服务错误均不得进入注册。
+
+密码用 Firebase `linkWithCredential` 关联当前 UID，已有密码不覆盖；密码不发送给 Go。设置密码成功但业务创建失败时，下次识别已绑定的 password provider，仅重试业务创建。`POST /api/v1/register` 只收姓名，核验 Firebase token 后按 UID 幂等插入 users；拒绝客户端自报 UID/role、未知字段和多段 JSON。停用用户不重新激活。注册仅创建登录用户，保留 UID、创建时间，不自动创建客户主体、成员、账户、资金服务或运营权限，无数据库结构迁移。
+
+本地 Vite 新契约 `/api/v1/`、`/client-api/v1/`、`/admin-api/v1/` 使用 `VITE_GO_API_PROXY_TARGET`（默认 localhost:8870），与旧后台代理隔离。非 JSON 身份响应明确提示服务异常；仅带 403 的 registration_required 才显示注册表单。
+
+本轮前端构建通过；本地隔离 PostgreSQL race 测试通过，含六并发注册去重、无凭据/伪造身份拒绝、额外授权字段拒绝、禁用不复活及新用户无运营权限。真实 Google 密码关联、生产注册未测试；前端、Go 与网关需要一起发布，此文不代表已部署。

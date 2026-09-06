@@ -21,7 +21,7 @@ try{
  for(const origin of ['https://moventra.apexisnetworking.work','https://moventra-api-ejeq.onrender.com']){
   // curl config via stdin keeps the token out of command arguments and logs.
   const output=execFileSync('curl',['--config','-'],{input:`silent\nshow-error\nmax-time = 30\nurl = "${origin}/api/v1/me"\nheader = "Authorization: Bearer ${token}"\nwrite-out = "\\n%{http_code}"\n`,encoding:'utf8'});
-  const split=output.lastIndexOf('\n');assert.equal(output.slice(split+1),'403');assert.equal(JSON.parse(output.slice(0,split)).error.code,'user_not_enabled');
+  const split=output.lastIndexOf('\n');assert.equal(output.slice(split+1),'403');assert.equal(JSON.parse(output.slice(0,split)).error.code,'registration_required');
   console.log(`PASS ${origin}: real verified Firebase identity denied without local provisioning.`);
  }
 }finally{

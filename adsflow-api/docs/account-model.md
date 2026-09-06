@@ -49,3 +49,13 @@
 `/api/v1/me` 追加 `operator`、`mfaVerified`、`requiresMfa`、`staffScopes`。operator 仅表示存在 staff_grants，不是全局角色；未验证 MFA 时 staffScopes 为空，数据接口始终再次检查权限。真实 Firebase/TOTP 与本地隔离库的 16 项联调通过。
 
 受控命令 `api provision-user` 使用 `PROVISION_FIREBASE_UID` 和 `PROVISION_EMAIL` 指定目标，经 Firebase 验证 UID/邮箱匹配且未禁用后仅插入 users。重复运行不重新激活禁用用户、不分配客户关系或 staff_grants。此命令不经 HTTP 暴露，不含密码设置或邮箱验证旁路。
+
+## 2026-09-07 Google 登录后注册分流（本地新增，未部署）
+
+已存在的有效本地用户继续进入 `/session`，运营仍要求 MFA 和资源授权。已验证 UID 不存在时 `/api/v1/me` 返回 `403 registration_required`，进入姓名/密码补全表单；停用用户返回 `403 user_disabled`。旧 `user_not_enabled`、网络异常和服务错误均不得进入注册。
+
+密码用 Firebase `linkWithCredential` 关联当前 UID，已有密码不覆盖；密码不发送给 Go。设置密码成功但业务创建失败时，下次识别已绑定的 password provider，仅重试业务创建。`POST /api/v1/register` 只收姓名，核验 Firebase token 后按 UID 幂等插入 users；拒绝客户端自报 UID/role、未知字段和多段 JSON。停用用户不重新激活。注册仅创建登录用户，保留 UID、创建时间，不自动创建客户主体、成员、账户、资金服务或运营权限，无数据库结构迁移。
+
+本地 Vite 新契约 `/api/v1/`、`/client-api/v1/`、`/admin-api/v1/` 使用 `VITE_GO_API_PROXY_TARGET`（默认 localhost:8870），与旧后台代理隔离。非 JSON 身份响应明确提示服务异常；仅带 403 的 registration_required 才显示注册表单。
+
+本轮前端构建通过；本地隔离 PostgreSQL race 测试通过，含六并发注册去重、无凭据/伪造身份拒绝、额外授权字段拒绝、禁用不复活及新用户无运营权限。真实 Google 密码关联、生产注册未测试；前端、Go 与网关需要一起发布，此文不代表已部署。

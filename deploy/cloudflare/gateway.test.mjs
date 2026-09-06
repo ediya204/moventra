@@ -40,3 +40,16 @@ test('redirects and HTML responses are blocked', async () => {
 test('static frontend requests use the asset binding', async () => {
   assert.equal(await (await handle(new Request('https://web.example.invalid/'), env)).text(), 'SPA');
 });
+
+test('registration permits authenticated POST only and preserves its body', async () => {
+  const url='https://web.example.invalid/api/v1/register';
+  assert.equal((await handle(new Request(url),env,()=>assert.fail('upstream'))).status,405);
+  assert.equal((await handle(new Request(url,{method:'POST'}),env,()=>assert.fail('upstream'))).status,401);
+  const res=await handle(new Request(url,{method:'POST',headers:{Authorization:'Bearer fixture','Content-Type':'application/json'},body:JSON.stringify({name:'New user'})}),env,async(target,options)=>{
+    assert.equal(target.pathname,'/api/v1/register');
+    assert.equal(options.method,'POST');
+    assert.deepEqual(await new Response(options.body).json(),{name:'New user'});
+    return Response.json({data:{id:'fixture'}});
+  });
+  assert.equal(res.status,200);
+});
