@@ -1,0 +1,35 @@
+# Reproducible resource settings. Initial provisioning uses Render CLI in the
+# existing moventra-card-bin / Production environment; no Blueprint is linked.
+services:
+  - type: web
+    name: moventra-api
+    runtime: docker
+    repo: https://github.com/ediya204/moventra-card-bin
+    branch: main
+    rootDir: adsflow-api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: singapore
+    plan: starter
+    autoDeployTrigger: off
+    healthCheckPath: /readyz
+    # Bootstrap only. Clear after the initial empty database is initialized.
+    preDeployCommand: api migrate
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: moventra-postgres
+          property: connectionString
+      - key: FIREBASE_PROJECT_ID
+        value: edi-gws-20260309-hk
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/firebase-service-account.json
+    # Upload this file separately through Render Secret Files. Never commit it.
+databases:
+  - name: moventra-postgres
+    databaseName: moventra
+    region: singapore
+    plan: basic_1gb
+    postgresMajorVersion: "17"
+    diskSizeGB: 20
+    ipAllowList: []

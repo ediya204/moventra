@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+bin/
+credentials*.json
+*-service-account.json
+coverage.out
+
+# Private, real-channel local preview snapshots (never Demo fixtures)
+.slash-preview/
+__pycache__/

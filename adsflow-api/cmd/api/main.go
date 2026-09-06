@@ -1,0 +1,91 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"adsflow.local/api/internal/api"
+	"adsflow.local/api/internal/database"
+	firebase "firebase.google.com/go/v4"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+func run() error {
+	if os.Getenv("DATABASE_URL") == "" {
+		return errors.New("DATABASE_URL is required")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cfg, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return errors.New("invalid DATABASE_URL")
+	}
+	cfg.MaxConns = 5
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
+	if err != nil {
+		return errors.New("database initialization failed")
+	}
+	defer pool.Close()
+	if err = pool.Ping(ctx); err != nil {
+		return errors.New("database unavailable")
+	}
+	if len(os.Args) > 1 {
+		if len(os.Args) != 2 || os.Args[1] != "migrate" {
+			return errors.New("usage: api [migrate]")
+		}
+		if err = database.Migrate(ctx, pool); err != nil {
+			return errors.New("migration failed; inspect database and migration version")
+		}
+		slog.Info("database migrations applied")
+		return nil
+	}
+	if os.Getenv("FIREBASE_AUTH_EMULATOR_HOST") != "" {
+		return errors.New("auth emulator is not allowed in this API executable")
+	}
+	project := os.Getenv("FIREBASE_PROJECT_ID")
+	if project == "" {
+		return errors.New("FIREBASE_PROJECT_ID is required")
+	}
+	app, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: project})
+	if err != nil {
+		return errors.New("firebase initialization failed")
+	}
+	auth, err := app.Auth(ctx)
+	if err != nil {
+		return errors.New("firebase credentials unavailable")
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8870"
+	}
+	server := http.Server{Addr: ":" + port, Handler: (&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}}).Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
+	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopSignals()
+	result := make(chan error, 1)
+	go func() { result <- server.ListenAndServe() }()
+	slog.Info("api listening", "port", port)
+	select {
+	case err = <-result:
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+		return fmt.Errorf("http server failed")
+	case <-stop.Done():
+		shutdown, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelShutdown()
+		return server.Shutdown(shutdown)
+	}
+}
+func main() {
+	if err := run(); err != nil {
+		slog.Error("startup failed", "reason", err.Error())
+		os.Exit(1)
+	}
+}

@@ -1,0 +1,11 @@
+# Allowlist build inputs. Local real-channel snapshots, credentials, export
+# files and Python preview tools must never enter a remote Docker build context.
+**
+!go.mod
+!go.sum
+!Dockerfile
+!.dockerignore
+!cmd/
+!cmd/**
+!internal/
+!internal/**
