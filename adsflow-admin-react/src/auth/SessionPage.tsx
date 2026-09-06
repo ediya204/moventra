@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { multiFactor, sendEmailVerification, TotpMultiFactorGenerator, type TotpSecret } from 'firebase/auth';
 import { QRCodeSVG } from 'qrcode.react';
 import { Alert, Box, Button, Chip, CircularProgress, Container, Link, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { needsRegistration } from './sessionState';
 import CompleteRegistration from './CompleteRegistration';
@@ -18,6 +18,7 @@ function exactAmount(row: Row): string {
 export default function SessionPage() {
   const { user, ready, session, sessionError, refreshSession, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -33,6 +34,7 @@ export default function SessionPage() {
   const run = async (action: () => Promise<void>) => { setBusy(true); setError(''); try { await action(); } catch (cause) { setError(authMessage(cause)); } finally { setBusy(false); } };
   if (!isAdminSite && needsRegistration(sessionError)) return <CompleteRegistration />;
   if (!session && !sessionError) return <Container sx={{py:6}}><CircularProgress aria-label="正在检查账户" /></Container>;
+  if (!isAdminSite && session && !sessionError && location.pathname === '/session') return <Navigate to="/portal" replace />;
   const options = [
     ...(!isAdminSite ? session?.customers || [] : []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
     ...(isAdminSite ? session?.staffScopes || [] : []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),

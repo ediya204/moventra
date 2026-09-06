@@ -23,6 +23,7 @@ const StatusPage = lazy(() => import('./website/StatusPage'));
 
 const Website = lazy(() => import('./website/Website'));
 
+const ClientHome = lazy(() => import('./portal/ClientHome'));
 const Portal = lazy(() => import('./portal/Portal'));
 
 const WorkbenchPage = lazy(() => import('./pages/WorkbenchPage').then((module) => ({ default: module.WorkbenchPage })));
@@ -63,7 +64,7 @@ export default function App() {
   if (isSlashDemoMode) return <Suspense fallback={<PageSkeleton />}><Routes>
     <Route path="/session" element={<SessionPage />} />
     <Route path="/" element={<Website />} />
-    <Route path="/portal/*" element={usesFirebaseAuth ? <Navigate to="/session" replace /> : <Portal />} />
+    <Route path="/portal/*" element={usesFirebaseAuth ? <ClientHome /> : <Portal />} />
     <Route path="/demo-reset-password" element={<ResetPasswordPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
@@ -98,7 +99,7 @@ export default function App() {
       <Routes>
     <Route path="/session" element={<SessionPage />} />
         <Route path="/" element={<Website />} />
-    <Route path="/portal/*" element={usesFirebaseAuth ? <Navigate to="/session" replace /> : <Portal />} />
+    <Route path="/portal/*" element={usesFirebaseAuth ? <ClientHome /> : <Portal />} />
     <Route path="/demo-reset-password" element={<ResetPasswordPage />} />
         <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
