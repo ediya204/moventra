@@ -2,7 +2,7 @@
 
 核验日期：2026-09-07。状态：公开文档及本租户 GET 只读调用已核验；真实 Webhook、生产接入与资金验收未执行。
 
-分类及当前实现边界见 [开发总纲](../DEVELOPMENT.md)。现有 Demo 字段明细见 [Slash 字段差异](../../adsflow-admin-react/docs/slash-field-gap.md)。
+分类及当前实现边界见 [开发总纲](../DEVELOPMENT.md)。现有 Demo 字段明细见 [Slash 字段差异](../frontend/slash-field-gap.md)。
 
 ## 1. 官方证据（SOURCE）
 
@@ -104,8 +104,8 @@ Slash 通知要求在 10 秒内得到 2xx，否则重试；存在退避和自动
 
 ## 2026-09-07：独立本地只读预览
 
-新增 [Slash 本地预览工具](../../adsflow-api/docs/slash-local-preview.md)，实现单账户有限日期窗口的只读来源快照与本地分页查看。用户提供的只读 Key 经 IP 白名单配置后，真实 `GET /account` 已返回唯一 charge_card 账户。该证据不代表上文统一适配器、Go financial API、Webhook、客户映射或生产对账已实现。余额币种和跨页完整性仍保持未核实；具体运行记录在本地快照数据库保存。
+新增 [Slash 本地预览工具](../../services/api/docs/slash-local-preview.md)，实现单账户有限日期窗口的只读来源快照与本地分页查看。用户提供的只读 Key 经 IP 白名单配置后，真实 `GET /account` 已返回唯一 charge_card 账户。该证据不代表上文统一适配器、Go financial API、Webhook、客户映射或生产对账已实现。余额币种和跨页完整性仍保持未核实；具体运行记录在本地快照数据库保存。
 
 ## 当前本地真实投影（2026-09-07）
 
-用户已授权导入本地后台并持续更新。两组各 20 张卡固定跟踪，账户最近 30 天交易有限窗口轮询；5 分钟为每轮完成后的间隔。数据、权限、更新审计及完整性边界见 [已实施说明](../../adsflow-admin-react/docs/slash-live-data.md)。此更新不将其余 DESIGN 草案自动视为已实现。
+用户已授权导入本地后台并持续更新。两组各 20 张卡固定跟踪，账户最近 30 天交易有限窗口轮询；5 分钟为每轮完成后的间隔。数据、权限、更新审计及完整性边界见 [已实施说明](../frontend/slash-live-data.md)。此更新不将其余 DESIGN 草案自动视为已实现。

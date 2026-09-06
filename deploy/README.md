@@ -15,7 +15,7 @@
 
 ## 源码与发布范围
 
-GitHub：https://github.com/ediya204/moventra-card-bin 。Go 运行版本 `3fd2363`，前端和网关快照 `d35c451`；后续文档提交不改变运行产物。Render 自动部署关闭，避免未经验证的共享目录变化直接上线。
+GitHub：https://github.com/ediya204/moventra 。Go 运行版本 `3fd2363`，前端和网关快照 `d35c451`；后续文档提交不改变运行产物。Render 自动部署关闭，避免未经验证的共享目录变化直接上线。
 
 同目录另有前端任务在开发，发布使用 `/tmp/moventra-release-20260907` 的独立 `codex/deploy-web` worktree。主工作目录的未提交开发保留，没有重置或覆盖。原主工作目录本地 main 保留原提交；已发布源码以 origin/main 与发布 worktree 为准，不可直接覆盖本地未跟踪文件。
 
@@ -63,7 +63,7 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 
 本地同步采用内容比较与三方合并，仅 App.tsx 的路由变更手动按精确片段合入，保留并行任务新增的 LegalPage 路由；发布版本不含那部分后续开发。主目录依赖出现系统 dataless 占位导致构建停滞，因此前端与 Wrangler 在发布 worktree 中独立重新安装后验证，未覆盖共享 node_modules。
 
-可重复线上拒绝检查：`RUN_DEPLOYED_AUTH_TESTS=1 FIREBASE_PROJECT_ID=edi-gws-20260309-hk node adsflow-admin-react/tests/firebase-deployed.mjs`。需要指定项目测试身份管理权限，只创建并清理云端临时身份，不修改生产数据库。
+可重复线上拒绝检查：`RUN_DEPLOYED_AUTH_TESTS=1 FIREBASE_PROJECT_ID=edi-gws-20260309-hk node apps/admin/tests/firebase-deployed.mjs`。需要指定项目测试身份管理权限，只创建并清理云端临时身份，不修改生产数据库。
 
 ## Google 登录与注册分流发布（2026-09-07）
 
@@ -130,4 +130,4 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 - 本机 DNS 仍有后台域名负缓存，HTTP 验证使用公共 DNS 解析地址并保留正式域名/SNI；没有修改 DNS、WAF 或 Access。
 - 未部署 Go、未迁移数据库、未变更权限或真实资金。本人认证后的完整业务与真实通道验收未执行；本地 Demo 金融模块仍不属于已接入生产能力。
 
-字段与历史依赖保留范围见 `adsflow-admin-react/docs/v1-personal-release.md`。需要回退时，客户端上一版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`；后台上一版本 `07421c0b-c911-4514-b157-ecfcfb48ad66`。
+字段与历史依赖保留范围见 `apps/admin/docs/v1-personal-release.md`。需要回退时，客户端上一版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`；后台上一版本 `07421c0b-c911-4514-b157-ecfcfb48ad66`。

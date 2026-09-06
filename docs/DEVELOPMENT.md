@@ -1,18 +1,20 @@
-# ADSFLOW 开发总纲
+# Moventra 开发总纲
+
+当前源码结构：`apps/client` 为独立客户端，`apps/admin` 为独立运营后台，`services/api` 为 Go 服务，`packages/shared` 为共用认证/UI/类型。统一在 `main` 维护，构建入口见根目录 README。下方历史功能盘点保留原验收范围。
 
 更新日期：2026-09-07。状态：跨项目目标规范仍为草案；部分本地能力已按追加授权实施，具体以各交付记录为准。
 
-2026-09-06 初次交付仅为文档。2026-09-07 用户另行授权的本地 Slash 真实数据导入与定时更新已实现，见 [交付范围](../adsflow-admin-react/docs/slash-live-data.md)；不构成生产操作授权。
+2026-09-06 初次交付仅为文档。2026-09-07 用户另行授权的本地 Slash 真实数据导入与定时更新已实现，见 [交付范围](./frontend/slash-live-data.md)；不构成生产操作授权。
 
 ## 1. 文档入口与证据分类
 
 | 文档 | 负责内容 |
 | --- | --- |
 | [AGENTS.md](../AGENTS.md) | 开发与 AI 协作硬性约束 |
-| [Slash 接入](integrations/slash.md) | 官方依据、字段差异、能力边界、同步和安全 |
-| [交易与资金](domain/transactions-and-funds.md) | 统一模型、状态、多币种、资金口径与对账 |
-| [接口契约](api/contract.md) | 当前 API 与拟议 API、数据类型、前后端职责 |
-| [验收场景](testing/financial-scenarios.md) | 测试矩阵、预期金额和交付检查 |
+| [Slash 接入](./integrations/slash.md) | 官方依据、字段差异、能力边界、同步和安全 |
+| [交易与资金](./domain/transactions-and-funds.md) | 统一模型、状态、多币种、资金口径与对账 |
+| [接口契约](./api/contract.md) | 当前 API 与拟议 API、数据类型、前后端职责 |
+| [验收场景](./testing/financial-scenarios.md) | 测试矩阵、预期金额和交付检查 |
 
 使用以下标记：`SOURCE` 官方公开文档确认；`LOCAL` 本地代码或既有实现文档；`DESIGN` 本系统拟议规则；`OPEN` 尚待验证。`SOURCE` 不等于本租户、本卡产品或真实交易已验证；`LOCAL` 文档记录不等于本次重新通过测试。
 
@@ -22,8 +24,8 @@
 
 | 子项目 | 本次检查依据 | 已有边界 |
 | --- | --- | --- |
-| `adsflow-api` | [README](../adsflow-api/README.md)、[账户模型](../adsflow-api/docs/account-model.md)、[SQL](../adsflow-api/internal/database/001_initial.sql)、[OpenAPI](../adsflow-api/docs/openapi.json) | Go/PostgreSQL 基础，身份、客户主体、账户/交易查询与企业升级申请；交易表是查询投影，不是账本 |
-| `adsflow-admin-react` | [README](../adsflow-admin-react/README.md)、[Slash Demo](../adsflow-admin-react/docs/slash-demo.md)、[字段差异](../adsflow-admin-react/docs/slash-field-gap.md) | React 管理端/客户端、旧接口查询、本地 Node/SQLite Slash Demo；不等于真实渠道接入 |
+| `services/api` | [README](../services/api/README.md)、[账户模型](../services/api/docs/account-model.md)、[SQL](../services/api/internal/database/001_initial.sql)、[OpenAPI](../services/api/docs/openapi.json) | Go/PostgreSQL 基础，身份、客户主体、账户/交易查询与企业升级申请；交易表是查询投影，不是账本 |
+| `apps/admin` | [README](../apps/admin/README.md)、[Slash Demo](./frontend/slash-demo.md)、[字段差异](./frontend/slash-field-gap.md) | React 管理端/客户端、旧接口查询、本地 Node/SQLite Slash Demo；不等于真实渠道接入 |
 | `zttrust_manage_front` | [README](../zttrust_manage_front/README.md) | 旧前端；已有未提交改动，当前文档任务不触碰 |
 
 Go 当前 `transactions` 仅允许 USD/USDT、正数 `amount_minor` 加方向、pending/succeeded/failed，来源唯一约束为 `(source, external_id)`。不能不经迁移设计直接装入多渠道、多状态、零值或其他币种交易。
@@ -84,10 +86,10 @@ Slash / 其他渠道 → 渠道适配层 → 来源记录与版本 → 统一查
 
 | 既有内容 | 本规范处理 |
 | --- | --- |
-| [分析 API](../adsflow-admin-react/docs/analytics-api-contract.md) | 产品候选契约；新接口不直接占用其路由，时间区间统一前要兼容旧含端点语义 |
-| [对账与调查模型](../adsflow-admin-react/docs/reconciliation-and-fraud-model.md) | 作为既有 Demo/分析背景；其中未显式含期初的流量公式、跨资产相加、可用+冻结及统一 USD 容差，不能直接作为新多渠道生产公式 |
-| [Slash 字段差异](../adsflow-admin-react/docs/slash-field-gap.md) | 保留现有具体 Demo 字段和实现说明；本规范补充真实接入与跨渠道目标，不追认所有实现已满足目标 |
-| [Slash Demo 场景](../adsflow-admin-react/docs/slash-demo-scenarios.md) | 已有 S01–S20 保持原标识；新验收用独立 F 编号，不改写已有数据 |
+| [分析 API](./frontend/analytics-api-contract.md) | 产品候选契约；新接口不直接占用其路由，时间区间统一前要兼容旧含端点语义 |
+| [对账与调查模型](./frontend/reconciliation-and-fraud-model.md) | 作为既有 Demo/分析背景；其中未显式含期初的流量公式、跨资产相加、可用+冻结及统一 USD 容差，不能直接作为新多渠道生产公式 |
+| [Slash 字段差异](./frontend/slash-field-gap.md) | 保留现有具体 Demo 字段和实现说明；本规范补充真实接入与跨渠道目标，不追认所有实现已满足目标 |
+| [Slash Demo 场景](./frontend/slash-demo-scenarios.md) | 已有 S01–S20 保持原标识；新验收用独立 F 编号，不改写已有数据 |
 
 尤其不能通过改写文档声称修复了现有代码。所有差异应进入后续实施清单。
 

@@ -1,5 +1,13 @@
-firebase-debug.log*
+node_modules/
+**/dist/
+**/dist-admin/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log
 .firebase/
 *.private.json
-
-adsflow-admin-react/dist-admin/
+.DS_Store
+**/demo-server/snapshot.json
+**/demo-server/slash/data/

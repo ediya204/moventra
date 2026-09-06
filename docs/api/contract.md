@@ -4,9 +4,9 @@
 
 ## 1. 当前契约与兼容边界
 
-现有 [Go OpenAPI](../../adsflow-api/docs/openapi.json) 与 [账户模型](../../adsflow-api/docs/account-model.md) 为当前基础：Firebase Bearer、客户主体隔离、运营 MFA + staff_grants、审计、limit/offset，以及正数 amountMinor + direction。
+现有 [Go OpenAPI](../../services/api/docs/openapi.json) 与 [账户模型](../../services/api/docs/account-model.md) 为当前基础：Firebase Bearer、客户主体隔离、运营 MFA + staff_grants、审计、limit/offset，以及正数 amountMinor + direction。
 
-旧 `/admin-api`、本地 `/local-slash-demo`、Demo settlement-management 前缀与 Go `/admin-api/v1` 是不同契约。不得通过宽泛代理替换。既有 [分析契约](../../adsflow-admin-react/docs/analytics-api-contract.md) 仍为独立候选方案。
+旧 `/admin-api`、本地 `/local-slash-demo`、Demo settlement-management 前缀与 Go `/admin-api/v1` 是不同契约。不得通过宽泛代理替换。既有 [分析契约](../frontend/analytics-api-contract.md) 仍为独立候选方案。
 
 新 financial 路由隔离新模型；机器 OpenAPI、权限名称和兼容测试需在实施阶段同步补充。新增权限采用默认拒绝，不能自动沿用 transactions:read 暴露所有资金与渠道信息。
 
@@ -135,12 +135,12 @@ BalanceSnapshot 至少含 id、sourceRef、externalAccountId、internalAccountMa
 
 ## 已实施的独立本地演示（2026-09-06）
 
-React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,balances,differences}`（Vite固定loopback转发），以及单笔timeline/relations、白名单CSV。该路径继承本地操作员会话，仅用于 `fx-cross-currency-v1`；不等同于上文Go financial草案实现。`transactions?unified=yes` 联合原清算只读视图，分页/筛选/排序在服务端执行，不复制旧账务数据。详见 [跨币种交付](../../adsflow-admin-react/docs/cross-currency-delivery.md)。
+React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,balances,differences}`（Vite固定loopback转发），以及单笔timeline/relations、白名单CSV。该路径继承本地操作员会话，仅用于 `fx-cross-currency-v1`；不等同于上文Go financial草案实现。`transactions?unified=yes` 联合原清算只读视图，分页/筛选/排序在服务端执行，不复制旧账务数据。详见 [跨币种交付](../frontend/cross-currency-delivery.md)。
 
 ## 2026-09-07：隔离卡片管理执行模块
 
-本次用户明确授权在本地补齐冻结、双人审批、强制扣款与转入/转出，新增 `/local-slash-demo/management/card-admin` 契约。使用独立ca_*账本，不接管Go交易投影或旧Portal预算；逐项权限、预占及双边分录在服务端实现。真实金融写接口仍禁用。详见 [卡片管理盘点、接口与验证](../../adsflow-admin-react/docs/card-administration.md)。
+本次用户明确授权在本地补齐冻结、双人审批、强制扣款与转入/转出，新增 `/local-slash-demo/management/card-admin` 契约。使用独立ca_*账本，不接管Go交易投影或旧Portal预算；逐项权限、预占及双边分录在服务端实现。真实金融写接口仍禁用。详见 [卡片管理盘点、接口与验证](../frontend/card-administration.md)。
 
 ## 2026-09-07：本地真实 Slash 投影
 
-新增 management/live 的 status、cards、transactions 只读查询与本地 sync 触发。仍不是上文 Go 草案的生产实现。服务端连接授权、loopback 边界、金额精度、revision 分页和失败保留规则见 [真实数据接口](../../adsflow-admin-react/docs/slash-live-data.md)。
+新增 management/live 的 status、cards、transactions 只读查询与本地 sync 触发。仍不是上文 Go 草案的生产实现。服务端连接授权、loopback 边界、金额精度、revision 分页和失败保留规则见 [真实数据接口](../frontend/slash-live-data.md)。

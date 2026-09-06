@@ -4,9 +4,9 @@ services:
   - type: web
     name: moventra-api
     runtime: docker
-    repo: https://github.com/ediya204/moventra-card-bin
+    repo: https://github.com/ediya204/moventra
     branch: main
-    rootDir: adsflow-api
+    rootDir: services/api
     dockerfilePath: ./Dockerfile
     dockerContext: .
     region: singapore

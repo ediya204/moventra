@@ -1,12 +1,12 @@
-# ADSFLOW 开发约束
+# Moventra 开发约束
 
 适用范围：本目录及子目录。更新日期：2026-09-06。
 
 ## 开发前阅读
 
-- 所有开发先读 [开发总纲](docs/DEVELOPMENT.md)。
-- 交易、订单、账户余额、退款、费用、汇率、同步、对账相关变更，必须再读 [领域规则](docs/domain/transactions-and-funds.md)、[接口契约草案](docs/api/contract.md)、[资金场景验收](docs/testing/financial-scenarios.md)。
-- Slash 相关变更必须读 [渠道接入规范](docs/integrations/slash.md)，并核验本次涉及的官方文档。
+- 所有开发先读 [开发总纲](./docs/DEVELOPMENT.md)。
+- 交易、订单、账户余额、退款、费用、汇率、同步、对账相关变更，必须再读 [领域规则](./docs/domain/transactions-and-funds.md)、[接口契约草案](./docs/api/contract.md)、[资金场景验收](./docs/testing/financial-scenarios.md)。
+- Slash 相关变更必须读 [渠道接入规范](./docs/integrations/slash.md)，并核验本次涉及的官方文档。
 - 修改子项目时，同时阅读该子项目 README 和对应专题文档。现有实现与目标规范不一致时，说明差异；不得把草案写成已实现能力。
 
 ## 硬性边界

@@ -1,0 +1,39 @@
+{
+  "name": "@moventra/client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -p tsconfig.app.json && vite build",
+    "typecheck": "tsc -p tsconfig.app.json --pretty false",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@moventra/shared": "workspace:*",
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@fontsource/public-sans": "^5.1.1",
+    "@hookform/resolvers": "3.9.1",
+    "@iconify/react": "^5.1.0",
+    "@mui/material": "^5.16.14",
+    "@mui/x-data-grid": "^7.23.5",
+    "apexcharts": "^3.54.1",
+    "firebase": "^12.18.0",
+    "qrcode.react": "4.2.0",
+    "react": "^18.3.1",
+    "react-apexcharts": "1.4.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "7.53.2",
+    "react-router-dom": "^6.28.0",
+    "yup": "1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.1"
+  }
+}
