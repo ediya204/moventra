@@ -4,6 +4,10 @@
 
 正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。规范本地目录为 `/Users/edi/Documents/ChatGPT/moventra`；旧共享目录中的未提交实现和私有数据保留，不属于此仓库的可用依赖。
 
+## 域名目标
+
+客户端目标为 [moventra.me](https://moventra.me)，运营后台目标为 [admin.moventra.me](https://admin.moventra.me)。本次仅更新文档，域名绑定、DNS 与 Firebase 登录域名配置尚未切换或验证；实施范围见 [部署说明](../deploy/README.md)。
+
 ## 当前能力
 
 | 层 | 当前范围 | 尚未完成或仅历史原型 |

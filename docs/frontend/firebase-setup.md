@@ -4,12 +4,14 @@
 
 ## 项目与入口
 
+目标登录域名更新为下表地址。本次仅更新文档，尚未切换 Cloudflare/DNS 或 Firebase authorizedDomains；完成这些配置并验证后才能将新域名视为可用登录入口。现有源码与测试中的旧域名需在域名实施任务中同步调整。
+
 Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示名仍为 `moventra-card-bin`，App ID 为 `1:666750758771:web:c38e91069fc64737db5f06`。这些实际云端标识不随源码仓库改名。
 
-| 应用 | 登录地址 | 登录方式 | 业务入口 |
+| 应用 | 目标登录地址 | 登录方式 | 业务入口 |
 | --- | --- | --- | --- |
-| 客户端 | https://moventra.apexisnetworking.work/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
-| 运营后台 | https://admin.moventra.apexisnetworking.work/login | 批准的运营邮箱密码、MFA；无 Google | `/session` 身份、授权范围及只读查询 |
+| 客户端 | https://moventra.me/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
+| 运营后台 | https://admin.moventra.me/login | 批准的运营邮箱密码、MFA；无 Google | `/session` 身份、授权范围及只读查询 |
 
 两端是独立构建、独立命名 SDK 实例和内存会话；共享 Firebase 身份项目，不是独立用户库、tenant 或 token audience。刷新页面需要重新登录。
 

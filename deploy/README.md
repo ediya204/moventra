@@ -1,5 +1,13 @@
 # Moventra 部署记录
 
+## 新域名目标（2026-09-07）
+
+- 客户端：[moventra.me](https://moventra.me)，登录 `/login`，对应 Worker `moventra-web`。
+- 运营后台：[admin.moventra.me](https://admin.moventra.me)，登录 `/login`，对应 Worker `moventra-admin`。
+- Go API 继续使用现有 Render 服务；本次没有指定新的 API 域名。
+
+本次仅修改 Markdown，未修改 Wrangler 路由、DNS、Firebase authorizedDomains、OAuth 配置、测试地址或运行产物。新域名尚未完成部署和登录验收。实施时需同步检查上述配置及跨端隔离，再分别验证 HTTPS、密码/Google 登录、MFA 和 Go 授权。
+
 ## 最近已核验的发布基线（2026-09-07）
 
 本次为 Markdown 校对，以下运行版本、线上访问及测试是上一轮发布证据，未在本次重新部署或完成用户认证验收。文档提交不改变运行产物。当前能力分类见 [文档索引](../docs/README.md)。
@@ -32,6 +40,8 @@ node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config dep
 
 ## 历史发布账目
 
+历史记录中的域名用“当时的客户端/后台域名”指代；其中 HTTPS、DNS 和登录验证不适用于新目标 `moventra.me`，不据此宣称新域名已上线。
+
 以下全部是原发布当时的记录。“本轮”“后续”“当前”均限定在相应历史版本；旧路径、脚本和回退版本不作为现行操作指南。现行命令以本页顶部为准，历史账号授权和发布结果保留原始证据。
 
 
@@ -39,8 +49,8 @@ node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config dep
 
 ## 已发布
 
-- 网站：https://moventra.apexisnetworking.work
-- 登录页：https://moventra.apexisnetworking.work/login
+- 网站：当时的客户端域名
+- 登录页：当时的客户端登录地址
 - Cloudflare Worker：`moventra-web`，版本 `94f4fd77-64f4-4b30-bc55-08df57eb693a`。
 - API：https://moventra-api-ejeq.onrender.com
 - Render 服务：`srv-daepgj8u01pc73fgdhsg`，Singapore / Starter，deploy `dep-daepgk0u01pc73fgdjg0` 状态 `live`。
@@ -104,7 +114,7 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 
 - 运行代码：`1d2471a6fa3e8b4ceece3c075f22dbdc953e0465`，已推送 origin/main。
 - Render：`dep-daepu0tbedkc73e8hq1g`，状态 live；`/readyz` 返回 ready。
-- Cloudflare：`b3e74009-3e85-417b-90c3-e193083b232e`，正式域名 https://moventra.apexisnetworking.work。
+- Cloudflare：`b3e74009-3e85-417b-90c3-e193083b232e`，正式域名 当时的客户端域名。
 - 独立发布目录 `/tmp/moventra-registration-publish` 从最新远端克隆，只纳入 Google 登录、注册分流、相关契约和测试；保留共享目录的其他开发。
 - 本轮验证：前端构建与状态分流测试通过，7 项网关测试通过，隔离 PostgreSQL race/并发注册与权限测试通过，go vet 与 Wrangler dry-run 通过。首次 dry-run 早于构建完成因 dist 不存在退出，构建完成后重跑成功。
 - 线上验证：正式登录页显示 Google 按钮；网关与 Render 注册接口均拒绝无凭据请求（401）；旧登录接口仍为 404。临时已验证 Firebase 身份经网关和 Render 直连 `/api/v1/me` 均为 403 registration_required，测试身份已清理，没有写生产 users/customers/grants。
@@ -113,8 +123,8 @@ Render 后续代码发布使用指定 commit 的手动 deploy，并确认 `/read
 
 ### 2026-09-07 独立域名发布
 
-- 后台 `admin.moventra.apexisnetworking.work` → Worker `moventra-admin`，版本 `301fc700-32bd-4a9c-b31d-61851f8b4c75`。
-- 客户端 `moventra.apexisnetworking.work` → Worker `moventra-web`，版本 `1ce0ef65-58a1-4a80-af06-22bcf7aa34d0`。
+- 后台 当时的后台域名 → Worker `moventra-admin`，版本 `301fc700-32bd-4a9c-b31d-61851f8b4c75`。
+- 客户端 当时的客户端域名 → Worker `moventra-web`，版本 `1ce0ef65-58a1-4a80-af06-22bcf7aa34d0`。
 - 公共 DNS 已解析；通过解析出的 Cloudflare IP 保留原域名/SNI 实测 HTTPS 登录页 200；内置浏览器显示“Moventra 运营后台登录”。本机解析器曾缓存无记录，不能用该缓存否定权威绑定成功。
 - 两端独立构建/内存会话/网关业务路由；Go 授权仍是最终边界。共享身份项目，不宣称独立用户库。
 - Firebase 后台域名已授权。两端构建及 9 项网关测试通过；未部署 Go、未迁移数据库、未修改真实用户权限、未访问真实资金接口。
@@ -157,8 +167,8 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 
 运行源码 `c933ce5` 已推送 origin/main，基于最新 `a5f09b9` 保留后台登录前置限制。发布目录 `/tmp/moventra-v1-publish`；共享开发目录的后续客户端重构与报价变更未混入本次部署。
 
-- 客户端 https://moventra.apexisnetworking.work ：Worker `moventra-web`，版本 `6bf1f4ca-0adb-4ce1-92ff-6dc872ffa214`。
-- 后台 https://admin.moventra.apexisnetworking.work ：Worker `moventra-admin`，版本 `f609e815-969f-401b-bceb-3f5de15a5e8c`。
+- 客户端 当时的客户端域名 ：Worker `moventra-web`，版本 `6bf1f4ca-0adb-4ce1-92ff-6dc872ffa214`。
+- 后台 当时的后台域名 ：Worker `moventra-admin`，版本 `f609e815-969f-401b-bceb-3f5de15a5e8c`。
 - 17 项发布回归、两端 TypeScript/Vite 构建及 Wrangler dry-run 通过。保留现有大 chunk 警告。后台沿用已部署的运营登录邮箱配置，经线上产物与原构建字节比对确认；配置值不写入公开文档。
 - 正式域名登录 HTML 和入口 JS 均与本次构建一致；两端无令牌 me 为 401，旧团队和本地 Demo API 为 404；Render readyz 正常。
 - 浏览器验证 `/portal/team/invite` 与后台 `/teams/demo/members` 在未登录状态均回到各自登录页面并正常渲染；后台运营提示与无 Google 登录入口保留。

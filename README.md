@@ -39,8 +39,10 @@ bash services/api/scripts/test-postgres.sh
 
 ## 发布
 
-- 客户端：`moventra.apexisnetworking.work` → Cloudflare Worker `moventra-web`。
-- 运营后台：`admin.moventra.apexisnetworking.work` → Worker `moventra-admin`。
+目标域名已调整为 `moventra.me` 与 `admin.moventra.me`。本次仅更新 Markdown，Cloudflare 域名绑定、DNS、Firebase authorizedDomains 和线上访问尚未按新域名验证；下面是目标映射。
+
+- 客户端：`moventra.me` → Cloudflare Worker `moventra-web`。
+- 运营后台：`admin.moventra.me` → Worker `moventra-admin`。
 - Go：Render `moventra-api`，仓库根目录设置为 `services/api`，分支为 `main`。
 - Cloudflare 资源配置分别读取 `apps/client/dist` 和 `apps/admin/dist`。
 - 数据库、Firebase 项目 ID、应用 ID、服务账户与实际云资源 ID 不随源码重命名；不得通过重命名重建数据或身份。
