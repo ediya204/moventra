@@ -10,7 +10,7 @@ if(!before.ok)throw new Error(`Read auth configuration: HTTP ${before.status}`);
 const current = await before.json();
 const providers=(current.mfa?.providerConfigs || []).filter(p=>!p.totpProviderConfig);
 const patch={
- authorizedDomains:[...new Set([...(current.authorizedDomains || []),'moventra.apexisnetworking.work','admin.moventra.apexisnetworking.work','localhost'])],
+ authorizedDomains:[...new Set([...(current.authorizedDomains || []),'moventra.me','moventra.apexisnetworking.work','admin.moventra.apexisnetworking.work','localhost'])],
  mfa:{...current.mfa,state:'ENABLED',providerConfigs:[...providers,{state:'ENABLED',totpProviderConfig:{adjacentIntervals:1}}]},
  emailPrivacyConfig:{enableImprovedEmailPrivacy:true},
 };

@@ -6,7 +6,7 @@
 
 ## 域名目标
 
-客户端目标为 [moventra.me](https://moventra.me)，运营后台目标为 [admin.moventra.me](https://admin.moventra.me)。本次仅更新文档，域名绑定、DNS 与 Firebase 登录域名配置尚未切换或验证；实施范围见 [部署说明](../deploy/README.md)。
+客户端目标为 [moventra.me](https://moventra.me)，运营后台目标为 [admin.moventra.me](https://admin.moventra.me)。官网根域名已绑定并通过 HTTPS/Chrome 页面验证，Firebase 已授权 `moventra.me`；后台新域名仍待接入。实际范围见 [部署说明](../deploy/README.md)。
 
 ## 当前能力
 

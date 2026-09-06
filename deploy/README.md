@@ -6,7 +6,11 @@
 - 运营后台：[admin.moventra.me](https://admin.moventra.me)，登录 `/login`，对应 Worker `moventra-admin`。
 - Go API 继续使用现有 Render 服务；本次没有指定新的 API 域名。
 
-本次仅修改 Markdown，未修改 Wrangler 路由、DNS、Firebase authorizedDomains、OAuth 配置、测试地址或运行产物。新域名尚未完成部署和登录验收。实施时需同步检查上述配置及跨端隔离，再分别验证 HTTPS、密码/Google 登录、MFA 和 Go 授权。
+2026-09-07 官网域名接入已执行：`wrangler triggers deploy --config deploy/cloudflare/wrangler.jsonc --env production` 成功，将 `moventra.me` 绑定既有 `moventra-web`，保留旧客户端域名过渡。仅发布域名触发器，未重新上传应用产物、发布 Render 或迁移数据库。
+
+本次验证：权威 DNS 和 Google/Cloudflare 公共 DNS 返回 A 记录；通过公开解析地址保留域名/SNI 验证 HTTPS 200；Chrome 实际打开根路径，展示广告营销、AI 工具与云服务官网。初期本机解析/内置浏览器仍有失败，Chrome 后续验证成功。10 项网关测试及触发器 dry-run 通过。
+
+Firebase 仅 PATCH authorizedDomains，加入 `moventra.me` 并读取确认，保留已有域名，不修改 provider、MFA 或用户。配置脚本已同步。新域名本人登录、Google 回调和 MFA 业务验收未执行；后台 `admin.moventra.me` 本次未接入。
 
 ## 最近已核验的发布基线（2026-09-07）
 

@@ -42,6 +42,10 @@
       },
       "routes": [
         {
+          "pattern": "moventra.me",
+          "custom_domain": true
+        },
+        {
           "pattern": "moventra.apexisnetworking.work",
           "custom_domain": true
         }

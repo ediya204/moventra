@@ -39,10 +39,10 @@ bash services/api/scripts/test-postgres.sh
 
 ## 发布
 
-目标域名已调整为 `moventra.me` 与 `admin.moventra.me`。本次仅更新 Markdown，Cloudflare 域名绑定、DNS、Firebase authorizedDomains 和线上访问尚未按新域名验证；下面是目标映射。
+官网 `https://moventra.me/` 已绑定现有客户端 Worker，根路径展示官网，`/login` 为客户端登录。2026-09-07 已验证权威 DNS、HTTPS 200 和 Chrome 官网渲染，并加入 Firebase authorizedDomains。`admin.moventra.me` 仍为待接入目标，本次未切换后台域名。
 
 - 客户端：`moventra.me` → Cloudflare Worker `moventra-web`。
-- 运营后台：`admin.moventra.me` → Worker `moventra-admin`。
+- 运营后台目标（待接入）：`admin.moventra.me` → Worker `moventra-admin`。
 - Go：Render `moventra-api`，仓库根目录设置为 `services/api`，分支为 `main`。
 - Cloudflare 资源配置分别读取 `apps/client/dist` 和 `apps/admin/dist`。
 - 数据库、Firebase 项目 ID、应用 ID、服务账户与实际云资源 ID 不随源码重命名；不得通过重命名重建数据或身份。

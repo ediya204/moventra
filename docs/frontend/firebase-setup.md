@@ -4,7 +4,7 @@
 
 ## 项目与入口
 
-目标登录域名更新为下表地址。本次仅更新文档，尚未切换 Cloudflare/DNS 或 Firebase authorizedDomains；完成这些配置并验证后才能将新域名视为可用登录入口。现有源码与测试中的旧域名需在域名实施任务中同步调整。
+`moventra.me` 已完成官网 Worker 绑定并加入 Firebase authorizedDomains；根路径为官网，登录路径为 `/login`。已验证官网页面，不代表完成本人 Google/密码/MFA 登录验收。`admin.moventra.me` 仍为目标域名，后台本次未切换；现有旧域名授权保留。
 
 Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示名仍为 `moventra-card-bin`，App ID 为 `1:666750758771:web:c38e91069fc64737db5f06`。这些实际云端标识不随源码仓库改名。
 
