@@ -1,5 +1,34 @@
 # Moventra 部署记录
 
+## 当前仓库结构与发布（2026-09-07）
+
+GitHub 已更名为 `ediya204/moventra`，仅保留远程 `main` 分支。目录重构提交 `be31513b8be84f902384d97e7d6dcd89fda62ad3`：`apps/client`、`apps/admin`、`services/api`、`packages/shared`；独立应用路由、构建与运行入口，共用认证/类型/UI 不反向引用应用。Go module 为 `moventra.local/api`。新本地规范目录 `/Users/edi/Documents/ChatGPT/moventra`，旧工作目录及其中未提交/私有内容保留。
+
+- 客户端 Worker `moventra-web`：`3399abfc-6e69-466e-892e-c5153ab49bcf`，读取 `apps/client/dist`。
+- 后台 Worker `moventra-admin`：`cb0e4fd2-8979-46da-987d-d35047f3ef8b`，读取 `apps/admin/dist`。
+- Render API：仓库 `https://github.com/ediya204/moventra`，branch `main`，rootDir `services/api`；deploy `dep-daeqe1nqj5pc73ah882g` 已 live。autoDeploy 仍关闭，preDeployCommand 仍为空。
+- 两端构建、17 项前端/网关回归、119 个源文件依赖边界检查、冻结锁文件安装、Go vet/build 与隔离 PostgreSQL race 回归通过。已应用迁移文件字节完全不变。
+- 线上两个登录 URL 均 HTTPS 200，跨端 API 均 404，Go readyz 正常。浏览器验证后台拒绝客户端邮箱且不进入 MFA；客户端未登录 /portal 跳回本端 /login，Google 入口保留。
+- 未迁移数据库、未变更身份/权限/资金；既有云资源 ID 与 Firebase 项目 ID 保留。历史备份的真实文件名也保留，不通过改写历史记录伪造文件迁移。
+
+### 当前构建与发布命令
+
+从仓库根目录运行：
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build:client
+VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm test
+bash services/api/scripts/test-postgres.sh
+npm ci --prefix deploy/cloudflare
+node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config deploy/cloudflare/wrangler.jsonc --env production
+node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config deploy/cloudflare/wrangler.admin.jsonc
+```
+
+下方为历史发布记录，历史代码版本与资源名称不表示当前运行版本。
+
+
 2026-09-07（香港时间）。本轮经用户“部署”授权发布基础设施和前端快照；不代表真实登录或金融业务验收。
 
 ## 已发布

@@ -63,7 +63,7 @@ node apps/admin/tests/firebase-live.mjs
 
 ## 独立客户端与运营入口（2026-09-07）
 
-客户端 `https://moventra.apexisnetworking.work/login`，运营后台 `https://admin.moventra.apexisnetworking.work/login`。分别发布 `moventra-web` 和 `moventra-admin`；构建设置 `VITE_SITE_KIND=client|admin`，Firebase SDK 使用独立命名实例和内存会话。共享 Firebase 身份项目，不代表身份库或 token audience 分离；Go 继续独立校验真实授权与 MFA。
+客户端 `https://moventra.apexisnetworking.work/login`，运营后台 `https://admin.moventra.apexisnetworking.work/login`。分别发布 `moventra-web` 和 `moventra-admin`；应用各自的 Vite 配置固定 client/admin 身份，Firebase SDK 使用独立命名实例和内存会话。共享 Firebase 身份项目，不代表身份库或 token audience 分离；Go 继续独立校验真实授权与 MFA。
 
 后台只开放登录、找回密码与身份工作台路由，无客户自助注册。两端网关阻断另一端业务 API；身份查询仅返回本站适用范围。后台身份查询要求 Go 返回 operator=true，未完成 MFA 不返回 staffScopes，业务查询仍由 Go 强制 MFA 和具体客户权限。前端邮箱判断不承担授权职责。
 
@@ -72,10 +72,11 @@ node apps/admin/tests/firebase-live.mjs
 构建发布：
 
 ```bash
-cd apps/admin
-VITE_SITE_KIND=admin VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请先配置已批准的运营邮箱}" npm run build -- --outDir dist-admin
-VITE_SITE_KIND=client npm run build
-cd ..
+# 在 Moventra 仓库根目录执行
+pnpm install --frozen-lockfile
+VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请先配置已批准的运营邮箱}" pnpm build:admin
+pnpm build:client
+npm ci --prefix deploy/cloudflare
 node --test deploy/cloudflare/gateway.test.mjs
 node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --config deploy/cloudflare/wrangler.admin.jsonc
 node deploy/cloudflare/node_modules/wrangler/bin/wrangler.js deploy --env production --config deploy/cloudflare/wrangler.jsonc

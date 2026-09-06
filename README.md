@@ -12,9 +12,9 @@ packages/
   shared/                 共用认证、UI、主题、类型与数据适配
   assets/                 共用品牌素材与字体相关静态文件
   tooling/                Vite 配置
- tests/frontend/          登录、权限和个人版本回归测试
- deploy/                  Cloudflare、Firebase 与 Render 配置
- docs/                    开发规范、接口与历史功能记录
+tests/frontend/          登录、权限和个人版本回归测试
+deploy/                  Cloudflare、Firebase 与 Render 配置
+docs/                    开发规范、接口与历史功能记录
 ```
 
 ## 开发与验证
