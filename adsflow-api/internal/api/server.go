@@ -108,7 +108,36 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "temporarily_unavailable")
 		return
 	}
-	respond(w, 200, map[string]any{"data": map[string]any{"id": p.ID, "customers": customers}})
+	rows.Close()
+	var operator bool
+	if err = s.DB.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM staff_grants WHERE user_id=$1)`, p.ID).Scan(&operator); err != nil {
+		fail(w, 503, "temporarily_unavailable")
+		return
+	}
+	scopes := []map[string]string{}
+	// Scope discovery is gated by MFA too; it does not grant access. Every data
+	// request rechecks staff_grants and the verified token independently.
+	if operator && p.Identity.MFA {
+		grants, err := s.DB.Query(r.Context(), `SELECT g.customer_id::text,c.name,g.permission FROM staff_grants g JOIN customers c ON c.id=g.customer_id WHERE g.user_id=$1 ORDER BY g.customer_id,g.permission`, p.ID)
+		if err != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+		defer grants.Close()
+		for grants.Next() {
+			var id, name, permission string
+			if err = grants.Scan(&id, &name, &permission); err != nil {
+				fail(w, 503, "temporarily_unavailable")
+				return
+			}
+			scopes = append(scopes, map[string]string{"customerId": id, "name": name, "permission": permission})
+		}
+		if grants.Err() != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+	}
+	respond(w, 200, map[string]any{"data": map[string]any{"id": p.ID, "customers": customers, "operator": operator, "mfaVerified": p.Identity.MFA, "requiresMfa": operator && !p.Identity.MFA, "staffScopes": scopes}})
 }
 
 func (s *Server) query(surface, resource string) http.Handler {

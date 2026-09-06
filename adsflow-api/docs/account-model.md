@@ -43,3 +43,9 @@
 ## 待确认的业务项
 
 企业资料与审核清单、个人升级后服务政策、子账户成员范围、是否允许一人多企业、首期币种/精度、客户注册开放方式、运营授权审批方式。当前提供的查询基础不能作为资金业务已完成的依据。
+
+## 2026-09-07 Firebase 登录联调
+
+`/api/v1/me` 追加 `operator`、`mfaVerified`、`requiresMfa`、`staffScopes`。operator 仅表示存在 staff_grants，不是全局角色；未验证 MFA 时 staffScopes 为空，数据接口始终再次检查权限。真实 Firebase/TOTP 与本地隔离库的 16 项联调通过。
+
+受控命令 `api provision-user` 使用 `PROVISION_FIREBASE_UID` 和 `PROVISION_EMAIL` 指定目标，经 Firebase 验证 UID/邮箱匹配且未禁用后仅插入 users。重复运行不重新激活禁用用户、不分配客户关系或 staff_grants。此命令不经 HTTP 暴露，不含密码设置或邮箱验证旁路。

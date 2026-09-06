@@ -46,5 +46,8 @@ func (v FirebaseVerifier) Verify(ctx context.Context, raw string) (Identity, err
 	if err = json.Unmarshal(payload, &claims); err != nil {
 		return Identity{}, err
 	}
-	return Identity{UID: token.UID, MFA: claims.Firebase.SecondFactor != ""}, nil
+	// Only supported Firebase second factors count. A custom claim named "mfa"
+	// or an unknown factor must never confer operator access.
+	factor := claims.Firebase.SecondFactor
+	return Identity{UID: token.UID, MFA: factor == "totp" || factor == "phone"}, nil
 }

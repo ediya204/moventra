@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"adsflow.local/api/internal/api"
 	"adsflow.local/api/internal/database"
 	firebase "firebase.google.com/go/v4"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -37,14 +39,16 @@ func run() error {
 		return errors.New("database unavailable")
 	}
 	if len(os.Args) > 1 {
-		if len(os.Args) != 2 || os.Args[1] != "migrate" {
-			return errors.New("usage: api [migrate]")
+		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user") {
+			return errors.New("usage: api [migrate|provision-user]")
 		}
-		if err = database.Migrate(ctx, pool); err != nil {
-			return errors.New("migration failed; inspect database and migration version")
+		if os.Args[1] == "migrate" {
+			if err = database.Migrate(ctx, pool); err != nil {
+				return errors.New("migration failed; inspect database and migration version")
+			}
+			slog.Info("database migrations applied")
+			return nil
 		}
-		slog.Info("database migrations applied")
-		return nil
 	}
 	if os.Getenv("FIREBASE_AUTH_EMULATOR_HOST") != "" {
 		return errors.New("auth emulator is not allowed in this API executable")
@@ -60,6 +64,24 @@ func run() error {
 	auth, err := app.Auth(ctx)
 	if err != nil {
 		return errors.New("firebase credentials unavailable")
+	}
+	if len(os.Args) == 2 && os.Args[1] == "provision-user" {
+		uid, email := strings.TrimSpace(os.Getenv("PROVISION_FIREBASE_UID")), strings.TrimSpace(os.Getenv("PROVISION_EMAIL"))
+		if uid == "" || email == "" {
+			return errors.New("explicit PROVISION_FIREBASE_UID and PROVISION_EMAIL are required")
+		}
+		user, err := auth.GetUser(ctx, uid)
+		if err != nil || user.Disabled || !strings.EqualFold(user.Email, email) {
+			return errors.New("Firebase identity does not match the enabled provisioning target")
+		}
+		// Provision identity only. Never infer customer ownership or staff grants,
+		// and never reactivate an existing disabled local user.
+		_, err = pool.Exec(ctx, `INSERT INTO users(id,firebase_uid,display_name) VALUES($1,$2,$3) ON CONFLICT(firebase_uid) DO NOTHING`, uuid.NewString(), uid, user.DisplayName)
+		if err != nil {
+			return errors.New("identity provisioning failed")
+		}
+		slog.Info("identity provisioning complete; no customer or operator grants assigned")
+		return nil
 	}
 	port := os.Getenv("PORT")
 	if port == "" {

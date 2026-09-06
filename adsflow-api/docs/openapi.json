@@ -138,11 +138,53 @@
                           "items": {
                             "$ref": "#/components/schemas/Customer"
                           }
+                        },
+                        "operator": {
+                          "type": "boolean",
+                          "description": "Has one or more explicit staff grants; not a global authorization."
+                        },
+                        "mfaVerified": {
+                          "type": "boolean"
+                        },
+                        "requiresMfa": {
+                          "type": "boolean"
+                        },
+                        "staffScopes": {
+                          "type": "array",
+                          "description": "Empty until MFA is verified. Every query rechecks authorization.",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "customerId",
+                              "name",
+                              "permission"
+                            ],
+                            "properties": {
+                              "customerId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "permission": {
+                                "type": "string",
+                                "enum": [
+                                  "accounts:read",
+                                  "transactions:read"
+                                ]
+                              }
+                            }
+                          }
                         }
                       },
                       "required": [
                         "id",
-                        "customers"
+                        "customers",
+                        "operator",
+                        "mfaVerified",
+                        "requiresMfa",
+                        "staffScopes"
                       ],
                       "additionalProperties": false
                     }

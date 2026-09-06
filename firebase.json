@@ -1,1 +1,6 @@
-{}
+{
+  "auth": {
+    "authorizedDomains": ["edi-gws-20260309-hk.firebaseapp.com", "edi-gws-20260309-hk.web.app", "moventra.apexisnetworking.work", "localhost"],
+    "providers": { "emailPassword": true }
+  }
+}

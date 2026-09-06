@@ -1,23 +1,20 @@
-import { useLocale } from '../i18n';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Alert, Button, Link, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { Alert, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
-import FormProvider from '../../minimals/components/hook-form/form-provider';
-import RHFTextField from '../../minimals/components/hook-form/rhf-text-field';
-import Iconify from '../../minimals/components/iconify/iconify';
+import { getFirebaseAuth } from '../../firebase';
+import { authMessage } from '../../auth/liveApi';
 export default function ForgotPasswordPage() {
-    const { t, locale } = useLocale();
-    const [checked, setChecked] = useState(false);
-    const methods = useForm({ resolver: yupResolver(Yup.object({ email: Yup.string().trim().email(t("请输入有效的邮箱地址")).required(t("请输入邮箱")) })), defaultValues: { email: '' } });
-    useEffect(() => {
-      if (Object.keys(methods.formState.errors).length) void methods.trigger();
-    }, [locale]);
-    return <AuthLayout><Stack spacing={2} sx={{ mb: 4 }}><Iconify icon="solar:lock-password-bold-duotone" width={48} color="primary.main"/><Typography variant="h4" component="h1">{t("找回密码")}</Typography><Typography color="text.secondary">{t("填写注册邮箱，检查找回密码所需的信息。")}</Typography></Stack>
-    <Alert severity="info" sx={{ mb: 3 }}>{t("邮件找回尚未接入。当前仅检查邮箱格式；请联系你的账户管理员重置密码。")}</Alert>
-    <FormProvider methods={methods} onSubmit={methods.handleSubmit(() => setChecked(true))}><Stack spacing={2.5}><RHFTextField name="email" label={t("注册邮箱")} type="email" autoComplete="email" onInput={() => setChecked(false)}/><Button type="submit" variant="contained" size="large">{t("检查邮箱信息")}</Button>{checked && <Alert severity="info">{t("邮箱格式正确。未发送重置邮件，也未修改账户密码。")}</Alert>}<Link component={RouterLink} to="/login" textAlign="center" variant="subtitle2">{t("← 返回登录")}</Link></Stack></FormProvider>
-  </AuthLayout>;
+  const [email,setEmail]=useState('');const [sent,setSent]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+  return <AuthLayout><Stack spacing={2.5} component="form" onSubmit={async e=>{
+    e.preventDefault();setBusy(true);setError('');
+    try { await sendPasswordResetEmail(getFirebaseAuth(),email.trim(),{url:window.location.origin+'/login'});setSent(true); }
+    catch(cause) { if ((cause as {code?:string}).code==='auth/user-not-found')setSent(true);else setError(authMessage(cause)); }
+    finally {setBusy(false);}
+  }}><Typography component="h1" variant="h4">设置或找回密码</Typography><Typography color="text.secondary">使用已开通账户的邮箱接收密码设置链接。</Typography>
+  <TextField label="注册邮箱" type="email" autoComplete="email" required value={email} onChange={e=>{setEmail(e.target.value);setSent(false);}} />
+  <Button type="submit" variant="contained" disabled={busy || sent}>{busy?'正在提交…':'发送密码设置邮件'}</Button>
+  {sent&&<Alert severity="success">如果该邮箱已注册，将收到密码设置邮件。请检查收件箱和垃圾邮件。</Alert>}{error&&<Alert severity="error">{error}</Alert>}
+  <Link component={RouterLink} to="/login">返回登录</Link></Stack></AuthLayout>;
 }

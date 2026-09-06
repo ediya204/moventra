@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
-import { useAuth } from './auth/AuthContext';
+import { useAuth, usesFirebaseAuth } from './auth/AuthContext';
+const SessionPage = lazy(() => import('./auth/SessionPage'));
 import { PageSkeleton } from './components/AsyncState';
 import { DashboardLayout } from './components/DashboardLayout';
 const LoginPage = lazy(() => import('./pages/LoginPage').then(module => ({ default: module.LoginPage }))); 
@@ -49,16 +50,19 @@ const RevenueEventPage = lazy(() => import('./pages/RevenueEventPage').then((mod
 
 
 function ProtectedRoute() {
-  const { authenticated } = useAuth();
+  const { authenticated, ready } = useAuth();
   const location = useLocation();
+  if (!ready) return <PageSkeleton />;
+  if (usesFirebaseAuth) return <Navigate to="/session" replace />;
   if (!authenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   return <Outlet />;
 }
 
 export default function App() {
   if (isSlashDemoMode) return <Suspense fallback={<PageSkeleton />}><Routes>
+    <Route path="/session" element={<SessionPage />} />
     <Route path="/" element={<Website />} />
-    <Route path="/portal/*" element={<Portal />} />
+    <Route path="/portal/*" element={usesFirebaseAuth ? <Navigate to="/session" replace /> : <Portal />} />
     <Route path="/demo-reset-password" element={<ResetPasswordPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
@@ -85,8 +89,9 @@ export default function App() {
   return (
     <Suspense fallback={<PageSkeleton />}>
       <Routes>
+    <Route path="/session" element={<SessionPage />} />
         <Route path="/" element={<Website />} />
-    <Route path="/portal/*" element={<Portal />} />
+    <Route path="/portal/*" element={usesFirebaseAuth ? <Navigate to="/session" replace /> : <Portal />} />
     <Route path="/demo-reset-password" element={<ResetPasswordPage />} />
         <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />

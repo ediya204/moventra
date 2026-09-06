@@ -8,8 +8,7 @@ const appName = 'moventra-card-bin';
 export const firebaseApp = getApps().find((app) => app.name === appName)
   ?? initializeApp(config, appName);
 
-// Lazy initialization: current legacy/Demo login does not use Firebase yet.
-// A future login adapter must also pass the Go API's membership and MFA checks.
+// Memory-only persistence; Go validates identity, membership, and operator MFA.
 let auth: Auth | undefined;
 export function getFirebaseAuth(): Auth {
   auth ??= initializeAuth(firebaseApp, { persistence: inMemoryPersistence });
