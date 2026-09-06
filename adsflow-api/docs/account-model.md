@@ -59,3 +59,7 @@
 本地 Vite 新契约 `/api/v1/`、`/client-api/v1/`、`/admin-api/v1/` 使用 `VITE_GO_API_PROXY_TARGET`（默认 localhost:8870），与旧后台代理隔离。非 JSON 身份响应明确提示服务异常；仅带 403 的 registration_required 才显示注册表单。
 
 本轮前端构建通过；本地隔离 PostgreSQL race 测试通过，含六并发注册去重、无凭据/伪造身份拒绝、额外授权字段拒绝、禁用不复活及新用户无运营权限。真实 Google 密码关联、生产注册未测试；前端、Go 与网关需要一起发布，此文不代表已部署。
+
+## 受控个人主体关联
+
+`api provision-personal` 使用明确的 PROVISION_FIREBASE_UID / PROVISION_EMAIL 核验已验证且未禁用 Firebase 身份，再要求本地 users 为 active。事务锁住用户并创建唯一 personal 主体（draft/inactive），仅首次创建记录 personal:provision:user-request 审计。重复运行返回原主体，不修改其状态，不创建 accounts、memberships 或 staff_grants，不影响资金。该命令仅供获得用户授权后的受控运维执行，不是公开自助接口。

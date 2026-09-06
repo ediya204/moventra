@@ -150,6 +150,67 @@ func TestPostgresBoundary(t *testing.T) {
 			t.Fatal(w.Code, w.Body)
 		}
 	})
+	t.Run("personal provisioning is isolated idempotent and inactive", func(t *testing.T) {
+		for _, uid := range []string{"disabled", "nonexistent"} {
+			if _, err := database.ProvisionPersonal(ctx, pool, uid); err == nil {
+				t.Fatal("must reject", uid)
+			}
+		}
+		var group sync.WaitGroup
+		ids := make(chan string, 5)
+		for i := 0; i < 5; i++ {
+			group.Add(1)
+			go func() {
+				defer group.Done()
+				id, err := database.ProvisionPersonal(ctx, pool, "new-user")
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				ids <- id
+			}()
+		}
+		group.Wait()
+		close(ids)
+		first := ""
+		for id := range ids {
+			if first == "" {
+				first = id
+			}
+			if id != first {
+				t.Fatal("duplicate personal subjects")
+			}
+		}
+		if first == "" {
+			t.Fatal("missing subject")
+		}
+		defer func() {
+			if _, err := pool.Exec(ctx, `DELETE FROM audit_events WHERE customer_id=$1`, first); err != nil {
+				t.Error(err)
+			}
+			if _, err := pool.Exec(ctx, `DELETE FROM customers WHERE id=$1`, first); err != nil {
+				t.Error(err)
+			}
+		}()
+		var onboarding, service string
+		if err := pool.QueryRow(ctx, `SELECT onboarding_status,service_status FROM customers WHERE id=$1`, first).Scan(&onboarding, &service); err != nil || onboarding != "draft" || service != "inactive" {
+			t.Fatal(onboarding, service, err)
+		}
+		var count int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM audit_events WHERE customer_id=$1 AND action='personal:provision:user-request'`, first).Scan(&count); err != nil || count != 1 {
+			t.Fatal(count, err)
+		}
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM accounts WHERE customer_id=$1`, first).Scan(&count); err != nil || count != 0 {
+			t.Fatal(count, err)
+		}
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM staff_grants WHERE customer_id=$1`, first).Scan(&count); err != nil || count != 0 {
+			t.Fatal(count, err)
+		}
+		existing, err := database.ProvisionPersonal(ctx, pool, "alice")
+		if err != nil || existing != personal {
+			t.Fatal(existing, err)
+		}
+	})
 	for _, tc := range []struct {
 		name, path, token string
 		status            int

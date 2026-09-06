@@ -39,8 +39,8 @@ func run() error {
 		return errors.New("database unavailable")
 	}
 	if len(os.Args) > 1 {
-		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user") {
-			return errors.New("usage: api [migrate|provision-user]")
+		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal") {
+			return errors.New("usage: api [migrate|provision-user|provision-personal]")
 		}
 		if os.Args[1] == "migrate" {
 			if err = database.Migrate(ctx, pool); err != nil {
@@ -65,7 +65,7 @@ func run() error {
 	if err != nil {
 		return errors.New("firebase credentials unavailable")
 	}
-	if len(os.Args) == 2 && os.Args[1] == "provision-user" {
+	if len(os.Args) == 2 && (os.Args[1] == "provision-user" || os.Args[1] == "provision-personal") {
 		uid, email := strings.TrimSpace(os.Getenv("PROVISION_FIREBASE_UID")), strings.TrimSpace(os.Getenv("PROVISION_EMAIL"))
 		if uid == "" || email == "" {
 			return errors.New("explicit PROVISION_FIREBASE_UID and PROVISION_EMAIL are required")
@@ -73,6 +73,17 @@ func run() error {
 		user, err := auth.GetUser(ctx, uid)
 		if err != nil || user.Disabled || !strings.EqualFold(user.Email, email) {
 			return errors.New("Firebase identity does not match the enabled provisioning target")
+		}
+		if os.Args[1] == "provision-personal" {
+			if !user.EmailVerified {
+				return errors.New("verified email is required")
+			}
+			customer, err := database.ProvisionPersonal(ctx, pool, uid)
+			if err != nil {
+				return errors.New("personal provisioning failed; check active local identity")
+			}
+			slog.Info("personal subject linked; no service activation, funds or staff grants", "customer_id", customer)
+			return nil
 		}
 		// Provision identity only. Never infer customer ownership or staff grants,
 		// and never reactivate an existing disabled local user.
