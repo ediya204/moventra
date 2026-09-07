@@ -39,8 +39,19 @@ python3 services/api/scripts/export-channel-projection.py --database /private/pa
 
 生产迁移前完整pg_dump、SHA256及隔离本地恢复已验证。原users/customers/accounts/transactions/staff_grants逐行摘要保持一致。仅临时开放本机单IP访问用于迁移导入，完成后已恢复原空IP白名单。
 
-本次隔离PostgreSQL race测试验证默认拒绝、MFA、跨范围、重复/旧导入、精确大整数、分页、版本冲突及审计失败；前端回归48项通过。前后端构建及最终部署结果在完成后追加，不把这些结果当作真实用户已登录验收。
+本次隔离PostgreSQL race测试验证默认拒绝、MFA、跨范围、重复/旧导入、精确大整数、分页、版本冲突及审计失败；合入远端日期筛选改动后，前端回归52项通过。Go race测试、go vet、两端TypeScript检查与生产构建通过；保留现有图表依赖大包提示。以上不代表真实用户已登录验收。
 
 回滚采用前一Go及Worker版本；新增表保留，不删除历史投影或逆改001。可撤销独立渠道读取授权以暂停展示；不回滚客户账本，因为本次未改账本。
 
 官方字段依据：[Slash Transaction](https://docs.slash.com/api-reference/schema-transaction)，2026-09-07复核。当前能力是来源投影，不能推定退款父子关系、完整账单或上游执行能力。
+
+
+## 本次正式发布结果
+
+- 业务代码已同步GitHub main：`0d5158d90a6f050d54480020f15ddbaf7303a204`。
+- Render API发布：`dep-daf3v90u01pc738o7s40`，2026-09-07T04:39:35Z已live；`/readyz`返回200。
+- 后台Worker：`2f7ca654-ec7c-476f-adf9-207e157d4803`；[卡交易入口](https://admin.moventra.me/transactions)及页面JS与本次构建逐字节一致。
+- 客户端Worker最终production版本：`3cd4c6b8-7739-4f82-b8be-fa8445b6ee63`；登录页与本次构建一致。客户端发布应显式使用`--config deploy/cloudflare/wrangler.jsonc --env production`；本次曾误用默认配置，已立即重新发布正确production绑定，并核验`/api/v1/me`返回401而非配置缺失503。
+- 线上未登录渠道查询返回401；客户端渠道查询404；后台渠道写请求405。Python默认User-Agent曾被边缘规则拦截，使用浏览器及curl复核，不把边缘403作为应用权限验证。
+- 浏览器真实访问后台卡交易入口后进入登录页。登录后的Logo显示、运营数据读取及详情跳转尚待已授权运营用户登录验收，未冒充此验收已完成。
+- 生产只读投影新增260张关联卡、5573条交易；无生产金融写接口调用，无真实划款。该批数据仍为上述来源观察时点的快照，未来采集/导入保持手动，Webhook未接入。
