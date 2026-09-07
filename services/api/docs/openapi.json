@@ -1346,6 +1346,129 @@
           }
         }
       }
+    },
+    "/admin-api/v1/ops/overview": {
+      "get": {
+        "operationId": "adminOperationsOverview",
+        "summary": "Read scoped USD operations overview",
+        "description": "Firebase identity and MFA required. Only customers with an existing transactions:read staff grant are included; no new permission or global scope is granted. Hong Kong natural days include today and end at request time using [from,to). Only succeeded transaction amounts contribute to flow; posted is a compatibility count for succeeded, not Slash settlement evidence. Pending/failed counts remain separate. Missing days have null amounts. Source completeness, customer/card/merchant metadata and channel sync are unavailable. USD and USDT are never combined. Unknown or repeated query parameters are rejected. Authorization, aggregates and audit share a repeatable-read transaction; audit failure returns no data.",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                7,
+                14,
+                30
+              ],
+              "default": 14
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consistent statistics of authorized USD transaction projections, with mandatory per-customer audit. Not channel settlement or balances.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/OperationsOverview"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired, revoked or unverified-email identity",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive user, MFA absent, or no explicit transactions:read customer grants (scope_required). Accounts-only grants do not confer access.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency or audit unavailable",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1572,6 +1695,334 @@
           "status",
           "businessCustomerId",
           "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "OperationsOverview": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "const": "production"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revision": {
+            "type": "string",
+            "description": "Caller- and scope-bound aggregate content fingerprint; not a source version or replayable snapshot."
+          },
+          "range": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timezone": {
+                "const": "Asia/Hong_Kong"
+              },
+              "days": {
+                "type": "integer",
+                "enum": [
+                  7,
+                  14,
+                  30
+                ]
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "timezone",
+              "days"
+            ],
+            "additionalProperties": false
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "complete": {
+                "const": false
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "complete",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "scale": {
+            "const": 2
+          },
+          "timeBasis": {
+            "const": "occurred_at"
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "incomingMinor": {
+                "type": "string",
+                "pattern": "^(0|-?[1-9][0-9]*)$",
+                "description": "Exact USD minor units, scale 2; never parse through floating point."
+              },
+              "outgoingMinor": {
+                "type": "string",
+                "pattern": "^(0|-?[1-9][0-9]*)$",
+                "description": "Exact USD minor units, scale 2; never parse through floating point."
+              },
+              "netMinor": {
+                "type": "string",
+                "pattern": "^(0|-?[1-9][0-9]*)$",
+                "description": "Exact USD minor units, scale 2; never parse through floating point."
+              },
+              "transactions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "posted": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pending": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "review": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "activeCards": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "selectedCards": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "customers": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "activeCustomers": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            },
+            "required": [
+              "incomingMinor",
+              "outgoingMinor",
+              "netMinor",
+              "transactions",
+              "posted",
+              "pending",
+              "failed",
+              "review",
+              "activeCards",
+              "selectedCards",
+              "customers",
+              "activeCustomers"
+            ],
+            "additionalProperties": false
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "incomingMinor": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^(0|-?[1-9][0-9]*)$",
+                  "description": "Exact USD minor units, scale 2; never parse through floating point."
+                },
+                "outgoingMinor": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^(0|-?[1-9][0-9]*)$",
+                  "description": "Exact USD minor units, scale 2; never parse through floating point."
+                },
+                "netMinor": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^(0|-?[1-9][0-9]*)$",
+                  "description": "Exact USD minor units, scale 2; never parse through floating point."
+                },
+                "posted": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "pending": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "date",
+                "incomingMinor",
+                "outgoingMinor",
+                "netMinor",
+                "posted",
+                "pending",
+                "failed",
+                "total"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 7,
+            "maxItems": 30
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "enum": [
+                    "succeeded",
+                    "pending",
+                    "failed"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "status",
+                "count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "merchants": {
+            "type": "array",
+            "maxItems": 0,
+            "items": {}
+          },
+          "currencies": {
+            "type": "array",
+            "maxItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "const": "USD"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "code",
+                "count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "availability": {
+            "type": "object",
+            "properties": {
+              "merchants": {
+                "const": false
+              },
+              "cards": {
+                "const": false
+              },
+              "customers": {
+                "const": false
+              }
+            },
+            "required": [
+              "merchants",
+              "cards",
+              "customers"
+            ],
+            "additionalProperties": false
+          },
+          "sync": {
+            "type": "object",
+            "properties": {
+              "lastSuccessAt": {
+                "type": "null"
+              },
+              "state": {
+                "const": "not_connected"
+              },
+              "mode": {
+                "const": "projection_read"
+              }
+            },
+            "required": [
+              "lastSuccessAt",
+              "state",
+              "mode"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "mode",
+          "asOf",
+          "revision",
+          "range",
+          "coverage",
+          "currency",
+          "scale",
+          "timeBasis",
+          "totals",
+          "daily",
+          "statuses",
+          "merchants",
+          "currencies",
+          "availability",
+          "sync"
         ],
         "additionalProperties": false
       }

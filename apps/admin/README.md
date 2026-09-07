@@ -1,6 +1,6 @@
 # Moventra 运营后台
 
-更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，仅开放 `/login`、`/forgot-password`、`/session`；不引用客户端源码。
+更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，开放 `/login`、`/forgot-password`、`/session`、`/workbench`；不引用客户端源码。
 
 从仓库根目录运行：
 
@@ -21,3 +21,7 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 ## 当前 DEV 业务维护
 
 卡片/交易、BIN状态、内部用户绑定、费率方案和账户目录已按最新本地口径更新，详见 [V1现状](../../docs/current-state.md)。这些页面仍通过 DEV DemoApp 加载，生产入口与产物不包含完整业务原型。手动同步、卡关联资料和资金沙盒依赖未纳入本仓库的旧本地服务，不能在正式Go接口上直接调用。
+
+## 资金流与运营概览
+
+通过运营身份和 MFA 验证后进入 `/workbench`，查看已授权 USD 交易投影的资金流、交易活跃度及状态分布。统计周期支持 7/14/30 天，提供精确每日明细及 CSV。未接入的卡片、商户和来源同步能力保持明确空态。参阅 [页面与数据口径](../../docs/frontend/operations-overview.md)。

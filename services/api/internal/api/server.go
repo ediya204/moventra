@@ -46,6 +46,7 @@ func (s *Server) Handler() http.Handler {
 	})
 	mux.HandleFunc("POST /api/v1/register", s.register)
 	mux.Handle("GET /api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
+	mux.Handle("GET /admin-api/v1/ops/overview", s.authenticate(http.HandlerFunc(s.opsOverview)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.submitUpgrade)))
 	mux.Handle("GET /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.getUpgrade)))
 	for _, surface := range []string{"client", "admin"} {

@@ -9,7 +9,7 @@
     "build": "pnpm build:client && pnpm build:admin",
     "build:client": "pnpm --filter @moventra/client build",
     "build:admin": "pnpm --filter @moventra/admin build",
-    "test": "pnpm check:boundaries && node --test tests/frontend/admin-admission.test.mjs tests/frontend/session-state.test.mjs tests/frontend/personal-v1.test.mjs tests/frontend/card-transaction-fields.test.mjs tests/frontend/transaction-drawer.test.mjs tests/frontend/finance-money-display.test.mjs tests/frontend/finance-quote-contract.test.mjs tests/frontend/v1-fee-plan-navigation.test.mjs deploy/cloudflare/gateway.test.mjs",
+    "test": "pnpm check:boundaries && node --test tests/frontend/admin-admission.test.mjs tests/frontend/session-state.test.mjs tests/frontend/personal-v1.test.mjs tests/frontend/operations-overview.test.mjs tests/frontend/card-transaction-fields.test.mjs tests/frontend/transaction-drawer.test.mjs tests/frontend/finance-money-display.test.mjs tests/frontend/finance-quote-contract.test.mjs tests/frontend/v1-fee-plan-navigation.test.mjs deploy/cloudflare/gateway.test.mjs",
     "typecheck": "pnpm --filter @moventra/client typecheck && pnpm --filter @moventra/admin typecheck",
     "check:boundaries": "node scripts/check-boundaries.mjs"
   },

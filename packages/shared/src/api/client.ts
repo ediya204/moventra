@@ -11,7 +11,7 @@ type AllowRule = {
 const READ_ONLY_ALLOWLIST: AllowRule[] = [
   {method:'GET',path:/^\/local-slash-demo\/management\/card-ownership\/cards\/[^/]+$/,purpose:'内部用户归属查询'},
   {method:'POST',path:/^\/local-slash-demo\/management\/card-ownership\/cards\/[^/]+$/,purpose:'本地内部用户绑定，不操作渠道'},
-  {method:'GET',path:/^\/local-slash-demo\/management\/live\/(status|cards|transactions)(\/[^/]+)?$/,purpose:'本地授权的真实Slash只读投影'},
+  {method:'GET',path:/^\/local-slash-demo\/management\/live\/(status|cards|transactions|overview)(\/[^/]+)?$/,purpose:'本地授权的真实Slash只读投影'},
   {method:'POST',path:/^\/local-slash-demo\/management\/live\/sync$/,purpose:'触发本地只读同步，不调用渠道写接口'},
   {method:'GET',path:/^\/local-slash-demo\/management\/finance\/(context|export|flows(\/[^/]+)?|orders(\/[^/]+)?)$/,purpose:'隔离数字货币账本与订单查询'},
   {method:'POST',path:/^\/local-slash-demo\/management\/finance\/(pricing|quotes|orders|orders\/[^/]+\/(confirm|review|amend|cancel|return|risk-check|execute|reconcile|payout))$/,purpose:'隔离内部兑换与出金审批'},

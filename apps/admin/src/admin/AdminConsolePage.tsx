@@ -1,6 +1,6 @@
 import {CardApprovalEntry} from '../card-admin/CardAdminPage';
 import {LiveSyncStatus} from '../slash/LiveSlashPage';
-import {FxWorkbench} from '../fx/FxPage';
+import FundsOverview from '../operations/FundsOverview';
 import { useCallback, useEffect, useState } from "react";
 import {
   Link,
@@ -355,7 +355,7 @@ function OverviewPage() {
       />
       <LoadingError {...state} />
       {d?.settings.notice && <Alert severity="info">{d.settings.notice}</Alert>}
-      <FxWorkbench/>
+      <FundsOverview source="local"/>
       <Box
         sx={{
           display: "grid",

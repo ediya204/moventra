@@ -85,3 +85,16 @@ test('retired team endpoints are unreachable on both production gateways',async(
   }
  }
 });
+
+test('overview is admin-only GET; preserves query and never sends local cookies', async () => {
+ const url='https://admin.example.invalid/admin-api/v1/ops/overview?days=14';
+ const headers={Authorization:'Bearer fixture',Cookie:'local=secret'};
+ for(const kind of ['client',undefined])assert.equal((await handle(new Request(url,{headers}),{...env,SITE_KIND:kind},()=>assert.fail('wrong site upstream'))).status,404);
+ assert.equal((await handle(new Request(url),{...env,SITE_KIND:'admin'},()=>assert.fail('missing identity'))).status,401);
+ assert.equal((await handle(new Request(url,{method:'POST',headers}),{...env,SITE_KIND:'admin'},()=>assert.fail('write'))).status,405);
+ const res=await handle(new Request(url,{headers}),{...env,SITE_KIND:'admin'},async (target,options)=>{
+  assert.equal(target.pathname,'/admin-api/v1/ops/overview');assert.equal(target.search,'?days=14');
+  assert.equal(options.headers.get('Cookie'),null);return Response.json({data:{mode:'production'}});
+ });
+ assert.equal(res.status,200);assert.equal(res.headers.get('Cache-Control'),'no-store');
+});
