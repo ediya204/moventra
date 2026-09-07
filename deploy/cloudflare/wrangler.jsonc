@@ -53,6 +53,25 @@
           "pattern": "moventra.apexisnetworking.work",
           "custom_domain": true
         }
+      ],
+      "send_email": [
+        {
+          "name": "CONTACT_EMAIL",
+          "destination_address": "info@moventra.me",
+          "allowed_sender_addresses": [
+            "website@mail.moventra.me"
+          ]
+        }
+      ],
+      "ratelimits": [
+        {
+          "name": "CONTACT_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": {
+            "limit": 3,
+            "period": 60
+          }
+        }
       ]
     }
   },

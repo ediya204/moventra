@@ -35,6 +35,9 @@ export default function Website() {
     const [active, setActive] = useState(0);
     const [interest, setInterest] = useState(0);
     const [saved, setSaved] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [sendError, setSendError] = useState(false);
+    const submitting = useRef(false);
     const formRef = useRef<HTMLFormElement>(null);
     useEffect(() => {
       Array.from(formRef.current?.elements ?? []).forEach(field => {
@@ -44,17 +47,22 @@ export default function Website() {
     const solution = solutions[active];
     useEffect(() => { const previous = document.title; document.title = t("Moventra | 广告营销、AI 与云服务"); return () => { document.title = previous; }; }, [locale]);
     function choose(service: string) { setInterest(services.findIndex(item => item.title === service)); setSaved(false); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }); }
-    function download(event: FormEvent<HTMLFormElement>) {
+    async function submitInquiry(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        const content = `Moventra ${t('服务需求')}\n\n${t('姓名')}: ${data.get('name')}\n${t('工作邮箱')}: ${data.get('email')}\n${t('意向服务')}: ${services[interest]?.title ?? t('组合方案')}\n${t('需求描述')}: ${data.get('description')}\n`;
-        const url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = t("Moventra-服务需求.txt");
-        anchor.click();
-        URL.revokeObjectURL(url);
-        setSaved(true);
+        if (submitting.current) return;
+        submitting.current = true;
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        setSending(true); setSaved(false); setSendError(false);
+        try {
+            const result = await fetch('/api/contact', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: data.get('name'), email: data.get('email'), description: data.get('description'), service: interest, website: data.get('website') }),
+            });
+            if (result.status !== 202 || (await result.json()).code !== 'accepted') throw new Error('submission_failed');
+            setSaved(true); form.reset();
+        } catch { setSendError(true); }
+        finally { setSending(false); submitting.current = false; }
     }
     return <PublicTheme><Box sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
     <Link href="#main" sx={{ position: 'fixed', top: -100, zIndex: 1500, bgcolor: 'background.paper', p: 2, '&:focus': { top: 0 } }}>{t("跳至主要内容")}</Link>
@@ -84,7 +92,7 @@ export default function Website() {
       <Container component="section" id="process" maxWidth="lg" sx={sectionSx}><Typography variant="h3" component="h2" sx={{ mb: 5 }}>{t("合作流程")}</Typography><Stepper alternativeLabel sx={{ display: { xs: 'none', md: 'flex' } }}>{[t("沟通需求"), t("确认方案与报价"), t("配置与交付"), t("使用支持")].map(label => <Step key={label} active><StepLabel>{label}</StepLabel></Step>)}</Stepper><Stack spacing={2} sx={{ display: { md: 'none' } }}>{[t("沟通需求"), t("确认方案与报价"), t("配置与交付"), t("使用支持")].map((label, i) => <Stack key={label} direction="row" spacing={2} alignItems="center"><Label>{i + 1}</Label><Typography variant="body2">{label}</Typography></Stack>)}</Stack></Container>
       <Divider />
       <Container component="section" id="faq" maxWidth="md" sx={sectionSx}><Typography variant="h3" component="h2" textAlign="center" sx={{ mb: 5 }}>{t("常见问题")}</Typography>{questions.map(([question, answer]) => <Accordion key={question} disableGutters elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', '&:before': { display: 'none' }, '&.Mui-expanded': { bgcolor: 'background.default', borderRadius: 1 } }}><AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill"/>} sx={{ minHeight: 72 }}><Typography variant="subtitle1" component="h3">{question}</Typography></AccordionSummary><AccordionDetails><Typography color="text.secondary" variant="body2" sx={{ lineHeight: 1.9 }}>{answer}</Typography></AccordionDetails></Accordion>)}</Container>
-      <Box component="section" id="contact" sx={{ ...sectionSx, bgcolor: 'background.default' }}><Container maxWidth="lg"><Grid container spacing={{ xs: 4, md: 10 }}><Grid item xs={12} md={5}><Typography variant="h3" component="h2" sx={{ mb: 2 }}>{t("咨询服务方案")}</Typography><Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>{t("整理你的业务需求、使用规模和预期时间，便于确认服务范围。")}</Typography><Divider sx={{ my: 4 }}/><Typography variant="subtitle2" sx={{ mb: 1 }}>{t("已有账户？")}</Typography><Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{t("登录工作台查看现有业务。")}</Typography><Button href="/login" variant="outlined" color="inherit" endIcon={<ForwardIcon />}>{t("登录工作台")}</Button></Grid><Grid item xs={12} md={7}><Card component="form" ref={formRef} onInvalid={(event) => { const field = event.target as HTMLInputElement; field.setCustomValidity(field.validity.valueMissing ? t('请填写此字段') : t('请输入有效的邮箱地址')); }} onInput={(event) => { (event.target as HTMLInputElement).setCustomValidity?.(''); }} onSubmit={download} sx={{ p: { xs: 3, md: 4 } }}><Stack spacing={3}><Typography variant="h6" component="h3">{t("服务需求")}</Typography><Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}><TextField required fullWidth label={t("姓名")} name="name" autoComplete="name" inputProps={{ maxLength: 80 }}/><TextField required fullWidth label={t("工作邮箱")} name="email" type="email" autoComplete="email" inputProps={{ maxLength: 180 }}/></Stack><TextField select label={t("意向服务")} value={interest} onChange={event => { setInterest(Number(event.target.value)); setSaved(false); }}>{[...services.map(item => item.title), t("组合方案")].map((item, index) => <MenuItem key={index} value={index}>{item}</MenuItem>)}</TextField><TextField required multiline minRows={3} label={t("需求描述")} name="description" inputProps={{ maxLength: 3000 }} placeholder={t("请说明使用场景、人数或用量，以及计划开始的时间。")}/><Box><Button type="submit" variant="contained" size="large" endIcon={<Iconify icon="solar:download-minimalistic-linear"/>}>{t("下载需求清单")}</Button></Box><Typography variant="caption" color="text.secondary">{t("当前为预览页面，信息仅在本地生成文件，不会提交。")}</Typography>{saved && <Alert severity="success">{t("需求清单已生成，尚未发送咨询。")}</Alert>}</Stack></Card></Grid></Grid></Container></Box>
+      <Box component="section" id="contact" sx={{ ...sectionSx, bgcolor: 'background.default' }}><Container maxWidth="lg"><Grid container spacing={{ xs: 4, md: 10 }}><Grid item xs={12} md={5}><Typography variant="h3" component="h2" sx={{ mb: 2 }}>{t("咨询服务方案")}</Typography><Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>{t("整理你的业务需求、使用规模和预期时间，便于确认服务范围。")}</Typography><Divider sx={{ my: 4 }}/><Typography variant="subtitle2" sx={{ mb: 1 }}>{t("已有账户？")}</Typography><Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{t("登录工作台查看现有业务。")}</Typography><Button href="/login" variant="outlined" color="inherit" endIcon={<ForwardIcon />}>{t("登录工作台")}</Button></Grid><Grid item xs={12} md={7}><Card component="form" ref={formRef} onInvalid={(event) => { const field = event.target as HTMLInputElement; field.setCustomValidity(field.validity.valueMissing ? t('请填写此字段') : t('请输入有效的邮箱地址')); }} onInput={(event) => { (event.target as HTMLInputElement).setCustomValidity?.(''); }} onSubmit={submitInquiry} sx={{ p: { xs: 3, md: 4 } }}><Stack component="fieldset" disabled={sending} spacing={3} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}><Box aria-hidden="true" sx={{ display: 'none' }}><input name="website" tabIndex={-1} autoComplete="off" /></Box><Typography variant="h6" component="h3">{t("服务需求")}</Typography><Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}><TextField required fullWidth label={t("姓名")} name="name" autoComplete="name" inputProps={{ maxLength: 80 }}/><TextField required fullWidth label={t("工作邮箱")} name="email" type="email" autoComplete="email" inputProps={{ maxLength: 180 }}/></Stack><TextField select label={t("意向服务")} value={interest} onChange={event => { setInterest(Number(event.target.value)); setSaved(false); }}>{[...services.map(item => item.title), t("组合方案")].map((item, index) => <MenuItem key={index} value={index}>{item}</MenuItem>)}</TextField><TextField required multiline minRows={3} label={t("需求描述")} name="description" inputProps={{ maxLength: 3000 }} placeholder={t("请说明使用场景、人数或用量，以及计划开始的时间。")}/><Box><Button type="submit" disabled={sending} variant="contained" size="large" endIcon={<ForwardIcon />}>{locale === 'zh' ? (sending ? '提交中…' : '提交留言') : (sending ? 'Submitting…' : 'Send inquiry')}</Button></Box><Typography variant="caption" color="text.secondary">{locale === 'zh' ? '提交后，您的姓名、邮箱和需求将发送至 info@moventra.me，用于回复本次咨询。详情见' : 'Your name, email and requirements will be sent to info@moventra.me to respond to this inquiry. See our '}<Link href="/privacy-policy">{locale === 'zh' ? '隐私政策' : 'Privacy Policy'}</Link>。</Typography>{sendError && <Alert severity="error">{locale === 'zh' ? '暂时无法确认提交，请稍后再试，或直接发送邮件至 info@moventra.me。您填写的内容已保留。' : 'We could not confirm submission. Please try again later or email info@moventra.me directly. Your input has been kept.'}</Alert>}{saved && <Alert severity="success">{locale === 'zh' ? '留言已提交。我们会通过您填写的邮箱回复。' : 'Inquiry submitted. We will reply to the email address you provided.'}</Alert>}</Stack></Card></Grid></Grid></Container></Box>
     </Box>
     <Container component="footer" maxWidth="lg" sx={{ pt: 7, pb: 3 }}><Grid container spacing={4} sx={{ mb: 6 }}><Grid item xs={12} md={6}><BrandLogo width={170}/><Typography variant="body2" color="text.secondary" sx={{ mt: 2, maxWidth: 280 }}>{t("广告营销、AI 订阅、订阅卡与云服务。")}</Typography>
       <Stack component="address" spacing={1.5} sx={{ mt: 2.5, maxWidth: 320, fontStyle: 'normal' }}>

@@ -1,3 +1,4 @@
+import { contact } from './contact.mjs';
 // Only the implemented Go contract is routable. Legacy and local Demo APIs
 // must not be silently redirected to the new service.
 const id = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
@@ -9,6 +10,7 @@ const error = (status, code) => Response.json({ error: { code } }, {
 
 export async function handle(request, env, upstreamFetch = fetch) {
   const url = new URL(request.url);
+  if (url.pathname === '/api/contact') return contact(request, env);
   const api = /^\/(api|admin-api|client-api|local-slash-demo)(\/|$)/.test(url.pathname);
   if (!api) return env.ASSETS.fetch(request);
   if (env.SITE_KIND === 'admin' && (url.pathname.startsWith('/client-api/') || url.pathname === '/api/v1/register') || env.SITE_KIND === 'client' && url.pathname.startsWith('/admin-api/')) return error(404, 'api_not_available');
