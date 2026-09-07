@@ -1,5 +1,7 @@
 # Moventra 部署记录
 
+最新功能发布见 [资金运营概览发布记录](2026-09-07-operations-overview.md)。
+
 ## 新域名接入（2026-09-07）
 
 - 客户端：[moventra.me](https://moventra.me)，登录 `/login`，对应 Worker `moventra-web`。
