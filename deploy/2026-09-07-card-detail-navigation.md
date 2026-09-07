@@ -18,7 +18,12 @@
 
 ## 发布状态
 
-待本次发布完成后补充 GitHub 提交、Worker 版本及线上验证结果。
+- GitHub `main` 业务提交：`74ef62deb8a9d8f9454ee30dfeeff34d076f8ff2`。
+- 后台 Worker `moventra-admin`：`95455dc6-0ff1-4d0e-89a1-d724ad17cb58`，已发布至 [运营后台](https://admin.moventra.me/transactions)。
+- 线上 `/transactions` HTML、入口 JS、登录 JS 和卡交易页面 JS 与本次构建逐字节一致。
+- 卡交易页面产物 `ChannelTransactionsPage-CMUwBpAv.js`，SHA256：`1dc73406d511fb5ed1ed7788e459084d55cfc0a1fe6bd0bada3439f2d5af7d2f`。
+- 线上未认证渠道查询 401，渠道 POST 405，本地 Demo 端点 404；浏览器打开卡交易入口后正常显示运营登录页。
+- 当前浏览器没有已登录的运营会话；未代替本人完成线上真实卡片点击验收。自动化导航测试与线上产物核验不能替代此项业务验收。
 
 只发布后台 Worker，不发布客户端、Render API，不执行数据库迁移、权限变更或真实资金动作。正式后台没有本地“全部卡片”列表；线上详情仍是已授权渠道资料查询，不代表本地完整管理工作台已上线。
 
