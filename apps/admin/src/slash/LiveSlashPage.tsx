@@ -1,3 +1,4 @@
+import {MerchantCell,LogoAttribution} from '../../../../packages/shared/src/components/MerchantLogo';
 import {CardOwnerEditor} from './CardOwnerEditor';
 import {slashTransactionFilters,transactionRowClass} from '../components/cardTransactionFields';
 import {transactionRowStyles} from '../components/transactionRowStyles';
@@ -76,7 +77,7 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
   {field:'id',headerName:'平台卡片 ID',width:270},
   {field:'actions',headerName:F.action,width:170,sortable:false,hideable:false,renderCell:p=><><Button onClick={e=>{e.stopPropagation();void show(p.row.id);}}>详情</Button><Button onClick={e=>{e.stopPropagation();navigate(`/transactions?source=slash&cardId=${encodeURIComponent(p.row.id)}`);}}>交易</Button></>},
  ]:[
-  {field:'merchant',headerName:F.merchant,minWidth:200,flex:1,valueFormatter:(v:string)=>v||'—'},
+  {field:'merchant',headerName:F.merchant,minWidth:240,flex:1,valueFormatter:(v:string)=>v||'—',renderCell:p=><MerchantCell name={p.row.merchant}/>},
   {field:'cardId',headerName:F.cardId,width:150,description:'关联卡片的卡号后四位；未采集时显示 —',valueGetter:(_,row)=>typeof row.cardLast4==='string'&&/^[0-9]{4}$/.test(row.cardLast4)?`•••• ${row.cardLast4}`:'—'},
   {field:'customer',headerName:'所属用户',minWidth:160,description:'读取卡片在内部数据库绑定的用户',valueGetter:(_,row)=>row.internal?.customerName||row.internal?.customerId||'未绑定'},
   {field:'originalCurrency',headerName:F.original,width:190,align:'right',headerAlign:'right',valueFormatter:originalText},
@@ -112,6 +113,7 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
    {kind==='cards'&&<TextField select size="small" label="导入分组" sx={{minWidth:200}} value={params.get('group')||''} onChange={e=>change({group:e.target.value})}><MenuItem value="">两组全部</MenuItem>{Object.entries(groups).map(([k,v])=><MenuItem key={k} value={k}>{v}</MenuItem>)}</TextField>}
    <Button variant="contained" disabled={!!rangeError} onClick={()=>change({keyword})}>查询</Button>{params.get('cardId')&&<Button onClick={()=>change({cardId:''})}>清除单卡筛选</Button>}
   </Stack>{rangeError&&<Alert severity="error" sx={{mb:2}}>{rangeError}</Alert>}{loading&&<LinearProgress/>}<DataGrid getRowClassName={p=>kind==='transactions'?transactionRowClass(p.row.status,p.row.detailedStatus):''} key={kind} slots={{toolbar:ColumnsToolbar}} initialState={{columns:{columnVisibilityModel:{customer:kind==='cards',id:false,groups:false,observedAt:false,date:false,fetchError:false}}}} sx={{...transactionRowStyles,"& .MuiDataGrid-cell":{fontVariantNumeric:"tabular-nums"},"& .MuiDataGrid-row":{cursor:"pointer"}}} autoHeight rows={data?.rows||[]} columns={columns} rowCount={data?.total??(loading?rowCountSeen.current:0)} loading={loading} paginationMode="server" paginationModel={{page,pageSize}} pageSizeOptions={[20]} onPaginationModelChange={p=>{const q=new URLSearchParams(params);q.set('page',String(p.page));setParams(q);}} disableRowSelectionOnClick disableColumnSorting onRowClick={p=>void show(p.row.id)} localeText={zhCN.components.MuiDataGrid.defaultProps.localeText}/></Paper>
+  {kind==='transactions'&&<LogoAttribution/>}
   {kind==='transactions'?<TransactionDrawer key={detailId} open={!!detailId} transaction={detail} card={detailCard} cardWarning={cardWarning} loading={detailLoading} error={detailError} onClose={closeDetail} onRetry={()=>void show(detailId)} onCard={id=>{closeDetail();navigate(`/cards?source=slash&detail=${encodeURIComponent(id)}`);}}/>:(<Dialog open={!!detailId} onClose={closeDetail} fullWidth maxWidth="md"><DialogTitle>{kind==='cards'?'真实卡片详情':'真实交易详情'}</DialogTitle><DialogContent>{detailLoading&&<LinearProgress/>}{detailError&&<Alert severity="error" action={<Button onClick={()=>void show(detailId)}>重试</Button>}>{detailError}</Alert>}<Alert severity="info">来源字段与本地观察信息；金额为最小单位。真实卡不开放冻结、扣款或转账操作。</Alert>{detail?.fetchError&&<Alert severity="warning">{detail.fetchError}</Alert>}{detail&&<CardOwnerEditor key={detail.id} cardId={detail.id} onSaved={owner=>{setDetail(current=>current?{...current,internal:owner}:current);setData(current=>current?{...current,rows:current.rows.map(row=>row.id===detail.id?{...row,internal:owner}:row)}:current);}}/>}<Box component="pre" sx={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',fontSize:12}}>{JSON.stringify(detail,null,2)}</Box></DialogContent></Dialog>)}
 
  </Stack>;

@@ -1,3 +1,4 @@
+import {MerchantLogo,LogoAttribution} from '../../../../packages/shared/src/components/MerchantLogo';
 import { useState, type ReactNode } from "react";
 import { Icon } from "@iconify/react";
 import {
@@ -5,7 +6,6 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
-  Avatar,
   Box,
   Button,
   Chip,
@@ -210,9 +210,7 @@ export default function TransactionDrawer({
         <>
           <Box sx={{ px: 2.5, pt: 3, pb: 2, bgcolor: "action.hover" }}>
             <Stack alignItems="center" gap={1}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 52, height: 52 }}>
-                <Icon icon="solar:shop-linear" width={28} />
-              </Avatar>
+              <MerchantLogo name={t.merchant} size={56}/>
               <Typography
                 variant="h5"
                 component="h2"
@@ -429,6 +427,7 @@ export default function TransactionDrawer({
               </>
             )}
           </Box>
+          <Box sx={{ px: 2.5, pb: 2 }}><LogoAttribution/></Box>
         </>
       ) : null}
       <Snackbar

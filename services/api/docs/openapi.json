@@ -1469,6 +1469,194 @@
           }
         }
       }
+    },
+    "/admin-api/v1/channel-projections": {
+      "get": {
+        "operationId": "listChannelProjections",
+        "summary": "MFA and explicit channel grant required; sanitized manual projection, never a ledger",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason"
+          },
+          "400": {
+            "description": "Invalid or unknown query parameter"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA or channel grant missing"
+          },
+          "404": {
+            "description": "Not found or outside granted connection"
+          },
+          "409": {
+            "description": "Projection revision changed"
+          },
+          "503": {
+            "description": "Database or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/channel-projections/{connection}/{resource}": {
+      "get": {
+        "operationId": "listChannelRecords",
+        "summary": "MFA and explicit channel grant required; sanitized manual projection, never a ledger",
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "transactions",
+                "cards"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "detailedStatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason"
+          },
+          "400": {
+            "description": "Invalid or unknown query parameter"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA or channel grant missing"
+          },
+          "404": {
+            "description": "Not found or outside granted connection"
+          },
+          "409": {
+            "description": "Projection revision changed"
+          },
+          "503": {
+            "description": "Database or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/channel-projections/{connection}/{resource}/{id}": {
+      "get": {
+        "operationId": "getChannelRecord",
+        "summary": "MFA and explicit channel grant required; sanitized manual projection, never a ledger",
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "transactions",
+                "cards"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason"
+          },
+          "400": {
+            "description": "Invalid or unknown query parameter"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA or channel grant missing"
+          },
+          "404": {
+            "description": "Not found or outside granted connection"
+          },
+          "409": {
+            "description": "Projection revision changed"
+          },
+          "503": {
+            "description": "Database or mandatory audit unavailable"
+          }
+        }
+      }
     }
   },
   "components": {

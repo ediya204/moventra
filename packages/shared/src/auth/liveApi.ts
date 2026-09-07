@@ -51,7 +51,7 @@ export function authMessage(error: unknown): string {
 
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
 async function liveRequest<T>(path: string, body?: { name: string }): Promise<T> {
-  if (body !== undefined ? path !== '/api/v1/register' : !/^\/api\/v1\/me$/.test(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' : !/^\/api\/v1\/me$/.test(path) && !/^\/admin-api\/v1\/channel-projections(?:\/[A-Za-z0-9_-]+\/(?:transactions|cards)(?:\/[A-Za-z0-9_-]+)?)?(?:\?[^#]*)?$/.test(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);

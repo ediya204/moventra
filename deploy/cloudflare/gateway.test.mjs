@@ -98,3 +98,11 @@ test('overview is admin-only GET; preserves query and never sends local cookies'
  });
  assert.equal(res.status,200);assert.equal(res.headers.get('Cache-Control'),'no-store');
 });
+test('channel projections remain admin-only, GET-only and authenticated',async()=>{
+ const path='/admin-api/v1/channel-projections/conn/transactions';
+ for(const [kind,method,auth,code] of [['client','GET',true,404],['admin','POST',true,405],['admin','GET',false,401]]){
+  const res=await handle(new Request('https://admin.example.invalid'+path,{method,headers:auth?{Authorization:'Bearer synthetic'}:{}}),{...env,SITE_KIND:kind},()=>assert.fail('must not reach source'));
+  assert.equal(res.status,code);
+ }
+ const res=await handle(new Request('https://admin.example.invalid'+path,{headers:{Authorization:'Bearer synthetic'}}),{...env,SITE_KIND:'admin'},async()=>Response.json({data:{rows:[],complete:false}}));assert.equal(res.status,200);
+});

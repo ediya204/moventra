@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"moventra.local/api/internal/projection"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,11 +15,11 @@ import (
 	"syscall"
 	"time"
 
-	"moventra.local/api/internal/api"
-	"moventra.local/api/internal/database"
 	firebase "firebase.google.com/go/v4"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"moventra.local/api/internal/api"
+	"moventra.local/api/internal/database"
 )
 
 func run() error {
@@ -37,6 +40,24 @@ func run() error {
 	defer pool.Close()
 	if err = pool.Ping(ctx); err != nil {
 		return errors.New("database unavailable")
+	}
+	if len(os.Args) == 2 && os.Args[1] == "import-channel" {
+		var bundle projection.Bundle
+		decoder := json.NewDecoder(io.LimitReader(os.Stdin, 64<<20))
+		decoder.DisallowUnknownFields()
+		if e := decoder.Decode(&bundle); e != nil {
+			return errors.New("invalid projection input")
+		}
+		if e := decoder.Decode(new(any)); e != io.EOF {
+			return errors.New("unexpected trailing input")
+		}
+		importCtx, done := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer done()
+		if _, e := projection.Import(importCtx, pool, bundle, os.Getenv("PROJECTION_OPERATOR_UID")); e != nil {
+			return fmt.Errorf("projection import refused: %w", e)
+		}
+		slog.Info("read-only projection imported; no customer ledger changed")
+		return nil
 	}
 	if len(os.Args) > 1 {
 		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {

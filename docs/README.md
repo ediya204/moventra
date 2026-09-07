@@ -59,6 +59,11 @@
 - [Slash 只读接入规范](integrations/slash.md)
 - [分析聚合 API 契约（产品验证后选用）](frontend/analytics-api-contract.md)
 
+## 正式卡交易只读接入
+
+- [接口、数据导入与发布边界](releases/channel-projection-2026-09-07.md)
+- [商户 Logo](frontend/merchant-logos.md)
+
 ## 当前本地业务规范
 
 - [V1 当前功能与接入状态](current-state.md)
