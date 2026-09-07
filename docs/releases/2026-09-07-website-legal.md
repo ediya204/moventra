@@ -30,3 +30,9 @@
 - 域名：`moventra.me`、`www.moventra.me`，保留旧过渡域名。
 - 可回退的上一版本：`3cd4c6b8-7739-4f82-b8be-fa8445b6ee63`。使用客户端 production 配置进行 Worker 回退；本次无数据库变更。
 - 未发布运营 Worker、Render API、数据库迁移；未修改用户身份、权限、邮件 DNS 或真实资金。
+
+## 页脚联系方式追加
+
+用户随后要求在官网品牌介绍下添加地址和邮箱。页脚现在复用公司资料中的主要办公及邮寄地址和 `info@moventra.me`，邮箱为 `mailto:` 链接，使用地址与信封图标。仅修改客户端首页组件。
+
+本轮客户端 TypeScript/Vite 构建及 production dry-run 通过；Chrome 在 `https://moventra.me/` 已核验页脚地址、邮箱链接与排版。追加发布版本为 `fc7a8138-3edc-4cab-aee5-4f99244100e8`，上一版本 `0009cd24-6952-49a9-bb75-c29fd34f7fb7` 可回退。未重复执行此前 16 项回归；未发布后台、API 或数据库。
