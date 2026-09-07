@@ -1,8 +1,8 @@
 # Moventra 文档索引与项目现状
 
-更新日期：2026-09-07。以当前源码与本地验证为准；GitHub 同步不等于重新部署或完成真实业务验收。
+更新日期：2026-09-07。以注明版本的源码与验证记录为准；本轮仅静态整理文档，GitHub 同步不等于重新部署或完成真实业务验收。
 
-正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。优先阅读 [V1 当前功能与接入状态](current-state.md)。旧工作区的私有 Node/Python 服务、数据和凭据不属于本仓库可直接运行的依赖。
+正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。优先阅读 [全站业务逻辑总览](business/README.md)，快速状态见 [V1 当前功能与接入状态](current-state.md)。旧工作区的私有 Node/Python 服务、数据和凭据不属于本仓库可直接运行的依赖。
 
 ## 现行域名
 
@@ -13,11 +13,11 @@
 | 层 | 当前范围 | 尚未完成或仅历史原型 |
 | --- | --- | --- |
 | 客户端 `apps/client` | 官网、Firebase 密码/Google 登录、个人账户/交易查询、安全设置 | `/register` 仅预览；企业流程、团队、真实卡片、资金和消息业务未开放 |
-| 后台 `apps/admin` | 独立登录、批准邮箱前置检查、MFA、指定客户范围只读查询 | 审批、卡片、费率方案、资金、渠道和分析模块为 DEV 原型 |
-| Go `services/api` | Firebase 验证、用户注册、主体授权、账户/交易查询、企业升级意向、受控开通 CLI、审计 | 无企业审核/激活、完整成员管理、资金账本或真实金融写入 |
+| 后台 `apps/admin` | 独立登录、批准邮箱前置检查、MFA、客户 USD 概览、渠道卡交易和只读卡资料 | 完整卡管理、审批、费率、资金执行为 DEV；新渠道功能发布进度见独立记录 |
+| Go `services/api` | Firebase、用户/主体授权、账户/交易/概览、独立渠道投影、企业升级意向、受控开通/导入 CLI、审计 | 无企业审核/激活、完整成员管理、资金账本或真实金融写入 |
 | 身份 | 两端命名 SDK 与内存会话独立；Go UID/资源授权及 MFA 最终校验 | 共用 Firebase 项目，不是独立身份库或 token audience；本人完整登录验收独立进行 |
 | 部署 | 两个 Cloudflare Worker；Render Go + PostgreSQL；API 手动发布 main | 推送文档不更新运行产物；迁移与真实渠道接入需单独授权 |
-| Slash | 来源模型/映射文档与历史本地只读验证记录 | Python/Node 采集服务和私有 SQLite 未纳入本仓库；本地为手动同步，生产未接入 |
+| Slash | 本地只读采集；Go 支持独立授权的手动投影导入及查询 | 旧采集服务和私有数据未纳入仓库；尚无云端采集、Webhook 或自动持续更新 |
 
 注册分两步理解：客户端登录后资料补全可调用 Go 创建 users；个人主体与指定客户运营授权由受控命令分别开通，不自动创建资金账户或授予全局权限。后端企业模型保留，但当前客户端 V1 只展示个人范围。
 
@@ -28,6 +28,15 @@
 - 历史档案明确保留当时的数据、端口、代码名称和结果；其中未纳入仓库的脚本不能直接运行。生产构建不打包 Demo 路由。
 - 旧文档中的 number 金额、裸来源 ID、团队功能和简化对账式不作为生产规范；按领域文档制定迁移/契约，不通过改写文档宣称代码修复。
 - 当前 OpenAPI 的 `servers` 描述仍含旧“未部署”文字，属于已登记文案差异；接口以代码和路径定义为依据，发布状态看部署记录。OpenAPI 文案未在本次变更范围内。
+
+## 全站业务逻辑
+
+- [业务总览：角色、流程、模块与数据边界](business/README.md)
+- [身份、开户与正式访问流程](business/identity-and-production.md)
+- [卡片、BIN、归属、交易与同步](business/cards-and-transactions.md)
+- [资金、定价、订单、审批及运营](business/funds-and-operations.md)
+- [正式页面与接口可达性](business/routes-and-api.md)
+- [本轮文档核对与上传范围](releases/2026-09-07-business-docs.md)
 
 ## 当前开发、认证与部署
 
@@ -67,6 +76,8 @@
 ## 当前本地业务规范
 
 - [V1 当前功能与接入状态](current-state.md)
+- [资金流与运营概览](frontend/operations-overview.md)
+- [卡交易时间筛选](frontend/transaction-date-range.md)
 - [本次同步验证](releases/2026-09-07-v1-local-sync.md)
 - [卡片管理工作台与客户解冻申请（本地实现边界）](frontend/card-management-workspace.md)
 - [卡片与交易字段](frontend/card-transaction-fields.md)

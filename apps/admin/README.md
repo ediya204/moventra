@@ -1,6 +1,6 @@
 # Moventra 运营后台
 
-更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，开放 `/login`、`/forgot-password`、`/session`、`/workbench`；不引用客户端源码。
+更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，开放 `/login`、`/forgot-password`、`/session`、`/workbench`、`/transactions`、`/cards/:id`；不引用客户端源码。完整流程见 [全站业务总览](../../docs/business/README.md)。
 
 从仓库根目录运行：
 
@@ -13,7 +13,7 @@ VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮�
 
 Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权后才能访问运营数据；拒绝/异常时退出 Firebase 并留在登录页。邮箱验证和 MFA 设置流程不代表已获业务权限。客户端和运营端共享 Firebase 项目，但 SDK 实例、内存会话、路由和网关分别处理。
 
-[DemoApp.tsx](src/DemoApp.tsx) 仅在 DEV 且显式 Demo 模式加载，生产不打包该路由。审批、卡片、资金、用户组、渠道和分析页面属于保留的 Demo 源码；其历史服务及数据库不在仓库。
+[DemoApp.tsx](src/DemoApp.tsx) 仅在 DEV 且显式 Demo 模式加载，生产不打包该路由。完整卡片管理、审批、资金、用户组、渠道配置和来源分析仍属于 Demo；其历史服务及数据库不在仓库。正式渠道只读页面另由 Go 提供，不依赖 Demo 路由。
 
 参阅 [开发约束](../../AGENTS.md)、[文档索引](../../docs/README.md)、[认证配置](../../docs/frontend/firebase-setup.md)、[部署记录](../../deploy/README.md)。
 
@@ -24,4 +24,8 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 
 ## 资金流与运营概览
 
-通过运营身份和 MFA 验证后进入 `/workbench`，查看已授权 USD 交易投影的资金流、交易活跃度及状态分布。统计周期支持 7/14/30 天，提供精确每日明细及 CSV。未接入的卡片、商户和来源同步能力保持明确空态。参阅 [页面与数据口径](../../docs/frontend/operations-overview.md)。
+通过运营身份和 MFA 验证后进入 `/workbench`，查看已授权 USD 客户交易投影的资金流、活跃度及状态分布。统计周期支持 7/14/30 天，提供精确每日明细及 CSV。渠道投影未并入本统计源，卡片、商户及来源同步指标保持不可用。参阅 [页面与数据口径](../../docs/frontend/operations-overview.md)。
+
+## 正式渠道卡交易
+
+`/transactions` 与 `/cards/:id?connection=...` 读取手动导入的独立渠道投影，除 staff 身份和 MFA 外还要求 `channel_read_grants`。交易每页 20 条，UTC 开始含、截止不含，默认不限日期；刷新只重读导入版本。卡资料未绑定内部用户，不提供资金余额或控制动作。商户 Logo 仅辅助展示，不改变来源身份。业务代码 `0d5158d` 及部署结果见 [独立发布记录](../../docs/releases/channel-projection-2026-09-07.md)，本人登录验收仍待完成；本轮仅整理文档。

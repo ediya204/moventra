@@ -8,6 +8,18 @@
 
 现有 [Go OpenAPI](../../services/api/docs/openapi.json) 与 [账户模型](../../services/api/docs/account-model.md) 为当前基础：Firebase Bearer、客户主体隔离、运营 MFA + staff_grants、审计、limit/offset，以及正数 amountMinor + direction。
 
+完整现行可达性见 [正式路由与 API 范围](../business/routes-and-api.md)。需区分以下已实现与候选接口：
+
+| 范围 | 当前事实 |
+| --- | --- |
+| Go 账户/交易列表 | 服务端支持 limit/offset；正式网页只读取默认前 50 条，不把页面数量当全量 |
+| Go `GET /admin-api/v1/ops/overview` | 已有授权 USD 交易投影的聚合；7/14/30 香港自然日、MFA、逐客户 transactions:read 与审计，见 [契约](../../services/api/docs/operations-overview.md) |
+| Go `GET /admin-api/v1/channel-projections` 及连接内交易/卡资料 | 已有独立 channel_read_grants + staff 身份 + MFA 的手动导入投影查询；交易每页 20 条、来源日期半开区间与版本冲突检查，不混入客户账户/交易或概览。见 [现行范围](../business/routes-and-api.md) |
+| 旧本地 `live/transactions` 与 `live/overview` | 支持已保存 Slash 数据的日期过滤和聚合；只属于本地服务，不是 Go 新增 Slash 契约 |
+| 下文 `financial/*` | 候选多维模型、来源余额快照及对账接口，仍为 DESIGN |
+
+运营概览只重用已授权客户交易字段，不扩大到客户、卡片、商户或渠道元数据权限。新增渠道读模型另行授权；两者均没有启用下文新的金融资源，也没有统一 Go `succeeded` 与来源 `posted/settled` 的含义。
+
 旧 `/admin-api`、本地 `/local-slash-demo`、Demo settlement-management 前缀与 Go `/admin-api/v1` 是不同契约。不得通过宽泛代理替换。既有 [分析契约](../frontend/analytics-api-contract.md) 仍为独立候选方案。
 
 新 financial 路由隔离新模型；机器 OpenAPI、权限名称和兼容测试需在实施阶段同步补充。新增权限采用默认拒绝，不能自动沿用 transactions:read 暴露所有资金与渠道信息。

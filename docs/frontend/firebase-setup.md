@@ -11,7 +11,11 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 | 应用 | 登录地址 | 登录方式 | 业务入口 |
 | --- | --- | --- | --- |
 | 客户端 | https://moventra.me/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
-| 运营后台 | https://admin.moventra.me/login | 批准的运营邮箱密码、MFA；无 Google | `/session` 身份、授权范围及只读查询 |
+| 运营后台 | https://admin.moventra.me/login | 批准的运营邮箱密码、MFA；无 Google | `/workbench` 资金运营概览；`/session?security=1` 身份与权限；`0d5158d` 另增正式 `/transactions`、`/cards/:id` 渠道只读页面 |
+
+资金概览已随 `a42e2b9` 发布；正常后台 `/session` 在 operator 与当次 MFA 完成后转入 `/workbench`。这是[此前发布证据](../../deploy/2026-09-07-operations-overview.md)，不是本轮文档重验。完整注册、主体开通及生产/DEV 边界见[正式身份与业务开通](../business/identity-and-production.md)。
+
+渠道页面与独立权限已随 `0d5158d` 上传；`2918584` 追加的[发布记录](../releases/channel-projection-2026-09-07.md)确认 Render 与两端 Worker 发布，后台入口和资源一致。运营用户本人登录后的数据读取、Logo 与详情验收仍未完成，本轮文档没有重复验证。
 
 两端是独立构建、独立命名 SDK 实例和内存会话；共享 Firebase 身份项目，不是独立用户库、tenant 或 token audience。刷新页面需要重新登录。
 
@@ -23,7 +27,7 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 4. Go 校验 Firebase token、撤销状态、邮箱验证、本地 users 状态和主体/资源关系。前端邮箱列表、角色或自报 UID 不能授予权限。
 5. 后台等待 Go 确认 operator；拒绝或异常时退出 Firebase 并清空用户。MFA 未完成不返回 staffScopes，业务读取仍逐请求核验 MFA 与指定客户资源授权。
 
-邮箱验证/MFA 设置 UI 不表示运营业务访问已放行。当前运营授权仅 `accounts:read`、`transactions:read`，不是全局超级管理员。客户端身份查询不暴露运营范围；两端网关拒绝对端业务接口，后台拒绝自助注册接口。
+邮箱验证/MFA 设置 UI 不表示运营业务访问已放行。客户资源运营权限仍只有 `accounts:read`、`transactions:read`；新渠道数据另外要求 `channel_read_grants` 和至少一项既有 staff_grants，客户权限不自动授予连接权限，也不是全局超级管理员。客户端身份查询不暴露运营范围；两端网关拒绝对端业务接口，后台拒绝自助注册接口。渠道范围通过 `/admin-api/v1/channel-projections` 单独发现，不混入 `me.staffScopes`。
 
 ## 注册、密码和 MFA
 

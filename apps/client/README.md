@@ -6,7 +6,9 @@
 
 生产使用 Firebase 邮箱密码或 Google 登录。已开通用户由 `/session` 进入 `/portal`，安全页为 `/portal/security`。查询只展示获授权个人主体的账户与交易，空数据、未关联和失败分别显示；不提供真实卡片或资金执行。
 
-`/register` 仅做表单预览和校验；Google 身份验证后遇到 `registration_required` 才通过资料补全调用 Go 注册。注册创建登录用户，不自动开通个人主体、企业、资金账户或运营权限。企业模型保留在后端，当前前端为 V1 个人范围。
+`/register` 仅做表单预览和校验；通过 Firebase 验证的会话遇到 `403 registration_required` 才通过资料补全调用 Go 注册，常见于首次 Google 登录。注册创建登录用户，不自动开通个人主体、企业、资金账户或运营权限。企业模型保留在后端，当前前端为 V1 个人范围。
+
+个人首页、账户与交易页目前各读取默认前 50 条，没有分页界面；数字是已读取记录数。新增运营渠道投影未绑定客户，客户端 transport 和网关禁止读取；DEV 商户 Logo 组件存在不等于正式客户已获得渠道交易。完整说明见 [身份与业务开通](../../docs/business/identity-and-production.md)。
 
 开发 Demo 路由仅在 DEV 且显式 Demo 配置下可用；对应历史 Node/SQLite 服务不在仓库，不能仅启动前端就复现完整旧 Demo。生产不打包 Portal 原型。
 

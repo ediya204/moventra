@@ -2,14 +2,15 @@
 
 当前源码结构：`apps/client` 为独立客户端，`apps/admin` 为独立运营后台，`services/api` 为 Go 服务，`packages/shared` 为共用认证/UI/类型。统一在 `main` 维护，构建入口见根目录 README。文档全量分类见 [文档索引](./README.md)。
 
-更新日期：2026-09-07。状态：身份、个人查询及部署基础已落地；跨渠道金融目标仍为草案。部署版本及历史验证见部署记录，不将本次文档校对当作新的业务验收。
+更新日期：2026-09-07。状态：身份、个人查询、授权运营概览及部署基础已落地；`0d5158d` 另加入正式渠道只读投影、卡交易页面与手动导入工具。跨渠道金融目标仍为草案。部署版本及历史验证见发布记录，不将本次文档校对当作新的业务验收。
 
-旧本地环境当前采用 Slash 手动同步，见 [现状](current-state.md) 和 [手动同步规范](frontend/slash-manual-sync.md)。Node/Python 服务、私有数据和凭据未纳入当前仓库；本次前端与文档同步不代表正式 Go 或生产已接入。
+旧本地环境当前采用 Slash 手动同步，见 [现状](current-state.md) 和 [手动同步规范](frontend/slash-manual-sync.md)。旧采集服务、私有数据和凭据未纳入当前仓库；正式 Go 的独立投影导入不把采集器或 Slash 密钥搬到云端，见 [渠道接入记录](releases/channel-projection-2026-09-07.md)。
 
 ## 1. 文档入口与证据分类
 
 | 文档 | 负责内容 |
 | --- | --- |
+| [业务总览](business/README.md) | 全站角色、流程、状态、数据来源及交付边界 |
 | [AGENTS.md](../AGENTS.md) | 开发与 AI 协作硬性约束 |
 | [Slash 接入](./integrations/slash.md) | 官方依据、字段差异、能力边界、同步和安全 |
 | [交易与资金](./domain/transactions-and-funds.md) | 统一模型、状态、多币种、资金口径与对账 |
@@ -25,12 +26,14 @@
 
 | 子项目 | 本次检查依据 | 已有边界 |
 | --- | --- | --- |
-| `services/api` | [README](../services/api/README.md)、[账户模型](../services/api/docs/account-model.md)、[SQL](../services/api/internal/database/001_initial.sql)、[OpenAPI](../services/api/docs/openapi.json) | Go/PostgreSQL 基础，身份、客户主体、账户/交易查询与企业升级申请；交易表是查询投影，不是账本 |
+| `services/api` | [README](../services/api/README.md)、[账户模型](../services/api/docs/account-model.md)、[SQL](../services/api/internal/database/001_initial.sql)、[渠道结构](../services/api/internal/database/002_channel_projection.sql)、[OpenAPI](../services/api/docs/openapi.json) | 身份、客户账户/交易、运营汇总、企业升级意向及独立渠道只读投影；两套交易来源不混账 |
 | `apps/client` | [README](../apps/client/README.md) | 官网、Firebase 登录、个人主体账户/交易查询；注册页为预览，登录后资料补全可创建用户 |
-| `apps/admin` | [README](../apps/admin/README.md) | 独立运营登录及授权工作台；旧 Demo 页面仅 DEV 加载 |
+| `apps/admin` | [README](../apps/admin/README.md) | 独立运营登录、MFA、资金概览、渠道卡交易与只读卡资料；旧管理 Demo 仅 DEV 加载 |
 | `packages/shared` | [README](../packages/shared/README.md) | 共用认证、主题、UI 和类型；无跨应用源码依赖 |
 
 Go 当前 `transactions` 仅允许 USD/USDT、正数 `amount_minor` 加方向、pending/succeeded/failed，来源唯一约束为 `(source, external_id)`。不能不经迁移设计直接装入多渠道、多状态、零值或其他币种交易。
+
+独立 `channel_records` 按连接、导入版本、资源类型及外部 ID 保存来源白名单；读取需要现有 staff 身份及独立 `channel_read_grants`，不由客户 `transactions:read` 自动推导。渠道金额不写入原 `transactions`、账户余额或资金分录；前端刷新只读当前导入版本，不采集上游。
 
 旧本地 Demo 的历史记录包含来源白名单、内部扩展、部分场景和查询投影；对应后端未纳入当前仓库。应复用其经验和测试，不应把 Demo 的模拟版本号、客户归属、冻结推演或同步行为当作渠道保证。
 
