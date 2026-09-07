@@ -1,5 +1,4 @@
 import {MerchantCell,LogoAttribution} from '../../../../packages/shared/src/components/MerchantLogo';
-import {CardOwnerEditor} from './CardOwnerEditor';
 import {slashTransactionFilters,transactionRowClass} from '../components/cardTransactionFields';
 import {transactionRowStyles} from '../components/transactionRowStyles';
 import {TransactionStatusChip} from '../components/TransactionStatusChip';
@@ -8,7 +7,7 @@ import {transactionDateRange} from './transactionDateRange';
 import {fieldLabels as F,postingLabels,detailLabels,cardLabels,sourceLabel,utcTime,minorText,originalText} from '../components/cardTransactionFields';
 import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
 import {Link,useNavigate,useSearchParams} from 'react-router-dom';
-import {Alert,Box,Button,Chip,Dialog,DialogContent,DialogTitle,Grid,LinearProgress,MenuItem,Paper,Stack,Tab,Tabs,TextField,Typography} from '@mui/material';
+import {Alert,Box,Button,Chip,Grid,LinearProgress,MenuItem,Paper,Stack,Tab,Tabs,TextField,Typography} from '@mui/material';
 import {DataGrid,GridToolbarColumnsButton,type GridColDef} from '@mui/x-data-grid';
 import {zhCN} from '@mui/x-data-grid/locales';
 import {get,post} from '../../../../packages/shared/src/management/api';
@@ -49,6 +48,7 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
  useEffect(()=>{if(rangeError){setData(undefined);setError('');setLoading(false);return;}if(state?.revision&&revisionSeen.current&&state.revision!==revisionSeen.current&&page>0){revisionSeen.current=state.revision;const p=new URLSearchParams(params);p.set('page','0');setParams(p);return;}revisionSeen.current=state?.revision;let active=true;setLoading(true);setData(undefined);get<Page>(`live/${kind}`,{...JSON.parse(query),revision:state?.revision}).then(d=>{if(active){setData(d);setError('');}}).catch(e=>{if(active){setError(e.message);if(e.message.includes('数据已更新')){const p=new URLSearchParams(params);p.set('page','0');setParams(p);}}}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[kind,query,rangeError,state?.revision]);
  const change=(values:Record<string,string>)=>{const p=new URLSearchParams(params);p.set('source','slash');p.set('page','0');Object.entries(values).forEach(([k,v])=>v?p.set(k,v):p.delete(k));setParams(p);};
  const show=useCallback(async(id:string)=>{
+  if(kind==='cards'){navigate(`/cards/${encodeURIComponent(id)}?source=slash`);return;}
   const request=++detailRequest.current;setDetailId(id);setDetail(undefined);setDetailCard(undefined);setCardWarning('');setDetailError('');setDetailLoading(true);
   try {
    const d=await get<{row:Row}>(`live/${kind}/${encodeURIComponent(id)}`);
@@ -59,7 +59,7 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
     catch{if(request===detailRequest.current)setCardWarning('关联卡片详情暂不可用，请重试或手动同步卡片资料。');}
    }
   }catch(e){if(request===detailRequest.current){setDetailError((e as Error).message);setDetailLoading(false);}}
- },[kind]);
+ },[kind,navigate]);
  const closeDetail=()=>{detailRequest.current++;setDetailId('');setDetail(undefined);if(params.has('detail')){const p=new URLSearchParams(params);p.delete('detail');setParams(p,{replace:true});}};
  const linkedDetail=params.get('detail');
  useEffect(()=>{if(kind==='cards'&&linkedDetail)void show(linkedDetail);return()=>{detailRequest.current++;};},[kind,linkedDetail,show]);
@@ -68,6 +68,7 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
   {field:'cardName',headerName:F.cardName,minWidth:180,flex:1,valueFormatter:(v:string)=>v||'—'},
   {field:'maskedCardNumber',headerName:F.last4,width:130,valueFormatter:(v:string)=>v ? `•••• ${v.slice(-4)}` : '—'},
   {field:'cardStatus',headerName:'状态',description:'采用渠道返回的卡片状态',width:185,valueFormatter:v=>sourceLabel(v,cardLabels)},
+  {field:'availableBalance',headerName:'可用余额',description:'尚未关联内部卡资金分户，当前无法查询逐卡可用余额；消费限额及共享账户余额不作为逐卡余额',width:150,align:'right',headerAlign:'right',sortable:false,valueGetter:()=>'未接入',renderCell:()=> <Typography component="span" variant="body2" color="text.secondary" title="尚未关联内部卡资金分户，当前无法查询逐卡可用余额">未接入</Typography>},
   {field:'groups',headerName:'导入分组',width:180,renderCell:p=>(p.row.groups||[]).map(g=>groups[g]||g).join('、')||'—'},
   {field:'createdAtUTC',headerName:F.createdAt,width:195,valueFormatter:(v:string)=>date(v)},
   {field:'observedAt',headerName:F.observedAt,width:195,valueFormatter:(v:string)=>date(v)},
@@ -114,7 +115,7 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
    <Button variant="contained" disabled={!!rangeError} onClick={()=>change({keyword})}>查询</Button>{params.get('cardId')&&<Button onClick={()=>change({cardId:''})}>清除单卡筛选</Button>}
   </Stack>{rangeError&&<Alert severity="error" sx={{mb:2}}>{rangeError}</Alert>}{loading&&<LinearProgress/>}<DataGrid getRowClassName={p=>kind==='transactions'?transactionRowClass(p.row.status,p.row.detailedStatus):''} key={kind} slots={{toolbar:ColumnsToolbar}} initialState={{columns:{columnVisibilityModel:{customer:kind==='cards',id:false,groups:false,observedAt:false,date:false,fetchError:false}}}} sx={{...transactionRowStyles,"& .MuiDataGrid-cell":{fontVariantNumeric:"tabular-nums"},"& .MuiDataGrid-row":{cursor:"pointer"}}} autoHeight rows={data?.rows||[]} columns={columns} rowCount={data?.total??(loading?rowCountSeen.current:0)} loading={loading} paginationMode="server" paginationModel={{page,pageSize}} pageSizeOptions={[20]} onPaginationModelChange={p=>{const q=new URLSearchParams(params);q.set('page',String(p.page));setParams(q);}} disableRowSelectionOnClick disableColumnSorting onRowClick={p=>void show(p.row.id)} localeText={zhCN.components.MuiDataGrid.defaultProps.localeText}/></Paper>
   {kind==='transactions'&&<LogoAttribution/>}
-  {kind==='transactions'?<TransactionDrawer key={detailId} open={!!detailId} transaction={detail} card={detailCard} cardWarning={cardWarning} loading={detailLoading} error={detailError} onClose={closeDetail} onRetry={()=>void show(detailId)} onCard={id=>{closeDetail();navigate(`/cards?source=slash&detail=${encodeURIComponent(id)}`);}}/>:(<Dialog open={!!detailId} onClose={closeDetail} fullWidth maxWidth="md"><DialogTitle>{kind==='cards'?'真实卡片详情':'真实交易详情'}</DialogTitle><DialogContent>{detailLoading&&<LinearProgress/>}{detailError&&<Alert severity="error" action={<Button onClick={()=>void show(detailId)}>重试</Button>}>{detailError}</Alert>}<Alert severity="info">来源字段与本地观察信息；金额为最小单位。真实卡不开放冻结、扣款或转账操作。</Alert>{detail?.fetchError&&<Alert severity="warning">{detail.fetchError}</Alert>}{detail&&<CardOwnerEditor key={detail.id} cardId={detail.id} onSaved={owner=>{setDetail(current=>current?{...current,internal:owner}:current);setData(current=>current?{...current,rows:current.rows.map(row=>row.id===detail.id?{...row,internal:owner}:row)}:current);}}/>}<Box component="pre" sx={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',fontSize:12}}>{JSON.stringify(detail,null,2)}</Box></DialogContent></Dialog>)}
+  {kind==='transactions'?<TransactionDrawer key={detailId} open={!!detailId} transaction={detail} card={detailCard} cardWarning={cardWarning} loading={detailLoading} error={detailError} onClose={closeDetail} onRetry={()=>void show(detailId)} onCard={id=>{closeDetail();navigate(`/cards/${encodeURIComponent(id)}?source=slash`);}}/>:null}
 
  </Stack>;
 }

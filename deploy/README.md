@@ -1,6 +1,6 @@
 # Moventra 部署记录
 
-最新功能发布见 [资金运营概览发布记录](2026-09-07-operations-overview.md)。
+最新卡片导航修复见 [卡片详情导航发布](2026-09-07-card-detail-navigation.md)；资金概览见 [资金运营概览发布记录](2026-09-07-operations-overview.md)。
 
 ## 新域名接入（2026-09-07）
 

@@ -82,6 +82,8 @@
 - [卡片管理工作台与客户解冻申请（本地实现边界）](frontend/card-management-workspace.md)
 - [卡片与交易字段](frontend/card-transaction-fields.md)
 - [卡交易抽屉与关联卡详情](frontend/transaction-drawer.md)
+- [卡片详情入口修复](frontend/card-detail-navigation.md)
+- [全部卡片可用余额列](frontend/card-available-balance.md)
 - [卡交易状态分类与颜色](frontend/transaction-status-colors.md)
 - [Slash 手动同步](frontend/slash-manual-sync.md)
 - [BIN 详情状态管理](frontend/bin-status-management.md)

@@ -1,6 +1,11 @@
+import {MerchantCell} from '../../../../packages/shared/src/components/MerchantLogo';
+import {CardOwnerEditor} from '../slash/CardOwnerEditor';
+import TransactionDrawer,{type DrawerTransaction} from '../slash/TransactionDrawer';
+import {TransactionStatusChip} from '../components/TransactionStatusChip';
+import {slashTransactionFilters,minorText,originalText} from '../components/cardTransactionFields';
 import {fieldLabels as F,utcTime} from '../components/cardTransactionFields';
 import {isSlashDemoMode} from "../../../../packages/shared/src/utils/dataMode";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Link,
   useLocation,
@@ -17,15 +22,14 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  Grid,
   LinearProgress,
   MenuItem,
+  Menu,
   Paper,
   Stack,
   Tab,
   Tabs,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { DataGrid, GridToolbarColumnsButton, type GridColDef } from "@mui/x-data-grid";
@@ -47,6 +51,10 @@ type Card = {
   name: string;
   last4: string | null;
   owner_id: string;
+  owner?:{id:string;name:string;email:string}|null;
+  observedAt?:string|null;
+  source?:Record<string,unknown>;
+  latestExecution?:{execution_status:string;error?:string}|null;
   status: string;
   provider_status: string;
   self_frozen: number;
@@ -95,6 +103,7 @@ type Detail = {
   accounts: Balance[];
   operations: Page<Operation>;
   audit: Audit[];
+  unfreezeRequests?: (Operation & {freeze_revision:number})[];
   ledger: {
     id: string;
     operation_id: string | null;
@@ -121,14 +130,16 @@ const kinds: Record<string, string> = {
   freeze: "风控冻结",
   unfreeze: "申请解除风控",
   debit: "强制扣款",
-  transfer_in: "资金转入",
-  transfer_out: "资金转出",
+  transfer_in: "管理转入",
+  transfer_out: "管理转出",
   self_freeze: "客户端冻结",
   self_unfreeze: "客户端解冻",
   opening: "测试期初",
 };
 const labels: Record<string, string> = {
   active: "使用中",
+  unmanaged: "未接入内部管理",
+  returned: "待补充资料",
   paused: "渠道暂停",
   closed: "已关闭",
   inactive: "未激活",
@@ -194,29 +205,29 @@ function useData<T>(path: string) {
   const [data, setData] = useState<T>(),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
+  const request=useRef(0);
   const load = useCallback(async () => {
+    const current=++request.current;
     try {
       const [resource, search] = path.split("?");
-      setData(
-        await get<T>(
-          `card-admin/${resource}`,
-          Object.fromEntries(new URLSearchParams(search)),
-        ),
-      );
+      const result=await get<T>(`card-admin/${resource}`,Object.fromEntries(new URLSearchParams(search)));
+      if(current!==request.current)return;
+      setData(result);
       setError("");
     } catch (e) {
-      setError((e as Error).message);
+      if(current===request.current)setError((e as Error).message);
     } finally {
-      setLoading(false);
+      if(current===request.current)setLoading(false);
     }
   }, [path]);
   useEffect(() => {
     setLoading(true);
+    setData(undefined);
     void load();
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") void load();
     }, 3000);
-    return () => clearInterval(timer);
+    return () => {request.current++;clearInterval(timer);};
   }, [load]);
   return { data, error, loading, load };
 }
@@ -281,6 +292,7 @@ function Workspace() {
   const location = useLocation(),
     identity = useData<Identity>("identity"),
     [error, setError] = useState("");
+  const live = new URLSearchParams(location.search).get("source") === "slash";
   const parts = location.pathname.split("/"),
     operation = parts[1] === "card-operations",
     id = parts[2];
@@ -290,7 +302,7 @@ function Workspace() {
         title={operation ? "卡片操作审批" : id ? "卡片详情" : "卡片中心"}
         description="状态管理、双人审批和资金账本"
         breadcrumbs={[
-          { label: "卡片中心", to: "/cards?source=demo" },
+          { label: "卡片中心", to: live ? "/cards?source=slash" : "/cards?source=demo" },
           ...(id ? [{ label: id }] : []),
         ]}
       />
@@ -301,17 +313,16 @@ function Workspace() {
         alignItems={{ md: "center" }}
       >
         <Alert severity="info" sx={{ flex: 1 }}>
-          隔离测试环境 ·
-          真实后端状态机与持久化账本；执行使用本地测试驱动，不扣划真实资金。
+          {live?'Slash 为上游渠道；用户归属、资金分户和审批以内部系统记录为准。':'隔离测试环境 · 状态机与持久化账本使用本地测试驱动，不扣划真实资金。'}
         </Alert>
-        <TextField
+        {!live&&<TextField
           select
           size="small"
           label="测试操作身份"
           value={identity.data?.actor || "demo-operator"}
           onChange={async (e) => {
             const users: Record<string, string> = {
-              "demo-operator": "demo@moventra.local",
+              "demo-operator": "demo@adsflow.local",
               "demo-reviewer": "reviewer@example.com",
               "demo-viewer": "viewer@example.com",
             };
@@ -332,18 +343,18 @@ function Workspace() {
           <MenuItem value="demo-operator">发起人 · Demo 运营</MenuItem>
           <MenuItem value="demo-reviewer">复核人 · Demo 审核</MenuItem>
           <MenuItem value="demo-viewer">只读观察员</MenuItem>
-        </TextField>
+        </TextField>}
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}
-      <Tabs aria-label="卡片管理导航" value={operation ? "operations" : "cards"}>
-        <Tab label="卡片列表" value="cards" component={Link} to="/cards?source=demo" />
+      {!id&&<Tabs aria-label="卡片管理导航" value={operation ? "operations" : "cards"}>
+        <Tab label="卡片列表" value="cards" component={Link} to={live?"/cards?source=slash":"/cards?source=demo"} />
         <Tab
           label="操作审批"
           value="operations"
           component={Link}
           to="/card-operations"
         />
-      </Tabs>
+      </Tabs>}
       <Box key={`${identity.data?.actor}-${location.pathname}`}>
         {operation ? (
           id ? (
@@ -533,174 +544,42 @@ function OperationList() {
   );
 }
 function CardDetail({ id }: { id: string }) {
-  const [p, set] = useSearchParams(),
-    page = Number(p.get("page") || 0),
-    s = useData<Detail>(`cards/${encodeURIComponent(id)}?page=${page}`),
-    [kind, setKind] = useState("");
-  if (!s.data) return <Notice {...s} />;
-  const { card: c, accounts, operations } = s.data;
-  return (
-    <Stack gap={3}>
-      <Notice {...s} />
-      <Section title={`${c.name} · ${c.last4 || "—"}`}>
-        <Stack direction="row" flexWrap="wrap" gap={3}>
-          <Field label="卡片状态">
-            <Status value={c.status} />
-          </Field>
-          <Field label="渠道确认状态">
-            <Status value={c.provider_status} />
-          </Field>
-          <Field label="冻结类型">
-            {[
-              c.risk_frozen ? "后台风控" : "",
-              c.self_frozen ? "客户端主动" : "",
-            ]
-              .filter(Boolean)
-              .join(" + ") || "无内部冻结"}
-          </Field>
-          <Field label="所属客户">{c.owner_id}</Field>
-          <Field label="最近原因">{c.reason}</Field>
-          <Field label="操作人 / 操作时间">
-            {c.actor || "—"} / {time(c.operated_at)}
-          </Field>
-        </Stack>
-      </Section>
-      <Section title="资金与可执行操作">
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
-          {c.fundingNote}
-        </Typography>
-        <Stack direction="row" gap={3} flexWrap="wrap">
-          <Field label="已入账资金">{money(c.balance?.postedMinor)}</Field>
-          <Field label="处理中的资金预占">{money(c.balance?.heldMinor)}</Field>
-          <Field label="可扣 / 可转资金">
-            {money(c.balance?.availableMinor)}
-          </Field>
-        </Stack>
-        <Divider sx={{ my: 2 }} />
-        <Stack direction="row" flexWrap="wrap" gap={1}>
-          {Object.entries(c.actions).map(([k, a]) => (
-            <Tooltip key={k} title={a.reason || kinds[k]}>
-              <span>
-                <Button
-                  disabled={!a.allowed}
-                  color={k === "freeze" || k === "debit" ? "error" : "primary"}
-                  variant={k === "freeze" ? "contained" : "outlined"}
-                  onClick={() => setKind(k)}
-                  startIcon={
-                    <Icon
-                      icon={
-                        k === "freeze"
-                          ? "solar:shield-warning-linear"
-                          : k === "unfreeze"
-                            ? "solar:lock-unlocked-linear"
-                            : "solar:transfer-horizontal-linear"
-                      }
-                    />
-                  }
-                >
-                  {kinds[k]}
-                </Button>
-              </span>
-            </Tooltip>
-          ))}
-        </Stack>
-        {Object.values(c.actions).every((a) => !a.allowed) && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            {Object.values(c.actions)
-              .map((a) => a.reason)
-              .filter((v, i, a) => a.indexOf(v) === i)
-              .join("；")}
-          </Alert>
-        )}
-        <Button component={Link} to={`/portal/cards/${id}`} sx={{ mt: 2 }}>
-          查看客户端卡片
-        </Button>
-        {id.startsWith("DEMO-SLASH-") && (
-          <Button component={Link} to={`/cards/${id}/source`}>
-            查看来源卡片资料
-          </Button>
-        )}
-      </Section>
-      <Section title="审批与执行记录">
-        <GridRows
-          rows={operations.rows}
-          columns={operationColumns.map((c) => ({ ...c, sortable: false }))}
-          total={operations.total}
-          page={page}
-          onPage={(page) => set({ page: String(page) })}
-          href={(id) => `/card-operations/${id}`}
-        />
-      </Section>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Section title="卡片资金流水">
-            <Typography variant="caption" color="text.secondary">
-              当前第 {page + 1} 页 · 每页最多 10 笔 · 金额由账本分录生成
-            </Typography>
-            {s.data.ledger.length ? (
-              s.data.ledger.map((e) => (
-                <Box
-                  key={e.id}
-                  sx={{ py: 1.5, borderBottom: 1, borderColor: "divider" }}
-                >
-                  <Stack direction="row" justifyContent="space-between">
-                    <Typography>{kinds[e.kind] || e.kind}</Typography>
-                    <Typography>{money(e.amount_minor)}</Typography>
-                  </Stack>
-                  <Typography variant="caption">
-                    {time(e.created_at)}
-                  </Typography>
-                  {e.operation_id && (
-                    <Button
-                      size="small"
-                      component={Link}
-                      to={`/card-operations/${e.operation_id}`}
-                    >
-                      关联操作单
-                    </Button>
-                  )}
-                </Box>
-              ))
-            ) : (
-              <Typography color="text.secondary">暂无已入账分录</Typography>
-            )}
-            <Stack direction="row">
-              <Button
-                disabled={page === 0}
-                onClick={() => set({ page: String(page - 1) })}
-              >
-                上一页
-              </Button>
-              <Button
-                disabled={s.data.ledger.length < 10 && s.data.audit.length < 10}
-                onClick={() => set({ page: String(page + 1) })}
-              >
-                下一页
-              </Button>
-            </Stack>
-          </Section>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Section title="操作审计">
-            <AuditList rows={s.data.audit} />
-          </Section>
-        </Grid>
-      </Grid>
-      {kind && (
-        <ActionDialog
-          card={c}
-          accounts={accounts}
-          kind={kind}
-          onClose={() => setKind("")}
-          onDone={() => {
-            setKind("");
-            void s.load();
-          }}
-        />
-      )}
-    </Stack>
-  );
+  const [p,set]=useSearchParams(), live=p.get('source')==='slash', tab=['overview','transactions','funds','risk','audit'].includes(p.get('tab')||'')?p.get('tab')!:'overview', page=Number(p.get('page')||0);
+  const s=useData<Detail>(`cards/${encodeURIComponent(id)}?source=${live?'slash':'demo'}&page=${page}&tab=${tab}`);
+  const [kind,setKind]=useState(''),[more,setMore]=useState<HTMLElement|null>(null);
+  if(!s.data)return <Notice {...s}/>;
+  const {card:c,accounts,operations}=s.data;
+  const change=(next:string)=>set({source:live?'slash':'demo',tab:next,page:'0'});
+  const pager=(n:number)=>set({...Object.fromEntries(p),page:String(n)});
+  const actions=['freeze','unfreeze','transfer_in','transfer_out'];
+  return <Stack gap={2}>
+    <Notice {...s}/>
+    <Paper variant="outlined" sx={{p:2,position:'sticky',top:0,zIndex:1}}>
+      <Typography variant="h5">{c.name} · •••• {c.last4||'—'}</Typography>
+      <Typography sx={{mt:1}}>所属用户：{c.owner?.name||c.owner_id||'未绑定'} {c.owner?.email?` / ${c.owner.email}`:''}　渠道：{live?'Slash':'本地测试'}　BIN：{typeof c.source?.bin==='string'?c.source.bin:'未匹配'}</Typography>
+      <Stack direction="row" gap={2} flexWrap="wrap" alignItems="center" sx={{mt:1.5}}><Typography variant="body2">管理状态</Typography><Status value={live?'unmanaged':c.status}/><Typography variant="body2">渠道状态</Typography><Status value={c.provider_status}/><Typography variant="caption">{c.provider_status}</Typography><Typography variant="caption" color="text.secondary">最近采集：{time(c.observedAt||c.operated_at)}</Typography></Stack>
+    </Paper>
+    <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',lg:'minmax(0,1fr) 260px'},gap:2,alignItems:'start'}}>
+      <Stack gap={2} sx={{minWidth:0}}>
+        <Tabs value={tab} onChange={(_,v)=>change(v)} variant="scrollable" scrollButtons="auto" aria-label="卡片详情标签页">{[['overview','概览'],['transactions','交易流水'],['funds','资金记录'],['risk','风控与审批'],['audit','操作日志']].map(([v,l])=><Tab key={v} value={v} label={l}/>)}</Tabs>
+        {tab==='overview'&&<><Section title="卡片与归属"><Stack direction="row" flexWrap="wrap" gap={3}><Field label="内部卡片标识">{live?'尚未建立内部管理卡映射':c.id}</Field><Field label="上游卡片标识">{live?c.id:'不适用'}</Field><Field label="所属用户邮箱">{c.owner?.email}</Field><Field label="有效期">{typeof c.source?.expiryDate==='string'?c.source.expiryDate:'未采集'}</Field><Field label="BIN">{typeof c.source?.bin==='string'?c.source.bin:'未采集'}</Field><Field label="执行能力">{c.executionMode}</Field></Stack>{live&&<CardOwnerEditor cardId={id} onSaved={()=>void s.load()}/>}</Section><Section title="内部资金与限额"><Typography variant="body2" color="text.secondary" sx={{mb:2}}>{c.fundingNote}</Typography><Stack direction="row" flexWrap="wrap" gap={3}><Field label="账本余额">{money(c.balance?.postedMinor)}</Field><Field label="资金预占">{money(c.balance?.heldMinor)}</Field><Field label="可转出 / 可扣余额">{money(c.balance?.availableMinor)}</Field></Stack><Typography variant="caption" color="text.secondary">归属和资金以内部数据库、账本及有效映射为准。消费限额不计入资金余额。</Typography></Section></>}
+        {tab==='transactions'&&<CardTransactions id={id} live={live} card={c}/>}
+        {tab==='funds'&&<><Section title="管理资金操作"><GridRows rows={operations.rows} columns={operationColumns} total={operations.total} page={page} onPage={pager} href={oid=>`/card-operations/${oid}`}/></Section><Section title="已入账分录">{!s.data.ledger.length?<Typography color="text.secondary">{live?'尚未建立内部资金映射，无可查询的卡资金分录':'暂无已入账分录'}</Typography>:s.data.ledger.map(e=><Stack key={e.id} direction="row" alignItems="center" justifyContent="space-between" sx={{py:1,borderBottom:1,borderColor:'divider'}}><Box><Typography>{kinds[e.kind]||e.kind}</Typography><Typography variant="caption">{time(e.created_at)}</Typography></Box><Typography sx={{fontVariantNumeric:'tabular-nums'}}>{money(e.amount_minor)}</Typography>{e.operation_id&&<Button component={Link} to={`/card-operations/${e.operation_id}`}>详情</Button>}</Stack>)}</Section></>}
+        {tab==='risk'&&<><Section title="当前限制"><Stack direction="row" flexWrap="wrap" gap={3}><Field label="后台风控">{live?'未建立内部管理映射':c.risk_frozen?'已冻结':'无'}</Field><Field label="客户主动冻结">{live?'未采集':c.self_frozen?'已冻结':'无'}</Field><Field label="内部原因">{c.reason}</Field><Field label="操作人 / 时间">{c.actor||'—'} / {time(c.operated_at)}</Field><Field label="最近执行结果">{c.latestExecution?<Status value={c.latestExecution.execution_status}/>:'暂无执行记录'}</Field></Stack>{c.latestExecution?.error&&<Alert severity="error">{c.latestExecution.error}</Alert>}</Section><Section title="客户解冻申请">{!s.data.unfreezeRequests?.length?<Typography color="text.secondary">暂无客户申请</Typography>:s.data.unfreezeRequests.map(r=><Box key={r.id} sx={{py:1.5,borderBottom:1,borderColor:'divider'}}><Stack direction="row" gap={1} alignItems="center"><Typography sx={{flex:1}}>{r.reason}</Typography><Status value={r.approval_status}/><Button component={Link} to={`/card-operations/${r.id}`}>处理申请</Button></Stack><Typography variant="caption">冻结版本 {r.freeze_revision} · {time(r.created_at)}</Typography><Typography variant="body2">{r.review_note||'尚无审批意见'}</Typography></Box>)}</Section><Section title="风控与审批历史"><GridRows rows={operations.rows} columns={operationColumns} total={operations.total} page={page} onPage={pager} href={oid=>`/card-operations/${oid}`}/></Section></>}
+        {tab==='audit'&&<Section title="操作日志"><AuditList rows={s.data.audit}/><Stack direction="row"><Button disabled={page===0} onClick={()=>pager(page-1)}>上一页</Button><Button disabled={s.data.audit.length<10} onClick={()=>pager(page+1)}>下一页</Button></Stack></Section>}
+      </Stack>
+      <Paper variant="outlined" sx={{p:2,position:{lg:'sticky'},top:{lg:150}}}><Typography variant="h6" sx={{mb:2}}>管理操作</Typography><Stack gap={1.5}>{actions.map(k=>{const a=c.actions[k];return <Box key={k}><Button fullWidth variant={k==='freeze'?'contained':'outlined'} color={k==='freeze'?'error':'primary'} disabled={k==='unfreeze'?live:!a.allowed} onClick={()=>k==='unfreeze'?change('risk'):setKind(k)}>{k==='unfreeze'?'处理解冻申请':kinds[k]}</Button>{!a.allowed&&<Typography variant="caption" color="text.secondary">{a.reason}</Typography>}</Box>;})}<Button onClick={e=>setMore(e.currentTarget)}>更多操作</Button><Menu anchorEl={more} open={!!more} onClose={()=>setMore(null)}><MenuItem disabled={!c.actions.debit.allowed} onClick={()=>{setMore(null);setKind('debit');}}>强制扣款</MenuItem></Menu>{!c.actions.debit.allowed&&<Typography variant="caption" color="text.secondary">强制扣款：{c.actions.debit.reason}</Typography>}{!live&&<Button component={Link} to={`/portal/cards/${id}`}>查看客户端</Button>}</Stack></Paper>
+    </Box>
+    {kind&&<ActionDialog card={c} accounts={accounts} kind={kind} onClose={()=>setKind('')} onDone={()=>{setKind('');void s.load();}}/>}
+  </Stack>;
 }
+function CardTransactions({id,live,card}:{id:string;live:boolean;card:Card}){
+ const [filters,setFilters]=useState({detailedStatus:'',originalCurrency:'',from:'',to:''}),[query,setQuery]=useState(filters),[page,setPage]=useState(0),[selected,setSelected]=useState<DrawerTransaction>();
+ const s=useData<Page<DrawerTransaction>>(`cards/${encodeURIComponent(id)}/transactions?${new URLSearchParams({...query,source:live?'slash':'demo',page:String(page),pageSize:'10'})}`);
+ const columns:GridColDef[]=[{field:'merchant',headerName:'商户 / 交易',flex:1,minWidth:170,renderCell:p=><MerchantCell name={p.row.merchant}/>},{field:'original',headerName:'原币金额',width:145,align:'right',headerAlign:'right',valueGetter:(_,r)=>originalText(r.originalCurrency)},{field:'amountCents',headerName:'账户金额',width:145,align:'right',headerAlign:'right',valueGetter:(_,r)=>`USD ${minorText(r.amountCents)}`},{field:'status',headerName:'状态',width:120,renderCell:p=><TransactionStatusChip status={p.row.status} detailedStatus={p.row.detailedStatus}/>},{field:'date',headerName:'来源时间 · UTC',width:190,valueFormatter:v=>time(v)},{field:'action',headerName:'操作',width:95,renderCell:p=><Button onClick={()=>setSelected(p.row)}>查看详情</Button>}];
+ return <Section title="卡交易流水"><Stack component="form" direction="row" gap={1} flexWrap="wrap" sx={{mb:2}} onSubmit={e=>{e.preventDefault();setQuery(filters);setPage(0);}}><TextField select size="small" label="状态" value={filters.detailedStatus} onChange={e=>setFilters({...filters,detailedStatus:e.target.value})} sx={{minWidth:145}}><MenuItem value="">全部</MenuItem>{slashTransactionFilters.map(x=><MenuItem key={x.value} value={x.value}>{x.label}</MenuItem>)}</TextField><TextField size="small" label="原币币种" value={filters.originalCurrency} onChange={e=>setFilters({...filters,originalCurrency:e.target.value.toUpperCase()})} sx={{width:110}}/>{(['from','to'] as const).map(k=><TextField key={k} size="small" type="date" InputLabelProps={{shrink:true}} label={k==='from'?'开始日期 · UTC':'截止日期（不含）'} value={filters[k]} onChange={e=>setFilters({...filters,[k]:e.target.value})}/>)}<Button type="submit" variant="contained">查询</Button></Stack><Notice {...s}/><Typography variant="caption" color="text.secondary">来源日期口径 · UTC · {live?'最近 30 天已手动采集记录，覆盖可能不完整':'本地合成来源记录'} · 卡资金划拨单独展示</Typography><DataGrid autoHeight rows={s.data?.rows||[]} columns={columns} rowCount={s.data?.total||0} paginationMode="server" disableRowSelectionOnClick disableColumnSorting paginationModel={{page,pageSize:10}} pageSizeOptions={[10]} onPaginationModelChange={p=>setPage(p.page)} onRowClick={p=>setSelected(p.row)} localeText={zhCN.components.MuiDataGrid.defaultProps.localeText}/><TransactionDrawer open={!!selected} transaction={selected} card={{id,cardName:card.name,maskedCardNumber:card.last4||undefined,internal:{customerName:card.owner?.name,customerId:card.owner_id}}} loading={false} error="" onClose={()=>setSelected(undefined)} onRetry={()=>void s.load()} onCard={()=>setSelected(undefined)}/></Section>;
+}
+
 function AuditList({ rows }: { rows: Audit[] }) {
   return rows.length ? (
     <Stack divider={<Divider />} gap={1}>
@@ -733,6 +612,8 @@ function ActionDialog({
   const nav = useNavigate(),
     [reason, setReason] = useState(""),
     [evidence, setEvidence] = useState(""),
+    [customerReason,setCustomerReason]=useState("卡片因风控审核暂停使用，请提交解冻申请。"),
+    [internalNote,setInternalNote]=useState(""),
     [amount, setAmount] = useState(""),
     [account, setAccount] = useState(accounts[0]?.id || ""),
     [quote, setQuote] = useState<Quote>(),
@@ -744,6 +625,7 @@ function ActionDialog({
     kind,
     reason,
     evidence,
+    ...(kind==='freeze'?{customerReason,internalNote}:{}),
     ...(funds
       ? {
           amountMinor: String(exactUnits(amount, 2)),
@@ -803,7 +685,7 @@ function ActionDialog({
                   ? "提交后立即建立本系统风控限制，渠道状态等待执行确认。"
                   : "提交后等待另一名有权限的操作员审批。审批通过后执行，最终结果单独展示。"}
               </Alert>
-              <Field label="操作原因">{reason}</Field>
+              <Field label="操作原因">{reason}</Field>{kind==='freeze'&&<><Field label="客户可见说明">{customerReason}</Field><Field label="内部备注">{internalNote||'—'}</Field></>}
               {funds && (
                 <>
                   <Field label="金额 / 费用">
@@ -862,6 +744,7 @@ function ActionDialog({
                   />
                 </>
               )}
+              {kind==='freeze'&&<><TextField label="客户可见说明" multiline value={customerReason} onChange={e=>setCustomerReason(e.target.value)} inputProps={{maxLength:500}}/><TextField label="内部备注（客户不可见）" multiline value={internalNote} onChange={e=>setInternalNote(e.target.value)} inputProps={{maxLength:500}}/></>}
               <TextField
                 label="操作原因"
                 multiline
@@ -907,6 +790,8 @@ function OperationDetail({
 }) {
   const s = useData<{
       operation: Operation;
+      customerRequest?:{freeze_revision:number}|null;
+      freezeNotes?:{customer_reason:string;internal_note:string|null}|null;
       audit: Audit[];
       job: { status: string; provider_ref: string; result: string } | null;
       entries: { account_id: string; amount_minor: string; currency: string }[];
@@ -952,7 +837,7 @@ function OperationDetail({
           <Field label="发起人 / 时间">
             {o.requester} / {time(o.created_at)}
           </Field>
-          <Field label="原因">{o.reason}</Field>
+          <Field label="原因">{o.reason}</Field>{s.data.freezeNotes&&<><Field label="客户可见说明">{s.data.freezeNotes.customer_reason}</Field><Field label="内部备注">{s.data.freezeNotes.internal_note}</Field></>}
           <Field label="金额 / 费用">
             {money(o.amount_minor)} /{" "}
             {o.amount_minor ? money(o.fee_minor) : "不适用"}
@@ -1015,7 +900,7 @@ function OperationDetail({
                   onClick={() => action("reject")}
                 >
                   拒绝申请
-                </Button>
+                </Button>{s.data.customerRequest&&<Button disabled={busy||!note.trim()} onClick={()=>action("return")}>退回补充资料</Button>}
               </Stack>
             </Stack>
           )}

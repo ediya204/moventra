@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {Link,Navigate,useParams,useSearchParams} from 'react-router-dom';
+import {Link,Navigate,useNavigate,useParams,useSearchParams} from 'react-router-dom';
 import {Alert,Box,Button,Container,MenuItem,Paper,Stack,TextField,Typography} from '@mui/material';
 import {DataGrid,type GridColDef} from '@mui/x-data-grid';
 import {zhCN} from '@mui/x-data-grid/locales';
@@ -25,7 +25,7 @@ export default function ChannelTransactionsPage(){
  return <ChannelContent key={user?.uid}/>;
 }
 function ChannelContent(){
- const {id}=useParams();const [params,setParams]=useSearchParams();const {signOut}=useAuth();
+ const navigate=useNavigate();const {id}=useParams();const [params,setParams]=useSearchParams();const {signOut}=useAuth();
  const [connections,setConnections]=useState<Connection[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(true),[data,setData]=useState<Page<Tx|Card>>(),[refresh,setRefresh]=useState(0);
  const [search,setSearch]=useState(params.get('keyword')||''),[selected,setSelected]=useState<Tx>(),[card,setCard]=useState<DrawerCard>(),[detailBusy,setDetailBusy]=useState(false),[detailError,setDetailError]=useState('');const request=useRef(0);
  const connection=params.get('connection')||connections[0]?.id||'';
@@ -38,7 +38,7 @@ function ChannelContent(){
  const show=async(row:Tx)=>{const token=++request.current;setSelected(row);setCard(undefined);setDetailError('');setDetailBusy(true);try{const detail=await liveGet<Page<Tx>>(`/admin-api/v1/channel-projections/${connection}/transactions/${row.id}`);if(token!==request.current)return;setSelected(detail.rows[0]);if(row.cardId){const linked=await liveGet<Page<Card>>(`/admin-api/v1/channel-projections/${connection}/cards/${row.cardId}`);if(token!==request.current)return;const c=linked.rows[0];setCard({...c,maskedCardNumber:c.last4?'•••• '+c.last4:undefined})}}catch(e){if(token===request.current)setDetailError(errorText(e))}finally{if(token===request.current)setDetailBusy(false)}};
  const columns:GridColDef<Tx>[]=[
  {field:'merchant',headerName:'商户 / 交易',minWidth:250,flex:1,renderCell:p=><MerchantCell name={p.row.merchant}/>},
- {field:'cardLast4',headerName:'所属卡片',width:210,renderCell:p=><Button component={Link} to={`/cards/${p.row.cardId}?connection=${connection}`} sx={{textTransform:'none'}}>{p.row.cardName||'名称未采集'} · {p.row.cardLast4?'•••• '+p.row.cardLast4:'尾号未采集'}</Button>},
+ {field:'cardLast4',headerName:'所属卡片',width:210,renderCell:p=><Button component={Link} to={`/cards/${encodeURIComponent(p.row.cardId||'')}?connection=${encodeURIComponent(connection)}`} sx={{textTransform:'none'}}>{p.row.cardName||'名称未采集'} · {p.row.cardLast4?'•••• '+p.row.cardLast4:'尾号未采集'}</Button>},
  {field:'originalCurrency',headerName:'原币金额',width:150,align:'right',headerAlign:'right',valueFormatter:originalText},
  {field:'amountCents',headerName:'账户金额 · USD',width:155,align:'right',headerAlign:'right',valueFormatter:(v:string)=>minorText(v)},
  {field:'detailedStatus',headerName:'状态',width:125,renderCell:p=><TransactionStatusChip status={p.row.status} detailedStatus={p.row.detailedStatus}/>},
@@ -55,6 +55,6 @@ function ChannelContent(){
  <Paper variant="outlined" sx={{p:2}}><Stack direction="row" flexWrap="wrap" gap={2} mb={2}><TextField label="商户、尾号或交易ID" size="small" value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&update({keyword:search})}/><TextField select size="small" label="状态" value={params.get('status')||''} onChange={e=>update({status:e.target.value})} sx={{minWidth:160}}><MenuItem value="">全部</MenuItem>{slashTransactionFilters.map(s=><MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}</TextField><TextField size="small" type="date" label="开始日期 · UTC" InputLabelProps={{shrink:true}} value={(params.get('from')||'').slice(0,10)} onChange={e=>update({from:e.target.value?e.target.value+'T00:00:00Z':''})}/><TextField size="small" type="date" label="截止日期 · UTC（不含）" InputLabelProps={{shrink:true}} value={(params.get('to')||'').slice(0,10)} onChange={e=>update({to:e.target.value?e.target.value+'T00:00:00Z':''})}/><Button variant="contained" onClick={()=>update({keyword:search})}>查询</Button></Stack>
  <DataGrid autoHeight rows={id?[]:(data?.rows as Tx[]||[])} columns={columns} loading={busy} disableRowSelectionOnClick disableColumnSorting disableColumnFilter paginationMode="server" rowCount={data?.total||0} paginationModel={{page,pageSize:20}} onPaginationModelChange={m=>{const q=new URLSearchParams(params);q.set('page',String(m.page));setParams(q)}} pageSizeOptions={[20]} localeText={zhCN.components.MuiDataGrid.defaultProps.localeText} getRowClassName={p=>transactionRowClass(p.row.status,p.row.detailedStatus)} sx={{...transactionRowStyles,'& .MuiDataGrid-cell':{fontVariantNumeric:'tabular-nums'}}}/></Paper>}
  <LogoAttribution/>
- </Stack></Container><TransactionDrawer open={Boolean(selected)} transaction={selected} card={card} loading={detailBusy} error={detailError} onClose={()=>{request.current++;setSelected(undefined)}} onRetry={()=>selected&&void show(selected)} onCard={cardId=>{request.current++;setSelected(undefined);window.location.assign(`/cards/${encodeURIComponent(cardId)}?connection=${encodeURIComponent(connection)}`)}}/>
+ </Stack></Container><TransactionDrawer open={Boolean(selected)} transaction={selected} card={card} loading={detailBusy} error={detailError} onClose={()=>{request.current++;setSelected(undefined)}} onRetry={()=>selected&&void show(selected)} onCard={cardId=>{request.current++;setSelected(undefined);navigate(`/cards/${encodeURIComponent(cardId)}?connection=${encodeURIComponent(connection)}`)}}/>
  </Box>;
 }

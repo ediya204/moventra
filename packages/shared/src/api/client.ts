@@ -15,6 +15,7 @@ const READ_ONLY_ALLOWLIST: AllowRule[] = [
   {method:'POST',path:/^\/local-slash-demo\/management\/live\/sync$/,purpose:'触发本地只读同步，不调用渠道写接口'},
   {method:'GET',path:/^\/local-slash-demo\/management\/finance\/(context|export|flows(\/[^/]+)?|orders(\/[^/]+)?)$/,purpose:'隔离数字货币账本与订单查询'},
   {method:'POST',path:/^\/local-slash-demo\/management\/finance\/(pricing|quotes|orders|orders\/[^/]+\/(confirm|review|amend|cancel|return|risk-check|execute|reconcile|payout))$/,purpose:'隔离内部兑换与出金审批'},
+  {method:'GET',path:/^\/local-slash-demo\/management\/card-admin\/cards\/[^/]+\/transactions$/,purpose:'卡片授权范围内交易查询'},
   {method:'GET',path:/^\/local-slash-demo\/management\/card-admin\/(identity|cards|operations)(\/[^/]+)?$/,purpose:'隔离卡片管理查询'},
   {method:'POST',path:/^\/local-slash-demo\/management\/card-admin\/(cards\/[^/]+\/(preview|operations)|operations\/[^/]+\/(review|refresh))$/,purpose:'隔离卡片权限审批与账本'},
   {method:'GET',path:/^\/local-slash-demo\/management\/fx\/(meta|report|balances|differences|export|cards\/[^/]+|transactions(\/[^/]+(\/(timeline|relations))?)?)$/,purpose:'本地精确跨币种查询'},
