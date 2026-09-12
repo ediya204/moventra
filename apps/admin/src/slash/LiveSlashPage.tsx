@@ -105,11 +105,11 @@ function LiveDirectory({kind}:{kind:'cards'|'transactions'}){
      {slashTransactionFilters.map(x=><MenuItem key={x.value} value={x.value}><Stack direction="row" alignItems="center" gap={1}><Chip size="small" variant="outlined" label={x.label} color={x.color}/><Typography variant="body2" color="text.secondary">{x.value}</Typography></Stack></MenuItem>)}
      {params.get('detailedStatus')&&!slashTransactionFilters.some(x=>x.value===params.get('detailedStatus'))&&<MenuItem value={params.get('detailedStatus')!}>{sourceLabel(params.get('detailedStatus'),detailLabels)}</MenuItem>}
     </TextField>
-    {params.get('status')&&<Chip sx={{alignSelf:'center'}} label={`入账状态：${sourceLabel(params.get('status'),postingLabels)}`} onDelete={()=>change({status:''})}/>}
     <TextField select size="small" label="时间范围（UTC）" sx={{minWidth:180}} value={timeRange.mode} onChange={e=>change(e.target.value==='custom'?{range:'custom',fromDate:timeRange.fromDate,toDate:timeRange.toDate}:{range:e.target.value,fromDate:'',toDate:''})}>
      {[7,14,30].map(n=><MenuItem key={n} value={String(n)}>最近 {n} 天</MenuItem>)}<MenuItem value="custom">自定义日期</MenuItem>
     </TextField>
     {timeRange.mode==='custom'&&<Stack direction={{xs:'column',sm:'row'}} gap={2} sx={{width:{xs:'100%',sm:'auto'}}}><TextField type="date" size="small" label="开始日期（UTC）" sx={{minWidth:190,flex:1}} value={timeRange.fromDate} onChange={e=>change({fromDate:e.target.value})} InputLabelProps={{shrink:true}} inputProps={{max:new Date().toISOString().slice(0,10)}} error={!!rangeError}/><TextField type="date" size="small" label="结束日期（UTC，含当日）" sx={{minWidth:230,flex:1}} value={timeRange.toDate} onChange={e=>change({toDate:e.target.value})} InputLabelProps={{shrink:true}} inputProps={{max:new Date().toISOString().slice(0,10)}} error={!!rangeError}/></Stack>}
+    {params.get('status')&&<Chip sx={{alignSelf:'center'}} label={`入账状态：${sourceLabel(params.get('status'),postingLabels)}`} onDelete={()=>change({status:''})}/>}
    </>}
    {kind==='cards'&&<TextField select size="small" label="导入分组" sx={{minWidth:200}} value={params.get('group')||''} onChange={e=>change({group:e.target.value})}><MenuItem value="">两组全部</MenuItem>{Object.entries(groups).map(([k,v])=><MenuItem key={k} value={k}>{v}</MenuItem>)}</TextField>}
    <Button variant="contained" disabled={!!rangeError} onClick={()=>change({keyword})}>查询</Button>{params.get('cardId')&&<Button onClick={()=>change({cardId:''})}>清除单卡筛选</Button>}

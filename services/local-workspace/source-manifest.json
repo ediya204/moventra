@@ -14,7 +14,7 @@
     {
       "path": "demo-server/slash/management-http.mjs",
       "sha256": "a8fc58f6681ba1bb4aad6487d752b9c4c517bae542458274deeeae5fe944d054",
-      "recoveredSha256": "a8fc58f6681ba1bb4aad6487d752b9c4c517bae542458274deeeae5fe944d054"
+      "recoveredSha256": "f8f905052aa8f2287909c4524f3ba4845736775f3244ddb8de7187a1b247a47a"
     },
     {
       "path": "demo-server/slash/live-date-range.mjs",

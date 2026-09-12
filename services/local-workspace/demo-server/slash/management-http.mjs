@@ -77,14 +77,15 @@ export function managementHandler(db, ns, {live}={}) {
         }
       }
       if (path === "session" && req.method === "POST") {
+        const username=body.username==='demo@moventra.local'?'demo@adsflow.local':body.username;
         if (
-          !Object.hasOwn(demoIdentities,body.username) ||
+          !Object.hasOwn(demoIdentities,username) ||
           body.password !== "demo-only"
         ) {
           send({ message: "本地Demo凭据错误" }, 401);
           return true;
         }
-        const identity=demoIdentities[body.username];
+        const identity=demoIdentities[username];
         const token = createSession(db, ns, "operator", identity.actor);
         send(
           { actor: identity.actor, mode: "local-demo" },

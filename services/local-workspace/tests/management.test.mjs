@@ -412,3 +412,14 @@ test("Batch cleanup cascades management state and preserves another namespace", 
     2,
   );
 });
+
+test('current Moventra local login name opens the recovered management session', async t => {
+ const db=setup(t),server=createDemoServer(db,ns);server.listen(0,'127.0.0.1');await once(server,'listening');
+ try {
+  const base=`http://127.0.0.1:${server.address().port}`;
+  const response=await fetch(base+'/admin-api/settlement-management/demo/management/session',{method:'POST',headers:{Origin:'http://127.0.0.1:8850','Content-Type':'application/json'},body:JSON.stringify({username:'demo@moventra.local',password:'demo-only'})});
+  assert.equal(response.status,200);assert.equal((await response.json()).data.actor,'demo-operator');
+  const cookie=response.headers.get('set-cookie').split(';')[0];
+  const check=await fetch(base+'/admin-api/settlement-management/demo/management/session',{headers:{Cookie:cookie}});assert.equal(check.status,200);
+ } finally {server.close();}
+});
