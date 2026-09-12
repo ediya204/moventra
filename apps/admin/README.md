@@ -33,3 +33,7 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 ## 2026-09-13 联合发布候选
 
 运营总览、渠道交易/卡片详情与开户审批共用本地 DashboardLayout。保留六组菜单，尚未接入的功能禁用。登录统一为 `/admin/login`，后端角色、MFA 与客户范围各自校验。发布依赖增量角色迁移 004，详见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。
+
+## 2026-09-13 已有模块恢复
+
+正式新增 `/cards`（服务端分页、名称/尾号/来源状态查询）、`/customers`（已有账户授权）和 `/system/channels`（采集/导入状态）。卡详情可查看此卡交易并返回卡片目录。其余已存在的本地模块菜单标注待迁移；原 Node 服务和 135 项回归已恢复，使用根目录 `pnpm workspace:dev` 可独立复现。生产构建继续排除 Demo 路由。见[恢复清单](../../docs/business/existing-modules-restoration-2026-09-13.md)。

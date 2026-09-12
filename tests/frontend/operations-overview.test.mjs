@@ -171,8 +171,8 @@ test('channel transport allows existing read queries and rejects foreign destina
  const requests=[];network.auth.currentUser={getIdToken:async()=>'fixture-token'};
  globalThis.fetch=async(path,options)=>{requests.push({path,options});return {ok:true,status:200,json:async()=>({data:[]})};};
  const admin=await transport(true),base='/admin-api/v1/channel-projections';
- for(const path of [base,base+'/slash-live/transactions?revision=1&keyword=Google&page=0',base+'/slash-live/transactions/tx_1',base+'/slash-live/cards/card_1'])await admin.liveGet(path);
- for(const path of [base+'/slash-live/cards',base+'/slash-live/payout',base+'/../users',base+'/slash-live/transactions?target=evil',base+'/slash-live/transactions?page=0&page=1','https://evil.example'+base,base+'/slash-live/cards/card_1#fragment'])await assert.rejects(admin.liveGet(path),{code:'invalid_path'});
+ for(const path of [base,base+'/slash-live/transactions?revision=1&keyword=Google&page=0',base+'/slash-live/transactions/tx_1',base+'/slash-live/cards/card_1',base+'/slash-live/cards?keyword=test&cardStatus=active&page=1',base+'/slash-live/transactions?cardId=card_1'])await admin.liveGet(path);
+ for(const path of [base+'/slash-live/cards?from=bad',base+'/slash-live/payout',base+'/../users',base+'/slash-live/transactions?target=evil',base+'/slash-live/transactions?page=0&page=1','https://evil.example'+base,base+'/slash-live/cards/card_1#fragment'])await assert.rejects(admin.liveGet(path),{code:'invalid_path'});
  const client=await transport(false);await assert.rejects(client.liveGet(base),{code:'invalid_path'});
- assert.equal(requests.length,4);assert.ok(requests.every(r=>r.options.method==='GET'&&r.options.credentials==='omit'&&r.options.redirect==='error'));
+ assert.equal(requests.length,6);assert.ok(requests.every(r=>r.options.method==='GET'&&r.options.credentials==='omit'&&r.options.redirect==='error'));
 });

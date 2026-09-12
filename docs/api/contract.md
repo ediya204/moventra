@@ -193,3 +193,9 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-13 联合候选：身份入口
 
 新增 GET `/client-api/v1/me` 与 `/admin-api/v1/me`，返回必需 role=customer/admin；兼容 `/api/v1/me` 保留真实角色。跨端角色 403（customer_required/operator_required），身份认证与客户/渠道授权、运营 MFA 分开验证。既有开户、渠道和金融金额契约保留。需增量迁移 004，当前生产未执行；见[联合发布记录](../releases/2026-09-13-admin-login-joint.md)。
+
+## 2026-09-13 正式目录查询增量（LOCAL）
+
+已有 `GET /admin-api/v1/channel-projections/:connection/cards` 开放正式目录：每页 20 条；page/keyword/cardStatus/revision。keyword 查卡名、尾号或 ID；cardStatus 精确来源状态，未知值不转换。卡片查询不接受交易日期或 detailedStatus。交易列表增加 cardId，严格限制在当前获授权连接/导入版本，不改变金额或状态。身份、MFA、channel_read_grants 和审计与原详情保持一致。
+
+正式账户目录使用既有 `GET /admin-api/v1/customers/:id/accounts?limit=20&offset=N`；前端保留 meta.hasMore，客户端/后台身份隔离不变。旧 Node 管理契约已恢复至 services/local-workspace，但未作为正式 API 开放。

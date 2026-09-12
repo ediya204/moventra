@@ -3,6 +3,8 @@ import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { PageSkeleton } from '../../../packages/shared/src/components/AsyncState';
 import { isDemoMode } from '../../../packages/shared/src/utils/dataMode';
 import {useAuth} from '../../../packages/shared/src/auth/AuthContext';
+const CustomerDirectoryPage=lazy(()=>import('./operations/CustomerDirectoryPage'));
+const CardsPage=lazy(()=>import('./operations/CardsPage'));
 const OnboardingPage=lazy(()=>import('./operations/OnboardingPage'));
 const ChannelTransactionsPage=lazy(()=>import('./operations/ChannelTransactionsPage'));
 const OperationsPage=lazy(()=>import('./operations/OperationsPage'));
@@ -18,6 +20,9 @@ export default function App(){
   <Route path="/portal/*" element={<div role="alert">404 · 此站点不提供客户登录</div>}/>
   <Route path="/session" element={<SessionEntry/>}/>
   <Route path="/transactions" element={<ChannelTransactionsPage/>}/>
+  <Route path="/customers" element={<CustomerDirectoryPage/>}/>
+  <Route path="/cards" element={<CardsPage/>}/>
+  <Route path="/system/channels" element={<CardsPage channels/>}/>
   <Route path="/cards/:id" element={<ChannelTransactionsPage/>}/>
   <Route path="/" element={<Navigate to="/workbench" replace/>}/>
   <Route path="/onboarding" element={<OnboardingPage/>}/>

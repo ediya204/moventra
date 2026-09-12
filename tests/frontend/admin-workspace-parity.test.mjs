@@ -9,12 +9,12 @@ test('production uses local navigation groups but only connected destinations ar
  assert.ok(items.some(i=>i.path==='/onboarding'&&isProductionPath(i.path)));
  assert.ok(items.some(i=>i.path==='/transactions'&&isProductionPath(i.path)));
  assert.ok(items.some(i=>i.path==='/session?security=1'&&isProductionPath(i.path)));
- for(const path of ['/finance/withdrawals','/approvals','/cards','/user-groups/users','/system/settings'])assert.equal(isProductionPath(path),false);
+ for(const path of ['/finance/withdrawals','/approvals','/user-groups/users','/system/settings'])assert.equal(isProductionPath(path),false);
  assert.ok(!items.some(i=>i.path.startsWith('/demo')));
 });
 test('formal entry keeps transaction/card deep links and DEV-only demo isolation',()=>{
  const app=read('apps/admin/src/App.tsx');
- for(const path of ['/transactions','/cards/:id','/workbench','/onboarding','/onboarding/:customerId'])assert.ok(app.includes(`path="${path}"`));
+ for(const path of ['/customers','/cards','/system/channels','/transactions','/cards/:id','/workbench','/onboarding','/onboarding/:customerId'])assert.ok(app.includes(`path="${path}"`));
  assert.match(app,/import\.meta\.env\.DEV \? lazy/);
  for(const name of ['OperationsPage','ChannelTransactionsPage','OnboardingPage']){
   const page=read(`apps/admin/src/operations/${name}.tsx`);

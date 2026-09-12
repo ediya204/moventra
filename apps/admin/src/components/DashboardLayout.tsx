@@ -107,7 +107,7 @@ function Navigation({ onNavigate, production = false }: { onNavigate?: () => voi
                 to={production && !isProductionPath(item.path) ? "#" : item.path}
                 disabled={production && !isProductionPath(item.path)}
                 aria-disabled={production && !isProductionPath(item.path)}
-                title={production && !isProductionPath(item.path) ? "正式服务尚未接入" : undefined}
+                title={production && !isProductionPath(item.path) ? "已有本地功能，尚未迁入正式服务" : undefined}
                 selected={active}
                 onClick={event => { if (production && !isProductionPath(item.path)) { event.preventDefault(); return; } onNavigate?.(); }}
                 sx={{
@@ -127,7 +127,7 @@ function Navigation({ onNavigate, production = false }: { onNavigate?: () => voi
                   <Icon icon={item.icon} width={24} />
                 </ListItemIcon>
                 <ListItemText
-                  primary={production && !isProductionPath(item.path) ? `${item.label} · 未接入` : item.label}
+                  primary={production && !isProductionPath(item.path) ? `${item.label} · 待迁移` : item.label}
                   primaryTypographyProps={{
                     variant: "body2",
                     fontWeight: active ? 700 : 600,
@@ -199,7 +199,7 @@ function Navigation({ onNavigate, production = false }: { onNavigate?: () => voi
                           to={production && !isProductionPath(item.path) ? "#" : item.path}
                 disabled={production && !isProductionPath(item.path)}
                 aria-disabled={production && !isProductionPath(item.path)}
-                title={production && !isProductionPath(item.path) ? "正式服务尚未接入" : undefined}
+                title={production && !isProductionPath(item.path) ? "已有本地功能，尚未迁入正式服务" : undefined}
                           selected={active}
                           onClick={event => { if (production && !isProductionPath(item.path)) { event.preventDefault(); return; } onNavigate?.(); }}
                           sx={{
@@ -218,7 +218,7 @@ function Navigation({ onNavigate, production = false }: { onNavigate?: () => voi
                             <Icon icon={item.icon} width={19} />
                           </ListItemIcon>
                           <ListItemText
-                            primary={production && !isProductionPath(item.path) ? `${item.label} · 未接入` : item.label}
+                            primary={production && !isProductionPath(item.path) ? `${item.label} · 待迁移` : item.label}
                             primaryTypographyProps={{
                               variant: "body2",
                               fontWeight: active ? 700 : 500,
@@ -249,7 +249,7 @@ function Navigation({ onNavigate, production = false }: { onNavigate?: () => voi
             color="text.secondary"
             sx={{ display: "block", mt: 0.8 }}
           >
-            {production ? "仅展示已授权的正式数据；未接入功能不开放操作。" : livePage ? "此页显示已导入的 Slash 真实数据，更新状态见页面；其他演示模块独立。" : isDemoMode
+            {production ? "仅展示已授权的正式数据；本地功能迁入正式服务后开放操作。" : livePage ? "此页显示已导入的 Slash 真实数据，更新状态见页面；其他演示模块独立。" : isDemoMode
               ? "使用独立本地 Demo 数据，不连接线上写接口。"
               : "现有业务读取线上数据；新增管理操作保存到本地 Demo。"}
           </Typography>

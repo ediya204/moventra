@@ -23,12 +23,16 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	connection := r.PathValue("connection")
 	resource := r.PathValue("resource")
 	id := r.PathValue("id")
-	allowed := map[string]bool{"page": true, "keyword": true, "detailedStatus": true, "from": true, "to": true, "revision": true}
+	allowed := map[string]bool{"page": true, "keyword": true, "detailedStatus": true, "from": true, "to": true, "revision": true, "cardId": true, "cardStatus": true}
 	for k, v := range q {
 		if !allowed[k] || len(v) != 1 || len(v[0]) > 200 || connection == "" || id != "" {
 			fail(w, 400, "invalid_query")
 			return
 		}
+	}
+	if resource == "cards" && (q.Has("detailedStatus") || q.Has("from") || q.Has("to") || q.Has("cardId")) || resource == "transactions" && q.Has("cardStatus") {
+		fail(w, 400, "invalid_query")
+		return
 	}
 	page := 0
 	if q.Has("page") {
@@ -119,13 +123,13 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	}
 	data := []json.RawMessage{}
 	var total int
-	where := `connection_id=$1 AND revision=$2 AND kind=$3 AND ($4='' OR external_id=$4) AND ($5='' OR data->>'merchant' ILIKE '%'||$5||'%' OR data->>'cardLast4'=$5 OR external_id=$5) AND ($6='' OR data->>'detailedStatus'=$6) AND ($7::timestamptz IS NULL OR (data->>'date')::timestamptz >= $7) AND ($8::timestamptz IS NULL OR (data->>'date')::timestamptz < $8)`
-	args := []any{connection, revision, kind, id, q.Get("keyword"), q.Get("detailedStatus"), from, to}
+	where := `connection_id=$1 AND revision=$2 AND kind=$3 AND ($4='' OR external_id=$4) AND ($5='' OR data->>'merchant' ILIKE '%'||$5||'%' OR data->>'cardLast4'=$5 OR external_id=$5 OR ($3='card' AND (data->>'cardName' ILIKE '%'||$5||'%' OR data->>'name' ILIKE '%'||$5||'%' OR data->>'last4'=$5))) AND ($6='' OR data->>'detailedStatus'=$6) AND ($7::timestamptz IS NULL OR (data->>'date')::timestamptz >= $7) AND ($8::timestamptz IS NULL OR (data->>'date')::timestamptz < $8) AND ($9='' OR data->>'cardId'=$9) AND ($10='' OR data->>'cardStatus'=$10)`
+	args := []any{connection, revision, kind, id, q.Get("keyword"), q.Get("detailedStatus"), from, to, q.Get("cardId"), q.Get("cardStatus")}
 	if e = tx.QueryRow(r.Context(), `SELECT count(*) FROM channel_records WHERE `+where, args...).Scan(&total); e != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return
 	}
-	rows, e := tx.Query(r.Context(), `SELECT data FROM channel_records WHERE `+where+` ORDER BY (data->>'date')::timestamptz DESC NULLS LAST,external_id LIMIT 20 OFFSET $9`, append(args, page*20)...)
+	rows, e := tx.Query(r.Context(), `SELECT data FROM channel_records WHERE `+where+` ORDER BY (data->>'date')::timestamptz DESC NULLS LAST,external_id LIMIT 20 OFFSET $11`, append(args, page*20)...)
 	if e != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return

@@ -60,16 +60,23 @@ export function isChannelReadPath(path: string): boolean {
   if (path.includes('#') || path.split('?').length > 2) return false;
   const base = '/admin-api/v1/channel-projections/[A-Za-z0-9_-]+';
   if (new RegExp('^' + base + '/(transactions|cards)/[A-Za-z0-9_-]+$').test(pathname)) return !query;
-  if (!new RegExp('^' + base + '/transactions$').test(pathname)) return false;
+  if (!new RegExp('^' + base + '/(transactions|cards)$').test(pathname)) return false;
   const params = new URLSearchParams(query);
-  const allowed = new Set(['revision', 'keyword', 'detailedStatus', 'from', 'to', 'page']);
+  const allowed = new Set(pathname.endsWith('/cards') ? ['revision', 'keyword', 'cardStatus', 'page'] : ['revision', 'keyword', 'detailedStatus', 'from', 'to', 'page', 'cardId']);
   return [...params.keys()].every(key => allowed.has(key) && params.getAll(key).length === 1);
 }
 
+export function isCustomerReadPath(path: string): boolean {
+ const [pathname, query = ''] = path.split('?');
+ if (path.includes('#') || path.split('?').length > 2 || !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(pathname)) return false;
+ const params = new URLSearchParams(query);
+ return [...params.keys()].every(key => ['limit', 'offset'].includes(key) && params.getAll(key).length === 1 && /^\d+$/.test(params.get(key)!));
+}
+
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
-async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}): Promise<T> {
+async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}, envelope = false): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
@@ -81,10 +88,16 @@ async function liveRequest<T>(path: string, body?: { name: string } | {action:st
   if (!response.ok) throw new SessionError(payload?.error?.code || 'temporarily_unavailable', response.status);
   if (getFirebaseAuth().currentUser !== user) throw new SessionError('unauthenticated', 401);
   if (!payload || typeof payload.data !== 'object' || payload.data === null) throw new SessionError('invalid_api_response', response.status);
-  return payload.data as T;
+  return (envelope ? payload : payload.data) as T;
 }
 
 export const liveGet = <T>(path: string) => liveRequest<T>(path);
 export const registerUser = (name: string) => liveRequest<{ id: string }>('/api/v1/register', { name });
 
 export const updateOnboarding = (path:string, input:{action:string;revision:number;reason:string}) => liveRequest<import("./onboarding").OnboardingState>(path,input);
+
+export async function liveGetPage<T>(path:string):Promise<{data:T[];meta:{limit:number;offset:number;hasMore:boolean}}> {
+ const result=await liveRequest<{data:T[];meta:{limit:number;offset:number;hasMore:boolean}}>(path,undefined,true);
+ if(!Array.isArray(result.data)||typeof result.meta?.hasMore!=='boolean')throw new SessionError('invalid_api_response');
+ return result;
+}

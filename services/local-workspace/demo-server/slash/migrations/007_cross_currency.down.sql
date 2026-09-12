@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS fx_projection_state;
+DROP TABLE IF EXISTS fx_assets;
+DROP TABLE IF EXISTS fx_daily;
+DROP TABLE IF EXISTS fx_balances;
+DROP TABLE IF EXISTS fx_deliveries;
+DROP TABLE IF EXISTS fx_events;
+DROP TABLE IF EXISTS fx_relations;
+DROP TABLE IF EXISTS fx_observations;
+DROP TABLE IF EXISTS fx_records;
+DELETE FROM schema_migrations WHERE version=7;

@@ -1,0 +1,3 @@
+-- New tables preserve legacy expiring quotes and completed orders unchanged.
+CREATE TABLE IF NOT EXISTS fn_fixed_prices(namespace TEXT NOT NULL REFERENCES demo_batches(namespace),version INTEGER NOT NULL,usd_per_usdt TEXT NOT NULL,actor TEXT NOT NULL,reason TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(namespace,version));
+CREATE TABLE IF NOT EXISTS fn_fixed_quotes(namespace TEXT NOT NULL REFERENCES demo_batches(namespace),id TEXT NOT NULL,actor TEXT NOT NULL,customer TEXT NOT NULL,price_version INTEGER NOT NULL,used_by TEXT,data_json TEXT NOT NULL,PRIMARY KEY(namespace,id),FOREIGN KEY(namespace,price_version) REFERENCES fn_fixed_prices(namespace,version));

@@ -1,0 +1,281 @@
+{
+  "source": "ADSFLOW local workspace, 2026-09-13",
+  "files": [
+    {
+      "path": "demo-server/slash/console.mjs",
+      "sha256": "45490e58aadd46d29de8d7f264f43ab6a772374d5e68f326f756c98fd87c742d",
+      "recoveredSha256": "45490e58aadd46d29de8d7f264f43ab6a772374d5e68f326f756c98fd87c742d"
+    },
+    {
+      "path": "demo-server/slash/portal.mjs",
+      "sha256": "c2d827f2f4334b798bfb65288f6be31da5bffbab5994ccb20dc5b957f4d85dfe",
+      "recoveredSha256": "78e4e4bbd8555296ef24240c089de07558658edbe639c3802ac5a16c522f47ad"
+    },
+    {
+      "path": "demo-server/slash/management-http.mjs",
+      "sha256": "a8fc58f6681ba1bb4aad6487d752b9c4c517bae542458274deeeae5fe944d054",
+      "recoveredSha256": "a8fc58f6681ba1bb4aad6487d752b9c4c517bae542458274deeeae5fe944d054"
+    },
+    {
+      "path": "demo-server/slash/live-date-range.mjs",
+      "sha256": "b35a837af65f1c59bb077f256d994d6efd9a0087feb5f7465d2bb3ef6e1ec89c",
+      "recoveredSha256": "b35a837af65f1c59bb077f256d994d6efd9a0087feb5f7465d2bb3ef6e1ec89c"
+    },
+    {
+      "path": "demo-server/slash/official-schema.json",
+      "sha256": "c6cd86eda9f16cfea886147e4efc1cd8a8c9bb468829b2f5773fa8442582d3bf",
+      "recoveredSha256": "c6cd86eda9f16cfea886147e4efc1cd8a8c9bb468829b2f5773fa8442582d3bf"
+    },
+    {
+      "path": "demo-server/slash/crypto-finance-cli.mjs",
+      "sha256": "b8a42a1c88257b8f076c3f430d4aaa6ad760ced9d5de49e82d4eeebb9f863150",
+      "recoveredSha256": "b8a42a1c88257b8f076c3f430d4aaa6ad760ced9d5de49e82d4eeebb9f863150"
+    },
+    {
+      "path": "demo-server/slash/card-workspace.mjs",
+      "sha256": "03c2de37fcd3ce4d09e3e4e2aea4afa371a9ed9cf01afa962fc19cdac7c16366",
+      "recoveredSha256": "03c2de37fcd3ce4d09e3e4e2aea4afa371a9ed9cf01afa962fc19cdac7c16366"
+    },
+    {
+      "path": "demo-server/slash/card-ownership.mjs",
+      "sha256": "793cd6438565dae3ddc8af5197d7c88305091fb4ee5b876c9236c04345263f4b",
+      "recoveredSha256": "793cd6438565dae3ddc8af5197d7c88305091fb4ee5b876c9236c04345263f4b"
+    },
+    {
+      "path": "demo-server/slash/crypto-finance.mjs",
+      "sha256": "105f75a5fda1369b6d8eec1f453f8912760d549c50a0cec1ea72b683855bbf2b",
+      "recoveredSha256": "2df2b5ee84a60ab5ea9636e67eb482f70c624b11cc734a54dbb02f2fc2a675f0"
+    },
+    {
+      "path": "demo-server/slash/live.mjs",
+      "sha256": "a5555611dc62399cb1a9d50e25bff9598980ca8f6056e2c7c1307299e51c12af",
+      "recoveredSha256": "a5555611dc62399cb1a9d50e25bff9598980ca8f6056e2c7c1307299e51c12af"
+    },
+    {
+      "path": "demo-server/slash/start.mjs",
+      "sha256": "671090607a470dcd88f9d42718ad916b66f49a05ed25ce27383db0271fec5379",
+      "recoveredSha256": "9fa0dfc63a22eb4fc8a6da269827630f98500706835f260eaa65a73ab9c0d725"
+    },
+    {
+      "path": "demo-server/slash/live-overview.mjs",
+      "sha256": "ee1a4ff3139f9144296a93d4be5bccffdb9bf0f1a182261346dcc984deb333b6",
+      "recoveredSha256": "ee1a4ff3139f9144296a93d4be5bccffdb9bf0f1a182261346dcc984deb333b6"
+    },
+    {
+      "path": "demo-server/slash/bins.mjs",
+      "sha256": "3998f9ff56bf4874afd53a129fc66a727f32c2126162725c2296fc335933f05f",
+      "recoveredSha256": "3998f9ff56bf4874afd53a129fc66a727f32c2126162725c2296fc335933f05f"
+    },
+    {
+      "path": "demo-server/slash/import-verified-catalog.mjs",
+      "sha256": "7d63900bec7556ccecf1b210625a27eb88190bfd5ea214ecb38d13c2f311b8a7",
+      "recoveredSha256": "7d63900bec7556ccecf1b210625a27eb88190bfd5ea214ecb38d13c2f311b8a7"
+    },
+    {
+      "path": "demo-server/slash/store.mjs",
+      "sha256": "b16c2363f7cfd0e97eb0c7ce76afe7f6b96a86a54b580469e06c8d8962e6749d",
+      "recoveredSha256": "b16c2363f7cfd0e97eb0c7ce76afe7f6b96a86a54b580469e06c8d8962e6749d"
+    },
+    {
+      "path": "demo-server/slash/card-admin.mjs",
+      "sha256": "c5c33b0440e94d1afadd26f84fff01fd9395404af9ea4111024c8689294d920f",
+      "recoveredSha256": "c5c33b0440e94d1afadd26f84fff01fd9395404af9ea4111024c8689294d920f"
+    },
+    {
+      "path": "demo-server/slash/generate.mjs",
+      "sha256": "fee3cdcd4d2dcc15cf19907363ce1ddaf5251bbd1241160b20e6fb368d62b0de",
+      "recoveredSha256": "fee3cdcd4d2dcc15cf19907363ce1ddaf5251bbd1241160b20e6fb368d62b0de"
+    },
+    {
+      "path": "demo-server/slash/server.mjs",
+      "sha256": "b664eaea578e86ceaf62c43fcd8d689d36f4730db8b871340c6d440160505cf2",
+      "recoveredSha256": "3d26c22ef656ebe190da48adee518e476775e8210c90585c7edda20d007a0863"
+    },
+    {
+      "path": "demo-server/slash/card-admin-cli.mjs",
+      "sha256": "303e7fbead346e801d1e222ed84b860680141da3875d2a62d53086711cf6bebf",
+      "recoveredSha256": "303e7fbead346e801d1e222ed84b860680141da3875d2a62d53086711cf6bebf"
+    },
+    {
+      "path": "demo-server/slash/management.mjs",
+      "sha256": "0396270306c4f43a86f779bc839678f81a1cfa757d99f95c555312058e13dc92",
+      "recoveredSha256": "0396270306c4f43a86f779bc839678f81a1cfa757d99f95c555312058e13dc92"
+    },
+    {
+      "path": "demo-server/slash/channels.mjs",
+      "sha256": "70fce4ebc6414f20bb3834b7cf42b639451efbbe4162e67d1de9f944da1ade86",
+      "recoveredSha256": "70fce4ebc6414f20bb3834b7cf42b639451efbbe4162e67d1de9f944da1ade86"
+    },
+    {
+      "path": "demo-server/slash/model.mjs",
+      "sha256": "9953f81ae6c96b3827c41b4752de51f44ed76b95f23781aaa52f69e926121229",
+      "recoveredSha256": "9953f81ae6c96b3827c41b4752de51f44ed76b95f23781aaa52f69e926121229"
+    },
+    {
+      "path": "demo-server/slash/cli.mjs",
+      "sha256": "c09b6f054df0dc98e7a88be47089c9b65a58e8f5320fae96d5d305f2ef0e01ff",
+      "recoveredSha256": "c09b6f054df0dc98e7a88be47089c9b65a58e8f5320fae96d5d305f2ef0e01ff"
+    },
+    {
+      "path": "demo-server/slash/migrations/011_finance_approval_policy.sql",
+      "sha256": "3900da3cbe7bc15fcb73607560324417063422f734ffd832b27e8039d09e161b",
+      "recoveredSha256": "3900da3cbe7bc15fcb73607560324417063422f734ffd832b27e8039d09e161b"
+    },
+    {
+      "path": "demo-server/slash/migrations/008_unified_card_transactions.sql",
+      "sha256": "94c2fbe17c0e88f9b3bfe01cb8a5857c8c7631d3d3f1803e19446dad500c830c",
+      "recoveredSha256": "94c2fbe17c0e88f9b3bfe01cb8a5857c8c7631d3d3f1803e19446dad500c830c"
+    },
+    {
+      "path": "demo-server/slash/migrations/009_card_administration.sql",
+      "sha256": "bbc238900db51e2ced452a587abe0d27e64588d91e7d23c8c63e79242781246b",
+      "recoveredSha256": "bbc238900db51e2ced452a587abe0d27e64588d91e7d23c8c63e79242781246b"
+    },
+    {
+      "path": "demo-server/slash/migrations/014_card_unfreeze_requests.sql",
+      "sha256": "b0be355acaf6d7050f1e8dc7e53d263c973de32a4fa2e8e97f8b5cdcef28d9d9",
+      "recoveredSha256": "b0be355acaf6d7050f1e8dc7e53d263c973de32a4fa2e8e97f8b5cdcef28d9d9"
+    },
+    {
+      "path": "demo-server/slash/migrations/003_user_management.down.sql",
+      "sha256": "844f188399b3cc3cc1773e539dd18d29a45bc13a083058d96b98e92b14bdee41",
+      "recoveredSha256": "844f188399b3cc3cc1773e539dd18d29a45bc13a083058d96b98e92b14bdee41"
+    },
+    {
+      "path": "demo-server/slash/migrations/003_user_management.sql",
+      "sha256": "30903a43b201bfb67957f9c025a30e3e4a016412cb4e7d478907050dcd6c018d",
+      "recoveredSha256": "30903a43b201bfb67957f9c025a30e3e4a016412cb4e7d478907050dcd6c018d"
+    },
+    {
+      "path": "demo-server/slash/migrations/007_cross_currency.sql",
+      "sha256": "8164b1e9ecc767edb067a85878031aa31358e847545c07dc63cb8f24bf9e87f6",
+      "recoveredSha256": "8164b1e9ecc767edb067a85878031aa31358e847545c07dc63cb8f24bf9e87f6"
+    },
+    {
+      "path": "demo-server/slash/migrations/004_admin_console.down.sql",
+      "sha256": "5858e6800432ee98110188d498fe84e39b39d5a5a4a0e9a3b14c8ec3f694182c",
+      "recoveredSha256": "5858e6800432ee98110188d498fe84e39b39d5a5a4a0e9a3b14c8ec3f694182c"
+    },
+    {
+      "path": "demo-server/slash/migrations/010_crypto_finance.down.sql",
+      "sha256": "11f2e334a2612f21e90347b62e0341488d982a8cc1074e120516b79f30ad98d8",
+      "recoveredSha256": "11f2e334a2612f21e90347b62e0341488d982a8cc1074e120516b79f30ad98d8"
+    },
+    {
+      "path": "demo-server/slash/migrations/009_card_administration.down.sql",
+      "sha256": "5b39f75324e47298254bada41ffe9569cbcb5c91252914746d16aa66aa63a266",
+      "recoveredSha256": "5b39f75324e47298254bada41ffe9569cbcb5c91252914746d16aa66aa63a266"
+    },
+    {
+      "path": "demo-server/slash/migrations/011_finance_approval_policy.down.sql",
+      "sha256": "b1d88cd6f2dd7af44ffe11acc1df0cd4db4862ef72e9144702829d9db6f57773",
+      "recoveredSha256": "b1d88cd6f2dd7af44ffe11acc1df0cd4db4862ef72e9144702829d9db6f57773"
+    },
+    {
+      "path": "demo-server/slash/migrations/012_finance_fixed_pricing.sql",
+      "sha256": "06c1bfd584b72ab552b13aaab84b82a33aa79faa29d6e2f04ab4ac2badc0707e",
+      "recoveredSha256": "06c1bfd584b72ab552b13aaab84b82a33aa79faa29d6e2f04ab4ac2badc0707e"
+    },
+    {
+      "path": "demo-server/slash/migrations/008_unified_card_transactions.down.sql",
+      "sha256": "d89ed862bf2eabda1af171d71e02a163b1720d2a92d6d1309b77ba1d546ac6ed",
+      "recoveredSha256": "d89ed862bf2eabda1af171d71e02a163b1720d2a92d6d1309b77ba1d546ac6ed"
+    },
+    {
+      "path": "demo-server/slash/migrations/001_source_projection.down.sql",
+      "sha256": "a065cf9793acfa3a05e26ed03ed732afbe6f00696d2b8bd9d5d1ac966f1eb443",
+      "recoveredSha256": "a065cf9793acfa3a05e26ed03ed732afbe6f00696d2b8bd9d5d1ac966f1eb443"
+    },
+    {
+      "path": "demo-server/slash/migrations/005_card_bins.sql",
+      "sha256": "5c570647dee802fb55dc9e95bc43f243e3d8c140d219ef9bcdfe0f59dd515e8e",
+      "recoveredSha256": "5c570647dee802fb55dc9e95bc43f243e3d8c140d219ef9bcdfe0f59dd515e8e"
+    },
+    {
+      "path": "demo-server/slash/migrations/007_cross_currency.down.sql",
+      "sha256": "3f972388c8c3529e692cdcec769026779294a8ca712104099cdba1f8eb2420f8",
+      "recoveredSha256": "3f972388c8c3529e692cdcec769026779294a8ca712104099cdba1f8eb2420f8"
+    },
+    {
+      "path": "demo-server/slash/migrations/012_finance_fixed_pricing.down.sql",
+      "sha256": "a29cc0611983ea166fccb8912444fe6c9c842bee91dab486ee3eaaa7609ddc2d",
+      "recoveredSha256": "a29cc0611983ea166fccb8912444fe6c9c842bee91dab486ee3eaaa7609ddc2d"
+    },
+    {
+      "path": "demo-server/slash/migrations/002_unified_portal.down.sql",
+      "sha256": "f607c9e654657ebbe4c709eabd42a438c6c7d0df6ba6f3272c705de41034203f",
+      "recoveredSha256": "f607c9e654657ebbe4c709eabd42a438c6c7d0df6ba6f3272c705de41034203f"
+    },
+    {
+      "path": "demo-server/slash/migrations/006_card_channels.down.sql",
+      "sha256": "4fdc2b6010f2ad57469faba79ebe168eec50d9859a70928b075dcdeec521c887",
+      "recoveredSha256": "4fdc2b6010f2ad57469faba79ebe168eec50d9859a70928b075dcdeec521c887"
+    },
+    {
+      "path": "demo-server/slash/migrations/004_admin_console.sql",
+      "sha256": "8d8ba4e7ace1c9890504ef44111aecbacc98158525a95b66b6df699861a10d6a",
+      "recoveredSha256": "8d8ba4e7ace1c9890504ef44111aecbacc98158525a95b66b6df699861a10d6a"
+    },
+    {
+      "path": "demo-server/slash/migrations/013_internal_card_ownership.down.sql",
+      "sha256": "8d4e4614281b78088aa76294ad2aa9d655406946c324c2a1d975afc3ac197693",
+      "recoveredSha256": "8d4e4614281b78088aa76294ad2aa9d655406946c324c2a1d975afc3ac197693"
+    },
+    {
+      "path": "demo-server/slash/migrations/006_card_channels.sql",
+      "sha256": "6e8452a4591e3a39322dfb56c4071ee09d24023c2049870187e5fd7947c55566",
+      "recoveredSha256": "6e8452a4591e3a39322dfb56c4071ee09d24023c2049870187e5fd7947c55566"
+    },
+    {
+      "path": "demo-server/slash/migrations/001_source_projection.sql",
+      "sha256": "7605e76836294efdaf2b9c1267db90862f28c2cd2a1b3f96539dd12c5f703e1b",
+      "recoveredSha256": "7605e76836294efdaf2b9c1267db90862f28c2cd2a1b3f96539dd12c5f703e1b"
+    },
+    {
+      "path": "demo-server/slash/migrations/002_unified_portal.sql",
+      "sha256": "7b8d037e860f1644a4b1a8f3c041578e58af667e9b24358d363bc8f35990fa0b",
+      "recoveredSha256": "7b8d037e860f1644a4b1a8f3c041578e58af667e9b24358d363bc8f35990fa0b"
+    },
+    {
+      "path": "demo-server/slash/migrations/010_crypto_finance.sql",
+      "sha256": "f77c96041a8e5679be437a96e450b057ddaffda92e45d7627825e7973ff3d8d9",
+      "recoveredSha256": "f77c96041a8e5679be437a96e450b057ddaffda92e45d7627825e7973ff3d8d9"
+    },
+    {
+      "path": "demo-server/slash/migrations/005_card_bins.down.sql",
+      "sha256": "972f9db95a96f4086086b2cdda80605d8885393be97589f939863880b6830e93",
+      "recoveredSha256": "972f9db95a96f4086086b2cdda80605d8885393be97589f939863880b6830e93"
+    },
+    {
+      "path": "demo-server/slash/migrations/013_internal_card_ownership.sql",
+      "sha256": "756956dadc502f0fd8d06659b90ed2c04556f494f284fb09c09b7ebdbdbe44cd",
+      "recoveredSha256": "756956dadc502f0fd8d06659b90ed2c04556f494f284fb09c09b7ebdbdbe44cd"
+    },
+    {
+      "path": "demo-server/slash/fx/query.mjs",
+      "sha256": "3082089755b36733a45e00c81e745558b7724126160f9784625d66d945d6c362",
+      "recoveredSha256": "3082089755b36733a45e00c81e745558b7724126160f9784625d66d945d6c362"
+    },
+    {
+      "path": "demo-server/slash/fx/store.mjs",
+      "sha256": "ab0beafcf9851d6ae1d11acc6c5dab2705118449a5bbd7437835540fe32432ca",
+      "recoveredSha256": "ab0beafcf9851d6ae1d11acc6c5dab2705118449a5bbd7437835540fe32432ca"
+    },
+    {
+      "path": "demo-server/slash/fx/model.mjs",
+      "sha256": "fb9d6d2a0b717803e343a9447f248773bacc61f464d16093bd128f9e59799829",
+      "recoveredSha256": "fb9d6d2a0b717803e343a9447f248773bacc61f464d16093bd128f9e59799829"
+    },
+    {
+      "path": "demo-server/slash/fx/demo.mjs",
+      "sha256": "1bf75d7877f6993d3c1c4286adc3cf3d3c563c45e7b38c6d889bc70c4c5ecd30",
+      "recoveredSha256": "1bf75d7877f6993d3c1c4286adc3cf3d3c563c45e7b38c6d889bc70c4c5ecd30"
+    },
+    {
+      "path": "demo-server/slash/fx/cli.mjs",
+      "sha256": "0d041a8f921429e496df655b6a8c6c0171b6a02d7195595e2d10b1c7cb8c20d7",
+      "recoveredSha256": "0d041a8f921429e496df655b6a8c6c0171b6a02d7195595e2d10b1c7cb8c20d7"
+    }
+  ],
+  "note": "sha256 is original source; recoveredSha256 records monorepo path/runner/login adaptations."
+}

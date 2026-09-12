@@ -1547,7 +1547,8 @@
             "required": false,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Transactions: merchant, tail or ID. Cards: name, last4 or ID."
           },
           {
             "name": "detailedStatus",
@@ -1555,7 +1556,8 @@
             "required": false,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Transactions only; rejected for cards."
           },
           {
             "name": "from",
@@ -1563,7 +1565,8 @@
             "required": false,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Transactions only; rejected for cards."
           },
           {
             "name": "to",
@@ -1571,7 +1574,8 @@
             "required": false,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Transactions only; rejected for cards."
           },
           {
             "name": "revision",
@@ -1579,6 +1583,26 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "query",
+            "required": false,
+            "description": "Transactions only: exact card ID within the authorized connection.",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "cardStatus",
+            "in": "query",
+            "required": false,
+            "description": "Cards only: exact source card status.",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
             }
           }
         ],

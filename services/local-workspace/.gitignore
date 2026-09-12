@@ -1,0 +1,5 @@
+demo-server/slash/data/
+demo-server/slash/fx/data/
+*.sqlite*
+*.db*
+.env*

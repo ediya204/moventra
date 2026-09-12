@@ -1,0 +1,829 @@
+{
+  "retrievedAt": "2026-09-06",
+  "source": "https://docs.slash.com/api-reference/transaction-get-fee-details",
+  "additionalSources": [
+    "https://docs.slash.com/api-reference/account-get",
+    "https://docs.slash.com/api-reference/virtual-account-get"
+  ],
+  "schemas": {
+    "Transaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "merchantDescription": {
+          "type": "string"
+        },
+        "merchantData": {
+          "$ref": "#/components/schemas/TransactionMerchant"
+        },
+        "amountCents": {
+          "type": "number"
+        },
+        "status": {
+          "$ref": "#/components/schemas/TransactionStatus"
+        },
+        "detailedStatus": {
+          "$ref": "#/components/schemas/TransactionDetailedStatus"
+        },
+        "accountId": {},
+        "virtualAccountId": {
+          "type": "string"
+        },
+        "accountSubtype": {
+          "type": "string",
+          "enum": [
+            "cash",
+            "credit"
+          ]
+        },
+        "cardId": {
+          "type": "string"
+        },
+        "cashbackInfo": {
+          "$ref": "#/components/schemas/TransactionCashbackInfo"
+        },
+        "fxFeeInfo": {
+          "$ref": "#/components/schemas/TransactionFxFeeInfo"
+        },
+        "originalCurrency": {
+          "$ref": "#/components/schemas/OriginalCurrency"
+        },
+        "orderId": {
+          "type": "string"
+        },
+        "referenceNumber": {
+          "type": "string"
+        },
+        "authorizedAt": {
+          "type": "string"
+        },
+        "declineReason": {
+          "type": "string"
+        },
+        "approvalReason": {
+          "type": "string"
+        },
+        "providerAuthorizationId": {
+          "type": "string"
+        },
+        "wireInfo": {
+          "type": "object",
+          "properties": {
+            "counterpartyBank": {
+              "type": "string"
+            },
+            "typeCode": {
+              "type": "string"
+            },
+            "subtypeCode": {
+              "type": "string"
+            },
+            "omad": {
+              "type": "string"
+            },
+            "imad": {
+              "type": "string"
+            },
+            "senderReference": {
+              "type": "string"
+            },
+            "businessFunctionCode": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subtypeCode",
+            "omad",
+            "imad",
+            "senderReference",
+            "businessFunctionCode",
+            "typeCode"
+          ]
+        },
+        "achInfo": {
+          "type": "object",
+          "properties": {
+            "counterpartyBank": {
+              "type": "string"
+            },
+            "receiverId": {
+              "type": "string"
+            },
+            "companyId": {
+              "type": "string"
+            },
+            "companyDiscretionaryData": {
+              "type": "string"
+            },
+            "companyEntryDescription": {
+              "type": "string"
+            },
+            "traceNumber": {
+              "type": "string"
+            },
+            "entryClassCode": {
+              "type": "string"
+            },
+            "paymentRelatedInfo": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "receiverId",
+            "companyId",
+            "companyDiscretionaryData",
+            "traceNumber",
+            "entryClassCode",
+            "paymentRelatedInfo"
+          ]
+        },
+        "rtpInfo": {
+          "type": "object",
+          "properties": {
+            "counterpartyBank": {
+              "type": "string"
+            },
+            "endToEndId": {
+              "type": "string"
+            },
+            "routingNumber": {
+              "type": "string"
+            },
+            "originatorName": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        },
+        "sepaInfo": {
+          "type": "object",
+          "properties": {
+            "senderName": {
+              "type": "string"
+            },
+            "recipientName": {
+              "type": "string"
+            },
+            "reference": {
+              "type": "string"
+            },
+            "iban": {
+              "type": "string"
+            },
+            "ibanLast4": {
+              "type": "string"
+            },
+            "bic": {
+              "type": "string"
+            },
+            "uetr": {
+              "type": "string"
+            },
+            "paymentScheme": {
+              "type": "string"
+            }
+          }
+        },
+        "pixInfo": {
+          "type": "object",
+          "properties": {
+            "senderName": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "reference": {
+              "type": "string"
+            },
+            "trackingNumber": {
+              "type": "string"
+            }
+          }
+        },
+        "speiInfo": {
+          "type": "object",
+          "properties": {
+            "senderName": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "reference": {
+              "type": "string"
+            },
+            "clabe": {
+              "type": "string"
+            },
+            "trackingNumber": {
+              "type": "string"
+            }
+          }
+        },
+        "fpsInfo": {
+          "type": "object",
+          "properties": {
+            "senderName": {
+              "type": "string"
+            },
+            "recipientName": {
+              "type": "string"
+            },
+            "reference": {
+              "type": "string"
+            },
+            "accountNumber": {
+              "type": "string"
+            },
+            "last4": {
+              "type": "string"
+            },
+            "sortCode": {
+              "type": "string"
+            },
+            "uetr": {
+              "type": "string"
+            }
+          }
+        },
+        "feeInfo": {
+          "type": "object",
+          "properties": {
+            "relatedTransaction": {
+              "type": "object",
+              "required": [
+                "id",
+                "amount"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "cryptoInfo": {
+          "type": "object",
+          "properties": {
+            "txHash": {
+              "type": "string"
+            },
+            "senderAddress": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "description",
+        "amountCents",
+        "status",
+        "detailedStatus",
+        "accountId",
+        "accountSubtype"
+      ]
+    },
+    "TransactionMerchant": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "categoryCode": {
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/components/schemas/TransactionMerchantLocation"
+        }
+      },
+      "required": [
+        "description",
+        "categoryCode"
+      ]
+    },
+    "TransactionMerchantLocation": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "city",
+        "state",
+        "country",
+        "zip"
+      ]
+    },
+    "TransactionStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "posted",
+        "failed"
+      ]
+    },
+    "TransactionDetailedStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "pending_approval",
+        "in_review",
+        "canceled",
+        "failed",
+        "settled",
+        "declined",
+        "refund",
+        "reversed",
+        "returned",
+        "dispute"
+      ]
+    },
+    "TransactionCashbackInfo": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "type": "number"
+        },
+        "rate": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "amountCents",
+        "rate"
+      ]
+    },
+    "TransactionFxFeeInfo": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "amountCents"
+      ]
+    },
+    "OriginalCurrency": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "amountCents": {
+          "type": "number"
+        },
+        "conversionRate": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "code",
+        "amountCents",
+        "conversionRate"
+      ]
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "virtualAccountId": {
+          "type": "string"
+        },
+        "last4": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "expiryMonth": {
+          "type": "string"
+        },
+        "expiryYear": {
+          "type": "string"
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/CardStatus"
+            },
+            {}
+          ]
+        },
+        "isPhysical": {
+          "type": "boolean"
+        },
+        "isSingleUse": {
+          "type": "boolean"
+        },
+        "pan": {
+          "type": "string"
+        },
+        "cvv": {
+          "type": "string"
+        },
+        "cardGroupId": {
+          "type": "string"
+        },
+        "cardGroupName": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "spendingConstraint": {
+          "$ref": "#/components/schemas/SpendingConstraint"
+        },
+        "userData": {
+          "type": "object"
+        },
+        "cardProductId": {
+          "type": "string"
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/CardModifier"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "accountId",
+        "last4",
+        "name",
+        "expiryMonth",
+        "expiryYear",
+        "status",
+        "isPhysical"
+      ]
+    },
+    "CardStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "inactive",
+        "closed"
+      ]
+    },
+    "SpendingConstraint": {
+      "type": "object",
+      "properties": {
+        "merchantCategoryRule": {
+          "type": "object",
+          "nullable": true,
+          "properties": {
+            "merchantCategories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "restriction": {
+              "$ref": "#/components/schemas/Restriction"
+            }
+          },
+          "required": [
+            "merchantCategories",
+            "restriction"
+          ]
+        },
+        "merchantRule": {
+          "type": "object",
+          "nullable": true,
+          "properties": {
+            "merchants": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "restriction": {
+              "$ref": "#/components/schemas/Restriction"
+            }
+          },
+          "required": [
+            "merchants",
+            "restriction"
+          ]
+        },
+        "spendingRule": {
+          "type": "object",
+          "nullable": true,
+          "properties": {
+            "utilizationLimit": {
+              "type": "object",
+              "properties": {
+                "timezone": {
+                  "type": "string"
+                },
+                "limitAmount": {
+                  "$ref": "#/components/schemas/Money"
+                },
+                "preset": {
+                  "type": "string",
+                  "enum": [
+                    "daily",
+                    "weekly",
+                    "monthly",
+                    "yearly",
+                    "collective"
+                  ]
+                },
+                "startDate": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "limitAmount",
+                "preset"
+              ]
+            },
+            "utilizationLimitV2": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "timezone": {
+                    "type": "string"
+                  },
+                  "limitAmount": {
+                    "$ref": "#/components/schemas/Money"
+                  },
+                  "preset": {
+                    "type": "string",
+                    "enum": [
+                      "daily",
+                      "weekly",
+                      "monthly",
+                      "yearly",
+                      "collective"
+                    ]
+                  },
+                  "startDate": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "limitAmount",
+                  "preset"
+                ]
+              }
+            },
+            "transactionSizeLimit": {
+              "type": "object",
+              "properties": {
+                "minimum": {
+                  "$ref": "#/components/schemas/Money"
+                },
+                "maximum": {
+                  "$ref": "#/components/schemas/Money"
+                }
+              }
+            }
+          }
+        },
+        "countryRule": {
+          "type": "object",
+          "nullable": true,
+          "properties": {
+            "countries": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "restriction": {
+              "$ref": "#/components/schemas/Restriction"
+            }
+          },
+          "required": [
+            "countries",
+            "restriction"
+          ]
+        },
+        "merchantCategoryCodeRule": {
+          "type": "object",
+          "nullable": true,
+          "properties": {
+            "merchantCategoryCodes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "restriction": {
+              "$ref": "#/components/schemas/Restriction"
+            }
+          },
+          "required": [
+            "merchantCategoryCodes",
+            "restriction"
+          ]
+        }
+      }
+    },
+    "Restriction": {
+      "type": "string",
+      "enum": [
+        "allowlist",
+        "blacklist"
+      ]
+    },
+    "Money": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "amountCents"
+      ]
+    },
+    "CardModifier": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "name",
+            "value"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "enum": [
+                "only_allow_recurring_payments"
+              ]
+            },
+            "value": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "FeeTransaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "dateCharged": {
+          "type": "string"
+        },
+        "feeAmountCents": {
+          "type": "number"
+        },
+        "feeType": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "originalTransaction": {
+          "$ref": "#/components/schemas/Transaction"
+        },
+        "card": {
+          "$ref": "#/components/schemas/Card"
+        }
+      },
+      "required": [
+        "id",
+        "dateCharged",
+        "feeAmountCents",
+        "feeType",
+        "accountId"
+      ]
+    },
+    "Account": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "closed"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "accountNumber": {
+          "type": "string"
+        },
+        "routingNumber": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "debit",
+            "charge_card"
+          ]
+        },
+        "balances": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "debit",
+              "cash",
+              "credit"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "status",
+        "name",
+        "accountNumber",
+        "routingNumber",
+        "createdAt",
+        "balances"
+      ]
+    },
+    "VirtualAccountModel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "accountNumber": {
+          "type": "string"
+        },
+        "routingNumber": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "closedAt": {
+          "type": "string"
+        },
+        "accountType": {
+          "type": "string",
+          "enum": [
+            "default",
+            "primary"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "accountId",
+        "accountType"
+      ]
+    }
+  }
+}

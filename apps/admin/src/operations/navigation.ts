@@ -9,5 +9,5 @@ export const productionNavigation = navigationGroups(true).map(group => ({
     item.path === '/system/access' ? { ...item, path: '/session?security=1' } : item),
 }));
 export function isProductionPath(path: string) {
-  return ['/workbench', '/onboarding', '/transactions', '/session?security=1'].includes(path);
+  return ['/workbench', '/onboarding', '/cards', '/customers', '/system/channels', '/transactions', '/session?security=1'].includes(path);
 }

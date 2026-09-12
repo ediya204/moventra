@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS fn_requests;
+DROP TABLE IF EXISTS fn_audit;
+DROP TABLE IF EXISTS fn_movements;
+DROP TABLE IF EXISTS fn_events;
+DROP TABLE IF EXISTS fn_jobs;
+DROP TABLE IF EXISTS fn_reviews;
+DROP TABLE IF EXISTS fn_holds;
+DROP TABLE IF EXISTS fn_quotes;
+DROP TABLE IF EXISTS fn_orders;
+DROP TABLE IF EXISTS fn_wallets;
+DELETE FROM schema_migrations WHERE version=10;

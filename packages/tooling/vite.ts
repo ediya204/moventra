@@ -14,6 +14,8 @@ function surfaceBoundary(kind: 'admin' | 'client'): Connect.NextHandleFunction {
 }
 export function moventraWebConfig(kind: 'admin' | 'client', mode: string): UserConfig {
  const env = loadEnv(mode, process.cwd(), '');
+ const workspaceOrigin = process.env.VITE_LOCAL_WORKSPACE_PROXY_TARGET || env.VITE_LOCAL_WORKSPACE_PROXY_TARGET || 'http://127.0.0.1:8862';
+ if (!/^http:\/\/(127\.0\.0\.1|localhost):[0-9]{2,5}$/.test(workspaceOrigin)) throw new Error('Local workspace proxy must use loopback');
  return {
   plugins:[react(), {
    name:'moventra-surface-isolation',
@@ -26,8 +28,8 @@ export function moventraWebConfig(kind: 'admin' | 'client', mode: string): UserC
   resolve:{dedupe:['react','react-dom','firebase','@emotion/react','@emotion/styled']},
   server:{host:'127.0.0.1',port:kind==='admin'?8850:8853,fs:{allow:[root]},proxy:{
    '^/(api/v1|client-api/v1|admin-api/v1)/':{target:env.VITE_GO_API_PROXY_TARGET || 'http://127.0.0.1:8870',changeOrigin:false},
-   '/local-slash-demo':{target:'http://127.0.0.1:8862',changeOrigin:false,rewrite:p=>p.replace(/^\/local-slash-demo/,'/admin-api/settlement-management/demo')},
-   '/admin-api':{target:env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8862',changeOrigin:false}
+   '/local-slash-demo':{target:workspaceOrigin,changeOrigin:false,rewrite:p=>p.replace(/^\/local-slash-demo/,'/admin-api/settlement-management/demo')},
+   '/admin-api':{target:env.VITE_API_PROXY_TARGET || workspaceOrigin,changeOrigin:false}
   }},
   build:{outDir:'dist'},
   preview:{host:'127.0.0.1',port:kind==='admin'?8851:8854}

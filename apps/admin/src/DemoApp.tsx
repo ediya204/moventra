@@ -69,6 +69,7 @@ export default function DemoApp() {
   if (import.meta.env.DEV && isSlashDemoMode) return <Suspense fallback={<PageSkeleton />}><Routes>
     <Route path="/session" element={<SessionPage />} />
     <Route path="/demo-reset-password" element={<ResetPasswordPage />} />
+    <Route path="/admin/login" element={<LoginPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/404" element={<StatusPage />} />
@@ -92,6 +93,7 @@ export default function DemoApp() {
   <Route path="*" element={<StatusPage />} />
   </Routes></Suspense>;
   return <Suspense fallback={<PageSkeleton />}><Routes>
+    <Route path="/admin/login" element={<LoginPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/session" element={<SessionPage />} />
