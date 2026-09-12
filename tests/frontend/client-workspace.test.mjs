@@ -14,17 +14,19 @@ const source=p=>ts.transpileModule(readFileSync(new URL(p,import.meta.url),'utf8
 const state=globalThis.__clientWorkspaceFixture={requests:[],auth:null};
 const shell=uri(`import React from ${JSON.stringify(resolve('react'))};
 const Pass=({children,...props})=>React.createElement('div',props,children);
-export const Alert=Pass,Avatar=Pass,Box=Pass,Container=Pass,Drawer=({open,children})=>open?React.createElement('div',null,children):null,Chip=({label})=>React.createElement('span',null,label),IconButton=Pass,List=Pass,ListItemIcon=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,Typography=Pass;
+export const TextField=Pass,Alert=Pass,Avatar=Pass,Box=Pass,Container=Pass,Drawer=({open,children})=>open?React.createElement('div',null,children):null,Chip=({label})=>React.createElement('span',null,label),IconButton=Pass,List=Pass,ListItemIcon=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,Typography=Pass;
 export const Button=({children,...props})=>React.createElement('button',props,children);
 export const ListItemButton=({children,...props})=>React.createElement('a',props,children);
 export const ListItemText=({primary})=>React.createElement('span',null,primary);`);
 const auth=uri('export const useAuth=()=>globalThis.__clientWorkspaceFixture.auth;');
-const api=uri(`export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__clientWorkspaceFixture.requests.push({path,resolve,reject}));`);
+const api=uri(`export const updateOnboarding=(path,input)=>new Promise((resolve,reject)=>globalThis.__clientWorkspaceFixture.writes.push({path,input,resolve,reject}));export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__clientWorkspaceFixture.requests.push({path,resolve,reject}));`);
 const icon=uri('export const Icon=()=>null;');
 const brand=uri('export const BrandLogo=()=>null;');
 const session=uri(`import React from ${JSON.stringify(resolve('react'))};export default ()=>React.createElement('span',null,'身份校验中');`);
+const admission=uri(source('../../packages/shared/src/auth/onboarding.ts'));
+const panel=uri(`import React from ${JSON.stringify(resolve('react'))};export default function Panel({onState}) {globalThis.__clientWorkspaceFixture.setAdmission=onState;return null;}`);
 const navigation=uri(source('../../apps/client/src/portal/workspaceNavigation.ts'));
-const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:name==='./workspaceNavigation'?navigation:resolve(name)));
+const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
 const ClientHome=(await import(uri(compiled))).default;
 const flush=()=>new Promise(r=>setImmediate(r));
 function reset(customer='A'){state.requests=[];state.auth={ready:true,user:{email:'fixture@example.invalid'},session:{customers:customer?[{id:customer,kind:'personal'}]:[],mfaVerified:true},signOut(){}};}
@@ -52,4 +54,37 @@ test('切换客户后拒绝旧请求结果，保留当前主体数据',async()=>
  await act(async()=>{tree.update(React.createElement(MemoryRouter,{},React.createElement(ClientHome)));await flush();});
  await act(async()=>{state.requests.slice(2).forEach(r=>r.resolve([]));old.forEach(r=>r.resolve([{id:'old',name:'OTHER_CUSTOMER_SECRET',status:'active'}]));await flush();});
  assert.ok(!text(tree).includes('OTHER_CUSTOMER_SECRET'));assert.ok(text(tree).includes('暂无业务账户'));await act(()=>tree.unmount());
+});
+
+test('审批开通后默认开放四项功能入口，暂停后恢复禁用',async()=>{
+ reset();const tree=await mount();
+ const button=label=>tree.root.findAllByType('button').find(b=>b.props.children===label);
+ const approval={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
+ await act(()=>state.setAdmission(approval));
+ for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,false);
+ assert.ok(text(tree).includes('全部客户端功能权限默认开放'));
+ await act(()=>state.setAdmission({...approval,serviceStatus:'suspended',allFeaturesEnabled:false}));
+ for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,true);
+ await act(()=>tree.unmount());
+});
+
+const panelCode=source('../../packages/shared/src/onboarding/OnboardingPanel.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name.endsWith('/liveApi')?api:name.endsWith('/onboarding')?admission:resolve(name)));
+const AdmissionPanel=(await import(uri(panelCode))).default;
+test('开户申请提交后重新查询服务端状态，失败显示错误并可重试',async()=>{
+ reset();state.writes=[];let tree,lastState;
+ const onState=value=>{lastState=value;};
+ await act(async()=>{tree=Renderer.create(React.createElement(AdmissionPanel,{customerId:'A',onState}));await flush();});
+ const draft={customerId:'A',name:'fixture',onboardingStatus:'draft',serviceStatus:'inactive',revision:0,allFeaturesEnabled:false};
+ await act(async()=>{state.requests[0].resolve(draft);await flush();});
+ assert.equal(lastState.onboardingStatus,'draft');
+ const submit=()=>tree.root.findAllByType('button').find(b=>b.props.children==='提交开户申请');
+ let pending;await act(async()=>{pending=submit().props.onClick();await flush();});
+ assert.equal(state.writes[0].input.action,'submit');assert.equal(state.writes[0].input.revision,0);assert.equal(lastState,null);
+ await act(async()=>{state.writes[0].reject(new Error('conflict'));await flush();});
+ await act(async()=>{state.requests.at(-1).resolve(draft);await flush();});
+ assert.ok(text(tree).includes('读取失败'));assert.equal(submit().props.disabled,false);
+ await act(async()=>{submit().props.onClick();await flush();state.writes[1].resolve({});await flush();});
+ await act(async()=>{state.requests.at(-1).resolve({...draft,onboardingStatus:'submitted',revision:1});await flush();});
+ assert.ok(text(tree).includes('待后台审批'));assert.equal(lastState.onboardingStatus,'submitted');
+ await act(()=>tree.unmount());
 });

@@ -1657,6 +1657,449 @@
           }
         }
       }
+    },
+    "/client-api/v1/customers/{customerID}/onboarding": {
+      "parameters": [
+        {
+          "name": "customerID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "clientGetOnboarding",
+        "description": "LOCAL implementation, not deployed. Personal owner only.",
+        "responses": {
+          "200": {
+            "description": "Current authoritative admission state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "onboardingStatus": {
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "serviceStatus": {
+                          "type": "string",
+                          "enum": [
+                            "inactive",
+                            "active",
+                            "suspended"
+                          ]
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "allFeaturesEnabled": {
+                          "type": "boolean",
+                          "description": "True only for approved and active. Does not imply that a financial execution API exists."
+                        }
+                      },
+                      "required": [
+                        "customerId",
+                        "name",
+                        "onboardingStatus",
+                        "serviceStatus",
+                        "revision",
+                        "allFeaturesEnabled"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body or parameters"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA required"
+          },
+          "404": {
+            "description": "Missing or inaccessible customer"
+          },
+          "409": {
+            "description": "Stale revision or invalid transition"
+          },
+          "415": {
+            "description": "JSON required"
+          },
+          "503": {
+            "description": "Database or audit failure"
+          }
+        }
+      },
+      "post": {
+        "operationId": "clientPostOnboarding",
+        "description": "LOCAL implementation, not deployed. Personal owner only.",
+        "responses": {
+          "200": {
+            "description": "Current authoritative admission state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "onboardingStatus": {
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "serviceStatus": {
+                          "type": "string",
+                          "enum": [
+                            "inactive",
+                            "active",
+                            "suspended"
+                          ]
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "allFeaturesEnabled": {
+                          "type": "boolean",
+                          "description": "True only for approved and active. Does not imply that a financial execution API exists."
+                        }
+                      },
+                      "required": [
+                        "customerId",
+                        "name",
+                        "onboardingStatus",
+                        "serviceStatus",
+                        "revision",
+                        "allFeaturesEnabled"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body or parameters"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA required"
+          },
+          "404": {
+            "description": "Missing or inaccessible customer"
+          },
+          "409": {
+            "description": "Stale revision or invalid transition"
+          },
+          "415": {
+            "description": "JSON required"
+          },
+          "503": {
+            "description": "Database or audit failure"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "action",
+                  "revision",
+                  "reason"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "submit"
+                    ]
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/onboarding": {
+      "parameters": [
+        {
+          "name": "customerID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "adminGetOnboarding",
+        "description": "LOCAL implementation, not deployed. MFA and per-customer onboarding:review required; no self approval.",
+        "responses": {
+          "200": {
+            "description": "Current authoritative admission state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "onboardingStatus": {
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "serviceStatus": {
+                          "type": "string",
+                          "enum": [
+                            "inactive",
+                            "active",
+                            "suspended"
+                          ]
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "allFeaturesEnabled": {
+                          "type": "boolean",
+                          "description": "True only for approved and active. Does not imply that a financial execution API exists."
+                        }
+                      },
+                      "required": [
+                        "customerId",
+                        "name",
+                        "onboardingStatus",
+                        "serviceStatus",
+                        "revision",
+                        "allFeaturesEnabled"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body or parameters"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA required"
+          },
+          "404": {
+            "description": "Missing or inaccessible customer"
+          },
+          "409": {
+            "description": "Stale revision or invalid transition"
+          },
+          "415": {
+            "description": "JSON required"
+          },
+          "503": {
+            "description": "Database or audit failure"
+          }
+        }
+      },
+      "post": {
+        "operationId": "adminPostOnboarding",
+        "description": "LOCAL implementation, not deployed. MFA and per-customer onboarding:review required; no self approval.",
+        "responses": {
+          "200": {
+            "description": "Current authoritative admission state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "onboardingStatus": {
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "serviceStatus": {
+                          "type": "string",
+                          "enum": [
+                            "inactive",
+                            "active",
+                            "suspended"
+                          ]
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "allFeaturesEnabled": {
+                          "type": "boolean",
+                          "description": "True only for approved and active. Does not imply that a financial execution API exists."
+                        }
+                      },
+                      "required": [
+                        "customerId",
+                        "name",
+                        "onboardingStatus",
+                        "serviceStatus",
+                        "revision",
+                        "allFeaturesEnabled"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body or parameters"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "MFA required"
+          },
+          "404": {
+            "description": "Missing or inaccessible customer"
+          },
+          "409": {
+            "description": "Stale revision or invalid transition"
+          },
+          "415": {
+            "description": "JSON required"
+          },
+          "503": {
+            "description": "Database or audit failure"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "action",
+                  "revision",
+                  "reason"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "approve_activate",
+                      "reject",
+                      "suspend",
+                      "resume",
+                      "activate"
+                    ]
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

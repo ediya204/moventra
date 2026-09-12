@@ -10,6 +10,9 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
+  onboarding_changed: '开户状态已更新，请刷新后重新操作。',
+  invalid_onboarding_transition: '当前开户状态不允许此操作，请刷新。',
+  review_reason_required: '请填写审批或状态变更说明。',
   admin_password_required: '运营后台请使用已开通账号的邮箱和密码登录。',
   operator_required: '此账号没有运营后台权限，请使用客户端入口。',
   registration_required: '你尚未创建 Moventra 账户，请补充信息完成注册。',
@@ -50,8 +53,9 @@ export function authMessage(error: unknown): string {
 }
 
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
-async function liveRequest<T>(path: string, body?: { name: string }): Promise<T> {
-  if (body !== undefined ? path !== '/api/v1/register' : !/^\/api\/v1\/me$/.test(path) && !/^\/admin-api\/v1\/channel-projections(?:\/[A-Za-z0-9_-]+\/(?:transactions|cards)(?:\/[A-Za-z0-9_-]+)?)?(?:\?[^#]*)?$/.test(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
+async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}): Promise<T> {
+  const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
+  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/api\/v1\/me$/.test(path) && !/^\/admin-api\/v1\/channel-projections(?:\/[A-Za-z0-9_-]+\/(?:transactions|cards)(?:\/[A-Za-z0-9_-]+)?)?(?:\?[^#]*)?$/.test(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
@@ -68,3 +72,5 @@ async function liveRequest<T>(path: string, body?: { name: string }): Promise<T>
 
 export const liveGet = <T>(path: string) => liveRequest<T>(path);
 export const registerUser = (name: string) => liveRequest<{ id: string }>('/api/v1/register', { name });
+
+export const updateOnboarding = (path:string, input:{action:string;revision:number;reason:string}) => liveRequest<import("./onboarding").OnboardingState>(path,input);

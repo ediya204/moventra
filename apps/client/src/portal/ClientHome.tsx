@@ -1,3 +1,5 @@
+import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
+import {clientFeaturesEnabled,onboardingMessage,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
 import { workspaceNavigation, workspaceWidth, workspaceGrid, workspaceChartsGrid } from "./workspaceNavigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
@@ -66,6 +68,7 @@ function amount(row: Transaction) {
 export default function ClientHome() {
   const { user, session, sessionError, ready, signOut } = useAuth();
   const { pathname } = useLocation();
+  const [onboarding,setOnboarding]=useState<OnboardingState|null>(null);
   const [mobile, setMobile] = useState(false);
   const [reload, setReload] = useState(0);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -101,6 +104,8 @@ export default function ClientHome() {
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
     failure && failure.customer === customer?.id ? failure.message : null;
+  const admission=onboarding?.customerId===customer?.id?onboarding:null;
+  const enabled=clientFeaturesEnabled(admission);
   const security = pathname === "/portal/security";
   const page = links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
   const nav = (
@@ -327,7 +332,7 @@ export default function ClientHome() {
             </>
           ) : (
             <Stack spacing={3}>
-              <Alert severity="info">正式账户 · 账户与交易读取已授权数据。资金、卡片及统计服务尚未开通，暂不可用的金额以 — 显示。</Alert>
+              <Alert severity="info">{onboardingMessage(admission)} 账户权限与功能接入状态分别显示，未接入接口的功能暂不能办理。</Alert>
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="space-between"
@@ -364,15 +369,15 @@ export default function ClientHome() {
                       <Box key={label} sx={{ p: 2.5, borderRight: 1, borderBottom: 1, borderColor: "divider" }}>
                         <Typography variant="body2" color="text.secondary">{label}</Typography>
                         <Typography variant="h4" sx={{ my: 1.5 }}>—</Typography>
-                        <Typography variant="caption" color="text.secondary">暂不可用 · 服务尚未开通</Typography>
+                        <Typography variant="caption" color="text.secondary">余额 / 卡片数据接口尚未接入</Typography>
                       </Box>
                     ))}
                   </Paper>
                   <Box sx={workspaceGrid}>
                     {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
                       <Paper key={label} variant="outlined" sx={{ p: 2 }}>
-                        <Button disabled fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
-                        <Typography variant="caption" color="text.secondary">服务尚未开通</Typography>
+                        <Button component={Link} to={label === "申请新卡" ? "/portal/cards" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
+                        <Typography variant="caption" color="text.secondary">{enabled ? "功能权限已开放 · 查看接入状态" : "待审批开通"}</Typography>
                       </Paper>
                     ))}
                   </Box>
@@ -385,13 +390,14 @@ export default function ClientHome() {
                         </Stack>
                         <Stack alignItems="center" justifyContent="center" spacing={1} sx={{ minHeight: 260 }}>
                           <Typography color="text.secondary">{reason}</Typography>
-                          <Typography variant="caption" color="text.secondary">服务开通后显示真实数据</Typography>
+                          <Typography variant="caption" color="text.secondary">统计接口接入后显示真实数据</Typography>
                         </Stack>
                       </Paper>
                     ))}
                   </Box>
                 </>
               )}
+              {customer && <OnboardingPanel key={customer.id} customerId={customer.id} onState={setOnboarding}/> }
               {["/portal", "/portal/accounts", "/portal/funds"].includes(pathname) && accounts}
               {["/portal", "/portal/transactions"].includes(pathname) && transactions}
               {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
@@ -405,7 +411,7 @@ export default function ClientHome() {
               {["funds", "cards", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>
                   <Typography variant="h6">{page}</Typography>
-                  <Typography color="text.secondary" sx={{ my: 2 }}>{page}的办理服务尚未开通。当前仅提供已授权的账户与交易查询。</Typography>
+                  <Typography color="text.secondary" sx={{ my: 2 }}>{enabled ? `${page}功能权限已开放，办理接口尚未接入。` : `${page}办理权限待后台审批开通。`} 当前可查询已授权的账户与交易。</Typography>
                   <Button component={Link} to="/portal/transactions" variant="outlined">查看交易与账单</Button>
                 </Paper>
               )}

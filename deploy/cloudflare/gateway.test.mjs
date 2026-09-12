@@ -106,3 +106,20 @@ test('channel projections remain admin-only, GET-only and authenticated',async()
  }
  const res=await handle(new Request('https://admin.example.invalid'+path,{headers:{Authorization:'Bearer synthetic'}}),{...env,SITE_KIND:'admin'},async()=>Response.json({data:{rows:[],complete:false}}));assert.equal(res.status,200);
 });
+
+test('onboarding is authenticated GET/POST only and preserves site isolation',async()=>{
+ const customer='10000000-0000-0000-0000-000000000001';let calls=0;
+ const upstream=async()=>{calls++;return Response.json({data:{allFeaturesEnabled:true}});};
+ for(const site of ['client','admin']){
+  const path=`/${site}-api/v1/customers/${customer}/onboarding`;
+  const env={SITE_KIND:site,API_ORIGIN:'https://api.example.com'};
+  for(const method of ['GET','POST']){
+   const request=new Request('https://example.com'+path,{method,headers:{Authorization:'Bearer test','Content-Type':'application/json'},...(method==='POST'?{body:'{"action":"submit","revision":0,"reason":""}'}:{})});
+   assert.equal((await handle(request,env,upstream)).status,200);
+  }
+  assert.equal((await handle(new Request('https://example.com'+path),env,upstream)).status,401);
+  assert.equal((await handle(new Request('https://example.com'+path,{method:'DELETE',headers:{Authorization:'Bearer test'}}),env,upstream)).status,405);
+  assert.equal((await handle(new Request('https://example.com'+path,{headers:{Authorization:'Bearer test'}}),{...env,SITE_KIND:site==='admin'?'client':'admin'},upstream)).status,404);
+ }
+ assert.equal(calls,4);
+});

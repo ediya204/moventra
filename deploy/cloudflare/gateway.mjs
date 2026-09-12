@@ -3,6 +3,7 @@ import { contact } from './contact.mjs';
 // must not be silently redirected to the new service.
 const id = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
 const lists = new RegExp(`^/(client|admin)-api/v1/customers/${id}/(accounts|transactions)$`);
+const onboarding = new RegExp(`^/(client|admin)-api/v1/customers/${id}/onboarding$`);
 const upgrade = new RegExp(`^/client-api/v1/customers/${id}/business-upgrade$`);
 const error = (status, code) => Response.json({ error: { code } }, {
   status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' },
@@ -19,9 +20,9 @@ export async function handle(request, env, upstreamFetch = fetch) {
   const overview = url.pathname === '/admin-api/v1/ops/overview';
   if (overview && env.SITE_KIND !== 'admin') return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
-  const readable = projections || overview || registration || url.pathname === '/api/v1/me' || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const readable = onboarding.test(url.pathname) || projections || overview || registration || url.pathname === '/api/v1/me' || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
-  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && upgrade.test(url.pathname))) return error(405, 'method_not_allowed');
+  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 
   let origin;
   try { origin = new URL(env.API_ORIGIN); } catch { return error(503, 'api_not_configured'); }

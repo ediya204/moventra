@@ -69,3 +69,7 @@
 `api provision-operator` 需明确目标 PROVISION_FIREBASE_UID / PROVISION_EMAIL 和客户所有人 PROVISION_OWNER_UID / PROVISION_OWNER_EMAIL。Firebase 核验双方邮箱/UID 且未禁用，客户所有人必须已验证邮箱；目标可预授权，但未验证邮箱和 MFA 仍不能访问业务数据。双方必须已有 active 本地身份；客户所有人不能有 staff_grants，运营不能拥有个人主体或企业成员关系，发现混用则拒绝，不自动删除已有关系。
 
 命令仅针对指定所有人的已存在个人主体，幂等授予 accounts:read / transactions:read，逐项审计并事务提交。不会授权其他客户或未来客户，不创建业务账户、修改资金或激活服务。没有 HTTP 授权管理入口，也没有全局超级管理员旁路。生产执行仅在获得明确授权后进行。
+
+## 2026-09-13 开户默认功能权限（本地）
+
+用户确认：后台审批并开通后，全部客户端功能默认获得权限。审批与服务状态继续分开保存，由明确的组合操作原子更新；不自动执行资金、生成余额或开卡。暂停收回办理资格，恢复默认开放。新增接口、003迁移、权限及本次隔离验收见[开户功能权限](../../../docs/frontend/onboarding-feature-access.md)；尚未部署，不将已有只读授权升级为审批权限。
