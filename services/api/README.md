@@ -79,3 +79,5 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 ## 注册用户目录与 005
 
 `GET /admin-api/v1/users` 供所有 active admin 经 MFA 查看客户用户基础资料，复用 Firebase Admin SDK 的 GetUsers/GetUserByEmail，已有及后来注册的用户均可查询。精确邮箱搜索可识别仅存在于 Firebase、尚未完成本地注册的身份。不会写入客户或自动授权；业务关联详情保持 staff_grants。新增 005_user_directory_audit，/readyz 要求版本 005；发布前显式迁移。身份服务失败或审计提交失败返回 503，不把失败伪装为空列表。官方依据：https://firebase.google.com/docs/auth/admin/manage-users 。
+
+注册用户查询支持 `userId` 精确过滤（与 email 互斥、offset=0），用于后台直接加载用户详情。权限与审计规则保持一致，无新增迁移。

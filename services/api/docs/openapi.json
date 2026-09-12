@@ -2460,6 +2460,15 @@
             }
           },
           {
+            "name": "userId",
+            "in": "query",
+            "description": "Exact registered customer user UUID for the details page. Mutually exclusive with email; offset must be zero. Missing users return an audited empty list. Existing users:list audit and resource-scoped customer links apply.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "schema": {

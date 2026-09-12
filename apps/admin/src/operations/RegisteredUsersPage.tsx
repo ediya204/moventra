@@ -7,7 +7,7 @@ import {DashboardLayout} from '../components/DashboardLayout';
 import {useAuth} from '../../../../packages/shared/src/auth/AuthContext';
 import {authMessage,liveGetPage} from '../../../../packages/shared/src/auth/liveApi';
 import {PageSkeleton} from '../../../../packages/shared/src/components/AsyncState';
-type RegisteredUser={id:string;name:string;email:string|null;emailVerified:boolean|null;authStatus:'enabled'|'disabled'|'missing';registrationStatus:'registered'|'identity_only';userStatus:'active'|'disabled'|null;registeredAt:string|null;customerLinkState:'linked'|'linked_restricted'|'unlinked';customers:{id:string;name:string;canReadAccounts:boolean;canReviewOnboarding:boolean}[]};
+export type RegisteredUser={id:string;name:string;email:string|null;emailVerified:boolean|null;authStatus:'enabled'|'disabled'|'missing';registrationStatus:'registered'|'identity_only';userStatus:'active'|'disabled'|null;registeredAt:string|null;customerLinkState:'linked'|'linked_restricted'|'unlinked';customers:{id:string;name:string;canReadAccounts:boolean;canReviewOnboarding:boolean}[]};
 export default function RegisteredUsersPage(){
  const {ready,authenticated,user,session}=useAuth();
  if(!ready)return <PageSkeleton/>;
@@ -25,8 +25,10 @@ function Directory(){
   liveGetPage<RegisteredUser>(`/admin-api/v1/users?${query}`).then(r=>{if(active){setRows(r.data);setMore(r.meta.hasMore)}}).catch(e=>{if(active)setError(authMessage(e))}).finally(()=>{if(active)setBusy(false)});
   return()=>{active=false};
  },[email,page,refresh]);
+ const detailsLink=(row:RegisteredUser)=>{const q=new URLSearchParams(row.registrationStatus==='registered'?{userId:row.id}:{email:row.email||email});if(email)q.set('returnEmail',email);else if(page)q.set('returnPage',String(page));return `/user-groups/users/detail?${q}`};
  const columns:GridColDef<RegisteredUser>[]=[
-  {field:'email',headerName:'登录邮箱',minWidth:260,flex:1,valueFormatter:(v:string|null)=>v||'身份记录无邮箱'},
+  {field:'details',headerName:'详情',width:110,renderCell:({row})=><Button component={Link} to={detailsLink(row)}>查看详情</Button>},
+  {field:'email',headerName:'登录邮箱',minWidth:260,flex:1,renderCell:({row})=><Button component={Link} to={detailsLink(row)} sx={{textTransform:'none'}}>{row.email||'身份记录无邮箱'}</Button>},
   {field:'name',headerName:'姓名',minWidth:160,flex:1},
   {field:'registrationStatus',headerName:'注册状态',width:170,valueFormatter:(v:string)=>v==='registered'?'已完成注册':'身份已创建 · 待注册'},
   {field:'userStatus',headerName:'用户状态',width:120,valueFormatter:(v:string|null)=>v==='active'?'启用':v==='disabled'?'停用':'尚未注册'},

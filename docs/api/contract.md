@@ -203,3 +203,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-13 正式注册用户目录
 
 新增候选 `GET /admin-api/v1/users?email=&limit=20&offset=0`，空邮箱参数应省略。完整邮箱精确查询由 Firebase Admin SDK 获取可信 UID，再关联正式注册资料；默认分页列出 PostgreSQL 中的 customer 用户，用户停用状态不隐藏。全部 active admin 经 MFA 后可查看基础注册资料，此范围由用户明确确认。客户名称、ID、业务链接继续受原 staff_grants 限制；未授权关联只返回存在状态。005 只新增独立查询审计表，不改角色、客户、资金或权限。接口详细参数、状态及范围以 OpenAPI 为准；部署以本批发布记录为准。
+
+## 2026-09-13 用户详情查询
+
+既有 `GET /admin-api/v1/users` 增加可选 `userId`（完整 UUID）精确过滤，与 email 互斥、offset 必须为 0；仍返回分页信封，未找到或非 customer 用户返回已审计空列表。复用 `users:list` 审计，无新增迁移。全部 active admin + MFA 可读基础资料；关联客户和账户仍按原资源授权。详情页通过既有账户 GET 展示真实字段，未提供余额的接口不生成余额。

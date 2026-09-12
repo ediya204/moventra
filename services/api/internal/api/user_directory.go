@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"firebase.google.com/go/v4/auth"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -113,7 +114,7 @@ func (s *Server) userDirectory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for k, v := range q {
-		if (k != "email" && k != "limit" && k != "offset") || len(v) != 1 {
+		if (k != "email" && k != "userId" && k != "limit" && k != "offset") || len(v) != 1 {
 			fail(w, 400, "invalid_query")
 			return
 		}
@@ -130,6 +131,15 @@ func (s *Server) userDirectory(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	email := strings.TrimSpace(q.Get("email"))
+	userID := q.Get("userId")
+	if q.Has("userId") {
+		id, e := uuid.Parse(userID)
+		if e != nil || len(userID) != 36 || q.Has("email") || offset != 0 {
+			fail(w, 400, "invalid_query")
+			return
+		}
+		userID = id.String()
+	}
 	if q.Has("email") {
 		address, e := mail.ParseAddress(email)
 		if e != nil || address.Address != email || len(email) > 254 || offset != 0 {
@@ -175,7 +185,7 @@ func (s *Server) userDirectory(w http.ResponseWriter, r *http.Request) {
 		if searched != nil {
 			uid = searched.UID
 		}
-		rows, e := tx.Query(ctx, `SELECT id::text,firebase_uid,display_name,status,created_at FROM users WHERE role='customer' AND ($1='' OR firebase_uid=$1) ORDER BY created_at DESC,id DESC LIMIT $2 OFFSET $3`, uid, limit+1, offset)
+		rows, e := tx.Query(ctx, `SELECT id::text,firebase_uid,display_name,status,created_at FROM users WHERE role='customer' AND ($1='' OR firebase_uid=$1) AND (NULLIF($4,'')::uuid IS NULL OR id=NULLIF($4,'')::uuid) ORDER BY created_at DESC,id DESC LIMIT $2 OFFSET $3`, uid, limit+1, offset, userID)
 		if e != nil {
 			fail(w, 503, "temporarily_unavailable")
 			return

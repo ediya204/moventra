@@ -183,7 +183,8 @@ test('registered directory transport rejects cross-site, extra paths and writes'
  globalThis.fetch=async()=>{calls++;return {ok:true,status:200,json:async()=>({data:[],meta:{hasMore:false}})}};
  const admin=await transport(true),client=await transport(false);
  await admin.liveGetPage('/admin-api/v1/users?email=registered%40example.com&limit=20&offset=0');assert.equal(calls,1);
- for(const path of ['/admin-api/v1/users/other','/admin-api/v1/users?role=admin','/admin-api/v1/users?email=x&email=y','/admin-api/v1/users#x','https://evil.invalid/admin-api/v1/users'])await assert.rejects(admin.liveGet(path),{code:'invalid_path'});
- await assert.rejects(client.liveGet('/admin-api/v1/users'),{code:'invalid_path'});
- await assert.rejects(admin.updateOnboarding('/admin-api/v1/users',{action:'x',revision:0,reason:'x'}),{code:'invalid_path'});assert.equal(calls,1);
+ await admin.liveGetPage('/admin-api/v1/users?userId=11111111-1111-1111-1111-111111111111&limit=1');assert.equal(calls,2);
+ for(const path of ['/admin-api/v1/users?userId=x&userId=y','/admin-api/v1/users/other','/admin-api/v1/users?role=admin','/admin-api/v1/users?email=x&email=y','/admin-api/v1/users#x','https://evil.invalid/admin-api/v1/users'])await assert.rejects(admin.liveGet(path),{code:'invalid_path'});
+ await assert.rejects(client.liveGet('/admin-api/v1/users?userId=11111111-1111-1111-1111-111111111111'),{code:'invalid_path'});
+ await assert.rejects(admin.updateOnboarding('/admin-api/v1/users',{action:'x',revision:0,reason:'x'}),{code:'invalid_path'});assert.equal(calls,2);
 });

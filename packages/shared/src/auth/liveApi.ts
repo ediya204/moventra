@@ -81,7 +81,7 @@ export function isUserDirectoryPath(path:string):boolean {
  const [pathname,query='']=path.split('?');
  if(pathname!=='/admin-api/v1/users'||path.includes('#')||path.split('?').length>2)return false;
  const params=new URLSearchParams(query);
- return [...params.keys()].every(key=>['email','limit','offset'].includes(key)&&params.getAll(key).length===1);
+ return [...params.keys()].every(key=>['email','userId','limit','offset'].includes(key)&&params.getAll(key).length===1);
 }
 async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}, envelope = false): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);

@@ -166,6 +166,27 @@ func TestUserDirectory(t *testing.T) {
 			t.Fatal("directory changed business scope", w.Code)
 		}
 	})
+	t.Run("exact user detail retains identity and customer scopes", func(t *testing.T) {
+		users, more := decode(request("staff", "/admin-api/v1/users?userId=00000000-0000-0000-0000-000000000001&limit=1"))
+		if len(users) != 1 || more || users[0].Email == nil || *users[0].Email != "alice@example.com" || len(users[0].Customers) != 1 || users[0].Customers[0].ID != business {
+			t.Fatal(users, more)
+		}
+		users, _ = decode(request("staff", "/admin-api/v1/users?userId=00000000-0000-0000-0000-000000000002"))
+		if len(users) != 1 || users[0].CustomerLinkState != "linked_restricted" || len(users[0].Customers) != 0 {
+			t.Fatal("detail leaked customer scope", users)
+		}
+		for _, id := range []string{"00000000-0000-0000-0000-000000000003", "99999999-0000-0000-0000-000000000099"} {
+			users, more = decode(request("staff", "/admin-api/v1/users?userId="+id))
+			if len(users) != 0 || more {
+				t.Fatal("admin or missing user exposed", users)
+			}
+		}
+		for token, want := range map[string]int{"": 401, "alice": 403, "staff-no-mfa": 403} {
+			if w := request(token, "/admin-api/v1/users?userId=00000000-0000-0000-0000-000000000001"); w.Code != want {
+				t.Fatal(token, w.Code)
+			}
+		}
+	})
 	t.Run("identity-only and not-found and admin are distinct", func(t *testing.T) {
 		users, _ := decode(request("staff", "/admin-api/v1/users?email=new-user%40example.com"))
 		if len(users) != 1 || users[0].RegistrationStatus != "identity_only" || users[0].UserStatus != nil || users[0].RegisteredAt != nil {
@@ -184,7 +205,7 @@ func TestUserDirectory(t *testing.T) {
 	})
 	t.Run("invalid filters rejected without identity access", func(t *testing.T) {
 		calls := identity.calls
-		for _, q := range []string{"email=x", "email=", "email=a%40b.com&offset=1", "email=a%40b.com&email=b%40b.com", "limit=51", "limit=0", "offset=-1", "offset=100001", "role=admin", "limit=1&limit=2", "email=%zz"} {
+		for _, q := range []string{"userId=", "userId=x", "userId=00000000-0000-0000-0000-000000000001&offset=1", "userId=00000000-0000-0000-0000-000000000001&email=alice%40example.com", "userId=00000000-0000-0000-0000-000000000001&userId=00000000-0000-0000-0000-000000000002", "email=x", "email=", "email=a%40b.com&offset=1", "email=a%40b.com&email=b%40b.com", "limit=51", "limit=0", "offset=-1", "offset=100001", "role=admin", "limit=1&limit=2", "email=%zz"} {
 			if w := request("staff", "/admin-api/v1/users?"+q); w.Code != 400 {
 				t.Fatal(q, w.Code)
 			}
@@ -196,7 +217,7 @@ func TestUserDirectory(t *testing.T) {
 	t.Run("upstream failure is not empty directory", func(t *testing.T) {
 		identity.unavailable = true
 		defer func() { identity.unavailable = false }()
-		for _, q := range []string{"", "?email=alice%40example.com"} {
+		for _, q := range []string{"", "?email=alice%40example.com", "?userId=00000000-0000-0000-0000-000000000001"} {
 			w := request("staff", "/admin-api/v1/users"+q)
 			if w.Code != 503 || !strings.Contains(w.Body.String(), "identity_directory_unavailable") {
 				t.Fatal(w.Code, w.Body.String())
@@ -218,7 +239,7 @@ func TestUserDirectory(t *testing.T) {
 		if _, err = pool.Exec(ctx, `CREATE FUNCTION reject_directory_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'fixture'; END $$;CREATE TRIGGER reject_directory_audit BEFORE INSERT ON user_directory_audit FOR EACH ROW EXECUTE FUNCTION reject_directory_audit()`); err != nil {
 			t.Fatal(err)
 		}
-		w := request("staff", "/admin-api/v1/users?email=alice%40example.com")
+		w := request("staff", "/admin-api/v1/users?userId=00000000-0000-0000-0000-000000000001")
 		if w.Code != 503 || strings.Contains(w.Body.String(), "alice@example.com") {
 			t.Fatal(w.Code, w.Body.String())
 		}
