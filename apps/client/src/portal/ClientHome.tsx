@@ -1,3 +1,4 @@
+import { workspaceNavigation, workspaceWidth, workspaceGrid, workspaceChartsGrid } from "./workspaceNavigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import {
@@ -6,6 +7,7 @@ import {
   Box,
   Button,
   Container,
+  Chip,
   Drawer,
   IconButton,
   List,
@@ -13,7 +15,6 @@ import {
   ListItemIcon,
   ListItemText,
   Paper,
-  Skeleton,
   Stack,
   Table,
   TableBody,
@@ -45,9 +46,8 @@ type Snapshot = {
   transactions: Transaction[];
 };
 const links = [
-  ["/portal", "首页", "solar:widget-4-linear"],
+  ...workspaceNavigation.map(([path, label, icon]) => [path === "overview" ? "/portal" : `/portal/${path}`, label, icon]),
   ["/portal/accounts", "我的账户", "solar:wallet-linear"],
-  ["/portal/transactions", "交易记录", "solar:transfer-horizontal-linear"],
   ["/portal/security", "账户与安全", "solar:shield-check-linear"],
 ];
 const statusLabel: Record<string, string> = {
@@ -95,42 +95,48 @@ export default function ClientHome() {
     };
   }, [customer?.id, session, user, reload]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
-  if (!links.some(([path]) => path === pathname))
+  if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
+  if (!links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
     failure && failure.customer === customer?.id ? failure.message : null;
   const security = pathname === "/portal/security";
-  const page = links.find(([path]) => path === pathname)?.[1] || "首页";
+  const page = links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
   const nav = (
-    <Stack sx={{ height: "100%", p: 2.5 }} spacing={3}>
-      <Box sx={{ py: 1 }}>
-        <BrandLogo />
+    <Stack sx={{ height: "100%", p: 2.5, overflowY: "auto" }} spacing={3}>
+      <Box sx={{ py: 2 }}>
+        <BrandLogo width={190} />
       </Box>
-      <Typography variant="overline" color="text.secondary">
-        客户端工作台
+      <Typography variant="caption" color="text.secondary">
+        客户工作台 / CLIENT WORKSPACE
       </Typography>
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle2">个人账户</Typography>
+        <Typography variant="caption" color="text.secondary">正式账户 · 授权数据</Typography>
+      </Paper>
       <List disablePadding>
-        {links.map(([path, label, icon]) => (
+        {links.slice(0, 7).map(([path, label, icon]) => (
           <ListItemButton
             key={path}
             component={Link}
             to={path}
-            selected={pathname === path}
+            selected={pathname === path || path !== "/portal" && pathname.startsWith(path + "/")}
+            aria-current={pathname === path ? "page" : undefined}
             onClick={() => setMobile(false)}
             sx={{
               mb: 0.75,
               borderRadius: 1.5,
               "&.Mui-selected": {
                 color: "primary.main",
-                bgcolor: "action.selected",
+                bgcolor: "primary.lighter",
               },
             }}
           >
             <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
               <Icon icon={icon} width={22} />
             </ListItemIcon>
-            <ListItemText primary={label} />
+            <ListItemText primary={label} primaryTypographyProps={{ variant: "body2" }} />
           </ListItemButton>
         ))}
       </List>
@@ -258,9 +264,9 @@ export default function ClientHome() {
       <Box
         component="aside"
         sx={{
-          width: 248,
+          width: workspaceWidth,
           flexShrink: 0,
-          display: { xs: "none", md: "block" },
+          display: { xs: "none", lg: "block" },
           borderRight: 1,
           borderColor: "divider",
           bgcolor: "background.paper",
@@ -277,15 +283,15 @@ export default function ClientHome() {
       >
         {nav}
       </Drawer>
-      <Box sx={{ flex: 1, ml: { md: "248px" }, minWidth: 0 }}>
+      <Box sx={{ flex: 1, ml: { lg: `${workspaceWidth}px` }, minWidth: 0 }}>
         <Stack
           component="header"
           direction="row"
           alignItems="center"
           spacing={2}
           sx={{
-            px: { xs: 2, md: 5 },
-            height: 80,
+            px: 3,
+            minHeight: 64,
             bgcolor: "background.paper",
             borderBottom: 1,
             borderColor: "divider",
@@ -294,13 +300,14 @@ export default function ClientHome() {
           <IconButton
             aria-label="打开导航"
             onClick={() => setMobile(true)}
-            sx={{ display: { md: "none" } }}
+            sx={{ display: { lg: "none" } }}
           >
             <Icon icon="solar:hamburger-menu-linear" />
           </IconButton>
           <Typography variant="subtitle1" sx={{ flex: 1 }}>
-            Moventra 客户端
+            工作空间 / {page}
           </Typography>
+          <Chip size="small" variant="outlined" label="正式账户" color="primary" />
           <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main" }}>
             {user.email?.[0].toUpperCase()}
           </Avatar>
@@ -312,7 +319,7 @@ export default function ClientHome() {
           </Typography>
           <Button onClick={signOut}>退出</Button>
         </Stack>
-        <Container maxWidth="lg" component="main" sx={{ py: { xs: 3, md: 5 } }}>
+        <Container maxWidth="xl" component="main" sx={{ py: 4 }}>
           {security ? (
             <>
               <Typography variant="h4">账户与安全</Typography>
@@ -320,6 +327,7 @@ export default function ClientHome() {
             </>
           ) : (
             <Stack spacing={3}>
+              <Alert severity="info">正式账户 · 账户与交易读取已授权数据。资金、卡片及统计服务尚未开通，暂不可用的金额以 — 显示。</Alert>
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="space-between"
@@ -327,14 +335,15 @@ export default function ClientHome() {
               >
                 <Box>
                   <Typography variant="h4" component="h1">
-                    {pathname === "/portal" ? "欢迎回来" : page}
+                    {page}
                   </Typography>
                   <Typography color="text.secondary" sx={{ mt: 1 }}>
-                    查看你的账户与交易，管理日常业务。
+                    个人账户 · 管理投放资金与卡片预算
                   </Typography>
                 </Box>
                 <Button
                   variant="outlined"
+                  sx={{ alignSelf: "center" }}
                   onClick={() => setReload((n) => n + 1)}
                   disabled={!customer}
                   startIcon={<Icon icon="solar:refresh-linear" />}
@@ -350,83 +359,56 @@ export default function ClientHome() {
               )}
               {pathname === "/portal" && (
                 <>
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: { xs: "1fr", sm: "repeat(3,1fr)" },
-                      gap: 2,
-                    }}
-                  >
-                    {[
-                      [
-                        "我的账户",
-                        data?.accounts.length,
-                        "已读取账户 · 最多 50 条",
-                      ],
-                      [
-                        "最近交易",
-                        data?.transactions.length,
-                        "已读取交易 · 最多 50 条",
-                      ],
-                      [
-                        "账户安全",
-                        session.mfaVerified ? "已验证" : "已登录",
-                        session.mfaVerified
-                          ? "本次登录已完成双重验证"
-                          : "可在账户与安全中设置验证器",
-                      ],
-                    ].map(([label, value, caption]) => (
-                      <Paper
-                        key={String(label)}
-                        variant="outlined"
-                        sx={{ p: 3 }}
-                      >
-                        <Typography color="text.secondary" variant="body2">
-                          {label}
-                        </Typography>
-                        <Typography variant="h4" sx={{ my: 1.5 }}>
-                          {value ??
-                            (error || !customer ? (
-                              "—"
-                            ) : (
-                              <Skeleton width={60} />
-                            ))}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {caption}
-                        </Typography>
+                  <Paper variant="outlined" sx={{ display: "grid", gridTemplateColumns: workspaceGrid.gridTemplateColumns, overflow: "hidden" }}>
+                    {["USD 可用余额", "USDT 可用余额", "内部卡预算 · USD", "使用中卡片"].map(label => (
+                      <Box key={label} sx={{ p: 2.5, borderRight: 1, borderBottom: 1, borderColor: "divider" }}>
+                        <Typography variant="body2" color="text.secondary">{label}</Typography>
+                        <Typography variant="h4" sx={{ my: 1.5 }}>—</Typography>
+                        <Typography variant="caption" color="text.secondary">暂不可用 · 服务尚未开通</Typography>
+                      </Box>
+                    ))}
+                  </Paper>
+                  <Box sx={workspaceGrid}>
+                    {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
+                      <Paper key={label} variant="outlined" sx={{ p: 2 }}>
+                        <Button disabled fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
+                        <Typography variant="caption" color="text.secondary">服务尚未开通</Typography>
                       </Paper>
                     ))}
                   </Box>
-                  <Paper variant="outlined" sx={{ p: 3 }}>
-                    <Stack
-                      direction={{ xs: "column", sm: "row" }}
-                      spacing={2}
-                      alignItems={{ sm: "center" }}
-                    >
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="h6">开始使用你的账户</Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ mt: 0.5 }}
-                        >
-                          查看账户信息与交易记录。开卡、充值等服务开放后，将在这里提供入口。
-                        </Typography>
-                      </Box>
-                      <Button
-                        component={Link}
-                        to="/portal/accounts"
-                        variant="contained"
-                      >
-                        查看账户
-                      </Button>
-                    </Stack>
-                  </Paper>
+                  <Box sx={workspaceChartsGrid}>
+                    {[["消费与退款趋势", "solar:chart-2-linear", "暂未提供消费与退款统计"], ["卡片状态分布", "solar:pie-chart-2-linear", "暂未提供卡片统计"]].map(([title, icon, reason]) => (
+                      <Paper key={title} variant="outlined" sx={{ p: 3 }}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Box sx={{ color: "primary.main" }}><Icon icon={icon} width={24} /></Box>
+                          <Typography variant="h6">{title}</Typography>
+                        </Stack>
+                        <Stack alignItems="center" justifyContent="center" spacing={1} sx={{ minHeight: 260 }}>
+                          <Typography color="text.secondary">{reason}</Typography>
+                          <Typography variant="caption" color="text.secondary">服务开通后显示真实数据</Typography>
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </Box>
                 </>
               )}
-              {pathname !== "/portal/transactions" && accounts}
-              {pathname !== "/portal/accounts" && transactions}
+              {["/portal", "/portal/accounts", "/portal/funds"].includes(pathname) && accounts}
+              {["/portal", "/portal/transactions"].includes(pathname) && transactions}
+              {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
+                <Typography variant="h6">个人账户设置</Typography>
+                <Typography color="text.secondary" sx={{ my: 2 }}>{user.email}</Typography>
+                <Stack direction="row" spacing={2}>
+                  <Button component={Link} to="/portal/accounts" variant="outlined">我的账户</Button>
+                  <Button component={Link} to="/portal/security" variant="outlined">账户与安全</Button>
+                </Stack>
+              </Paper>}
+              {["funds", "cards", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
+                <Paper variant="outlined" sx={{ p: 3 }}>
+                  <Typography variant="h6">{page}</Typography>
+                  <Typography color="text.secondary" sx={{ my: 2 }}>{page}的办理服务尚未开通。当前仅提供已授权的账户与交易查询。</Typography>
+                  <Button component={Link} to="/portal/transactions" variant="outlined">查看交易与账单</Button>
+                </Paper>
+              )}
             </Stack>
           )}
         </Container>

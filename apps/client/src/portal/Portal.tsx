@@ -1,3 +1,4 @@
+import { workspaceNavigation, workspaceWidth } from "./workspaceNavigation";
 import {retiredTeamPath} from "../../../../packages/shared/src/portal/personalV1";
 import MessageCenter from './MessageCenter';
 import {CardOpeningPage} from '../bins/CardOpeningPage';
@@ -52,15 +53,7 @@ import { OverviewDashboard } from "./DashboardSections";
 
 const SlashSourcePage = lazy(() => import('../../../../packages/shared/src/slash/SourceDemoPage'));
 const localSlashAvailable = (import.meta.env.DEV || import.meta.env.VITE_DATA_MODE === 'slash-demo') && ['localhost','127.0.0.1','[::1]'].includes(window.location.hostname);
-const nav = [
-  ["overview", "工作台", "solar:widget-4-linear"],
-  ["funds", "资金中心", "solar:wallet-money-linear"],
-  ["cards", "卡片中心", "solar:card-linear"],
-  ["transactions", "交易与账单", "solar:bill-list-linear"],
-  ["messages", "消息中心", "solar:bell-linear"],
-  ["support", "帮助与工单", "solar:chat-round-line-linear"],
-  ["settings", "设置与开户", "solar:settings-linear"],
-];
+const nav = workspaceNavigation;
 const titles: Record<string, string> = {
   deposit: "充值申请",
   open: "申请新卡",
@@ -413,7 +406,7 @@ export default function Portal() {
         aria-label="客户导航"
         sx={{
           display: { xs: "none", lg: "block" },
-          width: 252,
+          width: workspaceWidth,
           position: "fixed",
           inset: "0 auto 0 0",
           bgcolor: "background.paper",
@@ -430,7 +423,7 @@ export default function Portal() {
       >
         {navigation}
       </Drawer>
-      <Box sx={{ ml: { lg: "252px" } }}>
+      <Box sx={{ ml: { lg: `${workspaceWidth}px` } }}>
         <Stack
           direction="row"
           alignItems="center"
