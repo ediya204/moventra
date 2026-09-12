@@ -37,7 +37,7 @@ GitHub main `a9f4253`；隔离工作分支 `codex/restore-existing-admin-modules
 
 原服务 136 项隔离测试通过（含本次新增的 Moventra 管理会话兼容回归）；正式查询 PostgreSQL race 回归通过，包括新增卡片分页/筛选和资源权限。前端/网关共 70 项测试通过（含目录交互、上下文保留和 transport）；两端 TypeScript/Vite 构建通过。Go vet/build 通过。浏览器初次控制失败后已恢复：验证本地登录、独立管理会话、总览、BIN 列表 → 详情和费率列表；未在浏览器执行资金操作。另验证本地入口 HTTP 和隔离登录接口。真实渠道调用、真实登录/MFA 业务验收、旧数据生产迁移均未执行。
 
-本批生产部署状态以发布记录为准，源码恢复不表示所有旧写流程已上线。Slash 卡字段复核依据 https://docs.slash.com/api-reference/schema-card （2026-09-13）；本批只用既有白名单字段，不采集 PAN/CVV。
+本批卡片、账户及渠道查询已发布，版本和线上验证见 [发布记录](../releases/2026-09-13-existing-admin-modules.md)。源码恢复不表示所有旧写流程已上线。Slash 卡字段复核依据 https://docs.slash.com/api-reference/schema-card （2026-09-13）；本批只用既有白名单字段，不采集 PAN/CVV。
 
 本地浏览器复现另发现品牌更名后演示管理账号不兼容，已在本地入口兼容 Moventra/ADSFLOW 名称，仍映射同一隔离经办身份；不改变正式账号或权限。LiveSlashPage 的现有详情/日期恢复增量已纳入；生产构建不包含这些 DEV 变更，正式产物摘要保持一致。
 
