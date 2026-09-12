@@ -21,6 +21,7 @@ type Server struct {
 type principal struct {
 	ID       string
 	Identity Identity
+	Role     string
 }
 type principalKey struct{}
 
@@ -38,7 +39,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { respond(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		var version int
-		if err := s.DB.QueryRow(r.Context(), `SELECT version FROM schema_migrations WHERE version=1`).Scan(&version); err != nil {
+		if err := s.DB.QueryRow(r.Context(), `SELECT version FROM schema_migrations WHERE version=4`).Scan(&version); err != nil {
 			fail(w, 503, "not_ready")
 			return
 		}
@@ -49,6 +50,8 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}/{id}", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.HandleFunc("POST /api/v1/register", s.register)
 	mux.Handle("GET /api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
+	mux.Handle("GET /client-api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
+	mux.Handle("GET /admin-api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
 	mux.Handle("GET /admin-api/v1/ops/overview", s.authenticate(http.HandlerFunc(s.opsOverview)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.submitUpgrade)))
 	mux.Handle("GET /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.getUpgrade)))
@@ -81,8 +84,8 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			fail(w, 401, "unauthenticated")
 			return
 		}
-		var id, status string
-		err = s.DB.QueryRow(r.Context(), `SELECT id::text,status FROM users WHERE firebase_uid=$1`, identity.UID).Scan(&id, &status)
+		var id, status, role string
+		err = s.DB.QueryRow(r.Context(), `SELECT id::text,status,role FROM users WHERE firebase_uid=$1`, identity.UID).Scan(&id, &status, &role)
 		if errors.Is(err, pgx.ErrNoRows) {
 			fail(w, 403, "registration_required")
 			return
@@ -95,7 +98,15 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			fail(w, 403, "user_disabled")
 			return
 		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, principal{id, identity})))
+		if strings.HasPrefix(r.URL.Path, "/admin-api/") && role != "admin" {
+			fail(w, 403, "operator_required")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/client-api/") && role != "customer" {
+			fail(w, 403, "customer_required")
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, principal{id, identity, role})))
 	})
 }
 
@@ -121,10 +132,9 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rows.Close()
-	var operator bool
-	if err = s.DB.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM staff_grants WHERE user_id=$1)`, p.ID).Scan(&operator); err != nil {
-		fail(w, 503, "temporarily_unavailable")
-		return
+	operator := p.Role == "admin"
+	if operator {
+		customers = []map[string]string{}
 	}
 	scopes := []map[string]string{}
 	// Scope discovery is gated by MFA too; it does not grant access. Every data
@@ -149,7 +159,7 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	respond(w, 200, map[string]any{"data": map[string]any{"id": p.ID, "customers": customers, "operator": operator, "mfaVerified": p.Identity.MFA, "requiresMfa": operator && !p.Identity.MFA, "staffScopes": scopes}})
+	respond(w, 200, map[string]any{"data": map[string]any{"id": p.ID, "role": p.Role, "customers": customers, "operator": operator, "mfaVerified": p.Identity.MFA, "requiresMfa": operator && !p.Identity.MFA, "staffScopes": scopes}})
 }
 
 func (s *Server) query(surface, resource string) http.Handler {

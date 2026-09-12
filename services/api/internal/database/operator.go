@@ -29,7 +29,7 @@ func ProvisionOperator(ctx context.Context, pool *pgxpool.Pool, operatorUID, own
 		return "", errors.New("owner is not active")
 	}
 	var mixed bool
-	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM staff_grants WHERE user_id=$1) OR EXISTS(SELECT 1 FROM customers WHERE personal_owner_id=$2) OR EXISTS(SELECT 1 FROM memberships WHERE user_id=$2)`, owner, operator).Scan(&mixed); err != nil {
+	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM users WHERE id=$1 AND role='admin') OR EXISTS(SELECT 1 FROM staff_grants WHERE user_id=$1) OR EXISTS(SELECT 1 FROM customers WHERE personal_owner_id=$2) OR EXISTS(SELECT 1 FROM memberships WHERE user_id=$2)`, owner, operator).Scan(&mixed); err != nil {
 		return "", err
 	}
 	if mixed {
@@ -38,6 +38,15 @@ func ProvisionOperator(ctx context.Context, pool *pgxpool.Pool, operatorUID, own
 	var customer string
 	if err = tx.QueryRow(ctx, `SELECT id::text FROM customers WHERE kind='personal' AND personal_owner_id=$1`, owner).Scan(&customer); err != nil {
 		return "", errors.New("personal customer missing")
+	}
+	changed, err := tx.Exec(ctx, `UPDATE users SET role='admin' WHERE id=$1 AND role<>'admin'`, operator)
+	if err != nil {
+		return "", err
+	}
+	if changed.RowsAffected() > 0 {
+		if _, err = tx.Exec(ctx, `INSERT INTO audit_events(actor_id,customer_id,action) VALUES($1,$2,'identity:role:admin:provision')`, operator, customer); err != nil {
+			return "", err
+		}
 	}
 	for _, permission := range []string{"accounts:read", "transactions:read"} {
 		result, err := tx.Exec(ctx, `INSERT INTO staff_grants(user_id,customer_id,permission) VALUES($1,$2,$3) ON CONFLICT DO NOTHING`, operator, customer, permission)

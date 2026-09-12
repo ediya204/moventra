@@ -74,7 +74,7 @@ func TestChannelBoundary(t *testing.T) {
 			t.Fatal(suffix, w.Code, w.Body.String())
 		}
 	}
-	if w := request(path, "alice"); w.Code != 404 {
+	if w := request(path, "alice"); w.Code != 403 {
 		t.Fatal("cross scope", w.Code)
 	}
 	var out struct {

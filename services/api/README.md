@@ -35,7 +35,7 @@ go run ./cmd/api migrate
 go run ./cmd/api
 ```
 
-默认端口 8870，`GET /healthz` 检查进程，`GET /readyz` 当前只检查数据库及迁移 001 存在，不能证明渠道迁移 002 已就绪。API 启动不自动执行迁移，也不自动创建用户/成员/运营权限。
+默认端口 8870，`GET /healthz` 检查进程，`GET /readyz` 检查数据库及迁移 004 存在，角色迁移完成前新 API 不接受流量。API 启动不自动执行迁移，也不自动创建用户/成员/运营权限。
 
 认证 API 使用 `Authorization: Bearer <Firebase ID token>`。选定第一阶段为 Bearer 模式，尚未实现此前讨论的 Cookie 会话交换。Go 用可信 UID 映射本地用户，不接受客户端邮箱、角色或自报 UID 作为授权依据。仅在已验证 token 上读取 MFA 因子；每次请求检查 Firebase 撤销状态，因此也依赖 Firebase 网络可用性。
 
@@ -71,3 +71,7 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 ## 2026-09-13 开户审批权限授权
 
 `api grant-existing-onboarding` 仅在明确设置 `CONFIRM_EXISTING_CUSTOMER_SCOPES=yes` 后执行一次受控授权：沿用现有 active 运营的个人客户 accounts:read / transactions:read 范围，幂等添加 onboarding:review 并原子记录用户授权审计。跳过客户所有人、企业成员、停用身份和企业客户。不在迁移或启动时自动运行，不包含未来客户，也不审批或开通客户。生产运行依据用户本次“沿用现有后台账号和客户范围”的明确确认。客户端提交后，运营仍需 MFA 并填写审批说明。
+
+## 2026-09-13 两角色候选
+
+新增 users.role（customer/admin）；两端身份 GET 分别为 `/client-api/v1/me` 与 `/admin-api/v1/me`。跨端角色拒绝，管理员继续按 MFA 和已有资源范围授权。保留渠道与开户接口；只新增 004，不改已应用 001–003。迁移、备份和发布顺序见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。

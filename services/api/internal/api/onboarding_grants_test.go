@@ -71,6 +71,16 @@ func TestExistingOnboardingGrants(t *testing.T) {
 	if grants != 1 || audits != 1 {
 		t.Fatal(grants, audits)
 	}
+	// Existing stale grants must not restore a downgraded customer's staff scope.
+	if _, err = pool.Exec(ctx, `DELETE FROM staff_grants WHERE permission='onboarding:review'; UPDATE users SET role='customer' WHERE firebase_uid='staff'`); err != nil {
+		t.Fatal(err)
+	}
+	if n, err = database.GrantExistingOnboarding(ctx, pool); err != nil || n != 0 {
+		t.Fatal("demoted identity granted", n, err)
+	}
+	if _, err = pool.Exec(ctx, `UPDATE users SET role='admin' WHERE firebase_uid='staff'`); err != nil {
+		t.Fatal(err)
+	}
 	// An audit failure must undo every new permission.
 	if _, err = pool.Exec(ctx, `DELETE FROM staff_grants WHERE permission='onboarding:review';CREATE FUNCTION reject_grant_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'test audit failure'; END $$;CREATE TRIGGER reject_grant_audit BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION reject_grant_audit()`); err != nil {
 		t.Fatal(err)

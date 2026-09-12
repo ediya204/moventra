@@ -24,7 +24,7 @@ func GrantExistingOnboarding(ctx context.Context, pool *pgxpool.Pool) (int64, er
  SELECT DISTINCT g.user_id,g.customer_id,'onboarding:review'
  FROM staff_grants g JOIN users u ON u.id=g.user_id
  JOIN customers c ON c.id=g.customer_id
- WHERE u.status='active' AND c.kind='personal'
+ WHERE u.status='active' AND u.role='admin' AND c.kind='personal'
  AND g.permission IN ('accounts:read','transactions:read')
  AND NOT EXISTS(SELECT 1 FROM customers owned WHERE owned.personal_owner_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id)

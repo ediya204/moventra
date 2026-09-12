@@ -4,7 +4,7 @@ import { clearAccessToken, setAccessToken } from '../api/client';
 import { login as legacyLogin } from '../api/queries';
 import { getFirebaseAuth } from '../firebase';
 import { isDemoMode } from '../utils/dataMode';
-import { isAdminSite, acceptsLoginEmail } from './site';
+import { isAdminSite, sessionPath } from './site';
 import { liveGet, SessionError, type LiveSession } from './liveApi';
 import type { SessionProfile } from '../types';
 
@@ -34,16 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setReady(false); setUser(isAdminSite ? null : current); setProfile(null); setSession(null); setSessionError(null);
     try {
       if (!current) return;
-      if (!acceptsLoginEmail(current.email || '')) throw new SessionError('operator_required', 403);
       if (!current.emailVerified) { setUser(current); setSessionError({ code: 'email_unverified' }); return; }
-      const data = await liveGet<LiveSession>('/api/v1/me');
+      const data = await liveGet<LiveSession>(sessionPath);
       if (request !== generation.current || getFirebaseAuth().currentUser !== current) return;
-      if (isAdminSite && data.operator !== true) throw new SessionError('operator_required', 403);
+      if (data.role !== (isAdminSite ? 'admin' : 'customer')) throw new SessionError(isAdminSite ? 'operator_required' : 'customer_required', 403);
       setUser(current); setSession(data);
-      if (!isAdminSite || data.mfaVerified === true) setProfile({ username: current.email || '', nickname: current.displayName || undefined, roles: data.operator && data.mfaVerified ? ['operator'] : ['customer'], permissions: [] });
+      if (!isAdminSite || data.mfaVerified === true) setProfile({ username: current.email || '', nickname: current.displayName || undefined, roles: [data.role], permissions: [] });
     } catch (error) {
       if (request !== generation.current) return;
-      if (isAdminSite) {
+      if (isAdminSite || (error instanceof SessionError && error.code === 'customer_required')) {
         // Firebase identity alone is never an admitted admin session.
         setLoginError(error); setUser(null); setSession(null); setProfile(null);
         if (getFirebaseAuth().currentUser === current) await firebaseSignOut(getFirebaseAuth());
@@ -74,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile({ username: result.username || email, nickname: result.nickname, avatar: result.avatar, roles: result.roles || [], permissions: result.permissions || [] }); return;
     }
     setLoginError(null); resolver.current = null; setFactors([]); clearAccessToken();
-    if (!acceptsLoginEmail(email)) throw new SessionError('operator_required', 403);
     try { await signInWithEmailAndPassword(getFirebaseAuth(), email.trim(), password); }
     catch (error) {
       handleMfaError(error);

@@ -3,7 +3,7 @@ import { getFirebaseAuth } from '../firebase';
 
 export type CustomerScope = { id: string; kind: 'personal' | 'business'; name: string };
 export type LiveSession = {
-  id: string; customers: CustomerScope[]; operator: boolean; mfaVerified: boolean;
+  id: string; role: 'customer' | 'admin'; customers: CustomerScope[]; operator: boolean; mfaVerified: boolean;
   requiresMfa: boolean; staffScopes: { customerId: string; name: string; permission: string }[];
 };
 export class SessionError extends Error {
@@ -14,6 +14,7 @@ const messages: Record<string, string> = {
   invalid_onboarding_transition: '当前开户状态不允许此操作，请刷新。',
   review_reason_required: '请填写审批或状态变更说明。',
   admin_password_required: '运营后台请使用已开通账号的邮箱和密码登录。',
+  customer_required: '此账号是后台管理员，请使用运营后台入口。',
   operator_required: '此账号没有运营后台权限，请使用客户端入口。',
   registration_required: '你尚未创建 Moventra 账户，请补充信息完成注册。',
   user_disabled: '账户已停用，请联系管理员。',
@@ -52,10 +53,23 @@ export function authMessage(error: unknown): string {
   return messages[code] || '操作未完成，请稍后重试或联系管理员。';
 }
 
+// Existing read-only channel projection contract; no provider or write proxy.
+export function isChannelReadPath(path: string): boolean {
+  if (path === '/admin-api/v1/channel-projections') return true;
+  const [pathname, query = ''] = path.split('?');
+  if (path.includes('#') || path.split('?').length > 2) return false;
+  const base = '/admin-api/v1/channel-projections/[A-Za-z0-9_-]+';
+  if (new RegExp('^' + base + '/(transactions|cards)/[A-Za-z0-9_-]+$').test(pathname)) return !query;
+  if (!new RegExp('^' + base + '/transactions$').test(pathname)) return false;
+  const params = new URLSearchParams(query);
+  const allowed = new Set(['revision', 'keyword', 'detailedStatus', 'from', 'to', 'page']);
+  return [...params.keys()].every(key => allowed.has(key) && params.getAll(key).length === 1);
+}
+
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
 async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/api\/v1\/me$/.test(path) && !/^\/admin-api\/v1\/channel-projections(?:\/[A-Za-z0-9_-]+\/(?:transactions|cards)(?:\/[A-Za-z0-9_-]+)?)?(?:\?[^#]*)?$/.test(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !/^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/(accounts|transactions)$/.test(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);

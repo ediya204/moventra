@@ -13,14 +13,17 @@ const DemoApp=import.meta.env.DEV ? lazy(()=>import('./DemoApp')) : null;
 function SessionEntry(){const {authenticated,session}=useAuth();const [params]=useSearchParams();return authenticated&&session?.operator&&session.mfaVerified&&!params.has('security')?<Navigate to="/workbench" replace/>:<SessionPage/>;}
 export default function App(){
  return <Suspense fallback={<PageSkeleton/>}>{DemoApp && isDemoMode ? <DemoApp/> : <Routes>
-  <Route path="/login" element={<LoginPage/>}/>
+  <Route path="/admin/login" element={<LoginPage/>}/>
+  <Route path="/login" element={<Navigate to="/admin/login" replace/>}/>
+  <Route path="/portal/*" element={<div role="alert">404 · 此站点不提供客户登录</div>}/>
   <Route path="/session" element={<SessionEntry/>}/>
   <Route path="/transactions" element={<ChannelTransactionsPage/>}/>
   <Route path="/cards/:id" element={<ChannelTransactionsPage/>}/>
+  <Route path="/" element={<Navigate to="/workbench" replace/>}/>
   <Route path="/onboarding" element={<OnboardingPage/>}/>
   <Route path="/onboarding/:customerId" element={<OnboardingPage/>}/>
   <Route path="/workbench" element={<OperationsPage/>}/>
   <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
-  <Route path="*" element={<Navigate to="/login" replace/>}/>
+  <Route path="*" element={<Navigate to="/admin/login" replace/>}/>
  </Routes>}</Suspense>;
 }

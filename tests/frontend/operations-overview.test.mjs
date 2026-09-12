@@ -77,7 +77,7 @@ state.request=request;
 const shell=uri(`
  import React from ${JSON.stringify(reactURL)};
  const Pass=({children})=>React.createElement('div',null,children);
- export const Box=Pass,Stack=Pass,Card=Pass,CardContent=Pass,Container=Pass,Divider=Pass,Grid=Pass,List=Pass,ListItem=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass;
+ export const DashboardLayout=Pass;export const Box=Pass,Stack=Pass,Card=Pass,CardContent=Pass,Container=Pass,Divider=Pass,Grid=Pass,List=Pass,ListItem=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass;
  export const Typography=({children,variant})=>React.createElement('span',{'data-variant':variant},children);
  export const Button=({children,onClick,disabled})=>React.createElement('button',{onClick,disabled},children);
  export const Select=({children,onChange,value,inputProps})=>React.createElement('select',{onChange,value,...inputProps},children);
@@ -157,11 +157,22 @@ test('formal operations page requires an authenticated operator with verified MF
   state.auth={...scenario.auth,signOut(){}};let view;
   await act(async()=>{view=Renderer.create(router(React.createElement(Routes,null,
    React.createElement(Route,{path:'/workbench',element:React.createElement(OperationsPage)}),
-   React.createElement(Route,{path:'/login',element:React.createElement('div',{'data-route':'login'})}),
+   React.createElement(Route,{path:'/admin/login',element:React.createElement('div',{'data-route':'login'})}),
    React.createElement(Route,{path:'/session',element:React.createElement('div',{'data-route':'security'})}))));});
   assert.equal(view.root.findAll(node=>node.type==='div'&&node.props['data-overview']===true).length,scenario.expected==='overview'?1:0);
   if(scenario.expected==='loading')assert.equal(view.root.findAll(node=>node.type==='div'&&node.props['data-skeleton']===true).length,1);
   else if(scenario.expected!=='overview')assert.equal(view.root.findByProps({'data-route':scenario.expected}).props['data-route'],scenario.expected);
   await act(async()=>view.unmount());
  }
+});
+
+test('channel transport allows existing read queries and rejects foreign destinations, writes and client usage',async t=>{
+ const original=globalThis.fetch;t.after(()=>{globalThis.fetch=original;});
+ const requests=[];network.auth.currentUser={getIdToken:async()=>'fixture-token'};
+ globalThis.fetch=async(path,options)=>{requests.push({path,options});return {ok:true,status:200,json:async()=>({data:[]})};};
+ const admin=await transport(true),base='/admin-api/v1/channel-projections';
+ for(const path of [base,base+'/slash-live/transactions?revision=1&keyword=Google&page=0',base+'/slash-live/transactions/tx_1',base+'/slash-live/cards/card_1'])await admin.liveGet(path);
+ for(const path of [base+'/slash-live/cards',base+'/slash-live/payout',base+'/../users',base+'/slash-live/transactions?target=evil',base+'/slash-live/transactions?page=0&page=1','https://evil.example'+base,base+'/slash-live/cards/card_1#fragment'])await assert.rejects(admin.liveGet(path),{code:'invalid_path'});
+ const client=await transport(false);await assert.rejects(client.liveGet(base),{code:'invalid_path'});
+ assert.equal(requests.length,4);assert.ok(requests.every(r=>r.options.method==='GET'&&r.options.credentials==='omit'&&r.options.redirect==='error'));
 });

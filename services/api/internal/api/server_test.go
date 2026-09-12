@@ -12,8 +12,8 @@ import (
 	"sync"
 	"testing"
 
-	"moventra.local/api/internal/database"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"moventra.local/api/internal/database"
 )
 
 // No test-token implementation exists in the production binary.
@@ -39,6 +39,7 @@ INSERT INTO users(id,firebase_uid,display_name,status) VALUES
 ('00000000-0000-0000-0000-000000000002','bob','Bob','active'),
 ('00000000-0000-0000-0000-000000000003','staff','Operator','active'),
 ('00000000-0000-0000-0000-000000000004','disabled','Disabled','disabled');
+UPDATE users SET role='admin' WHERE firebase_uid='staff';
 INSERT INTO customers(id,kind,name,personal_owner_id) VALUES
 ('10000000-0000-0000-0000-000000000001','personal','Alice personal','00000000-0000-0000-0000-000000000001'),
 ('10000000-0000-0000-0000-000000000002','business','Company A',NULL),
@@ -146,7 +147,7 @@ func TestPostgresBoundary(t *testing.T) {
 			t.Fatal(w.Code, w.Body)
 		}
 		w = request("GET", "/admin-api/v1/customers/"+business+"/accounts", "new-user", "", "")
-		if w.Code != 404 {
+		if w.Code != 403 {
 			t.Fatal(w.Code, w.Body)
 		}
 	})
@@ -223,8 +224,8 @@ func TestPostgresBoundary(t *testing.T) {
 		{"personal owner", "/client-api/v1/customers/" + personal + "/accounts", "alice", 200},
 		{"business member", "/client-api/v1/customers/" + business + "/accounts", "alice", 200},
 		{"cross customer denied", "/client-api/v1/customers/" + other + "/accounts", "alice", 404},
-		{"customer cannot become staff", "/admin-api/v1/customers/" + business + "/accounts", "alice", 404},
-		{"staff has no implicit client access", "/client-api/v1/customers/" + business + "/accounts", "staff", 404},
+		{"customer cannot become staff", "/admin-api/v1/customers/" + business + "/accounts", "alice", 403},
+		{"staff has no implicit client access", "/client-api/v1/customers/" + business + "/accounts", "staff", 403},
 		{"staff requires MFA", "/admin-api/v1/customers/" + business + "/accounts", "staff-no-mfa", 403},
 		{"scoped staff grant", "/admin-api/v1/customers/" + business + "/accounts", "staff", 200},
 		{"staff wrong resource denied", "/admin-api/v1/customers/" + business + "/transactions", "staff", 404},
@@ -392,8 +393,8 @@ func TestPostgresBoundary(t *testing.T) {
 			{"staff-no-mfa", "/admin-api/v1/customers/" + personal + "/accounts", 403},
 			{"staff", "/admin-api/v1/customers/" + personal + "/transactions", 200},
 			{"staff", "/admin-api/v1/customers/" + other + "/accounts", 404},
-			{"alice", "/admin-api/v1/customers/" + personal + "/accounts", 404},
-			{"staff", "/client-api/v1/customers/" + personal + "/accounts", 404},
+			{"alice", "/admin-api/v1/customers/" + personal + "/accounts", 403},
+			{"staff", "/client-api/v1/customers/" + personal + "/accounts", 403},
 		} {
 			if w := request("GET", c.path, c.token, "", ""); w.Code != c.want {
 				t.Fatal(c, w.Code)
@@ -412,6 +413,49 @@ func TestPostgresBoundary(t *testing.T) {
 			t.Fatal(e)
 		}
 	})
+	t.Run("explicit roles and surface separation", func(t *testing.T) {
+		for _, tc := range []struct {
+			token, path string
+			code        int
+		}{
+			{"alice", "/client-api/v1/me", 200},
+			{"alice", "/admin-api/v1/me", 403},
+			{"staff", "/admin-api/v1/me", 200},
+			{"staff", "/client-api/v1/me", 403},
+			{"staff", "/client-api/v1/customers/" + personal + "/accounts", 403},
+			{"staff", "/client-api/v1/customers/" + personal + "/business-upgrade", 403},
+		} {
+			w := request("GET", tc.path, tc.token, "", "")
+			if w.Code != tc.code {
+				t.Fatalf("%s %s: %d %s", tc.token, tc.path, w.Code, w.Body.String())
+			}
+		}
+		// Removing all resource grants must not silently change the role.
+		if _, err := pool.Exec(ctx, `DELETE FROM staff_grants WHERE user_id='00000000-0000-0000-0000-000000000003'`); err != nil {
+			t.Fatal(err)
+		}
+		w := request("GET", "/admin-api/v1/me", "staff", "", "")
+		if w.Code != 200 || !strings.Contains(w.Body.String(), `"role":"admin"`) {
+			t.Fatal(w.Code, w.Body.String())
+		}
+		if w = request("GET", "/admin-api/v1/customers/"+personal+"/accounts", "staff", "", ""); w.Code != 404 {
+			t.Fatal(w.Code)
+		}
+		// A stale grant must not promote a customer or revive a revoked admin.
+		if _, err := pool.Exec(ctx, `INSERT INTO staff_grants(user_id,customer_id,permission) VALUES('00000000-0000-0000-0000-000000000003','10000000-0000-0000-0000-000000000001','accounts:read'); UPDATE users SET role='customer' WHERE firebase_uid='staff'`); err != nil {
+			t.Fatal(err)
+		}
+		if w = request("GET", "/admin-api/v1/customers/"+personal+"/accounts", "staff", "", ""); w.Code != 403 {
+			t.Fatal(w.Code)
+		}
+		if _, err := pool.Exec(ctx, `UPDATE users SET role='admin' WHERE firebase_uid='staff'`); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := database.ProvisionPersonal(ctx, pool, "staff"); err == nil {
+			t.Fatal("admin became customer")
+		}
+	})
+
 	t.Run("migration checksum enforced", func(t *testing.T) {
 		if _, err = pool.Exec(ctx, `UPDATE schema_migrations SET checksum='tampered' WHERE version=1`); err != nil {
 			t.Fatal(err)

@@ -17,7 +17,13 @@
       "/client-api",
       "/client-api/*",
       "/local-slash-demo",
-      "/local-slash-demo/*"
+      "/local-slash-demo/*",
+      "/login",
+      "/admin",
+      "/admin/*",
+      "/portal",
+      "/portal/*",
+      "/register"
     ]
   },
   "vars": {

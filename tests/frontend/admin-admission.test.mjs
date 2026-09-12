@@ -10,7 +10,7 @@ const require=createRequire(import.meta.url);
 const uri=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
 const mocks=uri(`
 const m=globalThis.__moventraAdmission;
-export const acceptsLoginEmail=email=>email.trim().toLowerCase()==='fixture@example.invalid';
+export const sessionPath='/admin-api/v1/me';
 export const isAdminSite=true,isDemoMode=false,browserPopupRedirectResolver={};
 export const clearAccessToken=()=>{},setAccessToken=()=>{},login=()=>{};
 export const getFirebaseAuth=()=>m.auth;
@@ -41,7 +41,7 @@ test('admin admission waits for Go and signs out denied identities',async()=>{
   assert.equal(state.ready,false);assert.equal(state.user,null);assert.equal(state.authenticated,false);
   await act(async()=>{
    if(scenario==='outage')reject({code:'api_unavailable',status:503});
-   else resolve({customers:[],staffScopes:[],operator:scenario!=='customer',mfaVerified:scenario!=='mfa-setup'});
+   else resolve({customers:[],staffScopes:[],role:scenario==='customer'?'customer':'admin',operator:scenario!=='customer',mfaVerified:scenario!=='mfa-setup'});
    await flush();
   });
   if(scenario==='customer'||scenario==='outage'){
@@ -54,26 +54,47 @@ test('admin admission waits for Go and signs out denied identities',async()=>{
  }
 });
 
-test('client email rejected before password request or MFA; admin Google cannot bypass precheck',async()=>{
+test('admin password login has no frontend email allowlist; Google remains disabled',async()=>{
  m.auth.currentUser=null;m.passwordCalls=0;m.googleCalls=0;
  let view;await act(async()=>{view=Renderer.create(React.createElement(AuthProvider,null,React.createElement(Probe)));});
- await act(async()=>{await assert.rejects(state.signIn('client@example.invalid','fixture-password'),{code:'operator_required'});});
- assert.equal(m.passwordCalls,0);assert.equal(state.factors.length,0);
- await act(async()=>{await assert.rejects(state.signInWithGoogle(),{code:'admin_password_required'});});
- assert.equal(m.googleCalls,0);assert.equal(state.factors.length,0);
- await act(async()=>{await state.signIn(' FIXTURE@EXAMPLE.INVALID ','fixture-password');});
+ await act(async()=>{await state.signIn('new-admin@example.invalid','fixture-password');});
  assert.equal(m.passwordCalls,1);assert.equal(state.factors.length,1);
- await act(async()=>{await assert.rejects(state.signIn('client@example.invalid','fixture-password'),{code:'operator_required'});});
- assert.equal(m.passwordCalls,1);assert.equal(state.factors.length,0);
+ await act(async()=>{await assert.rejects(state.signInWithGoogle(),{code:'admin_password_required'});});
+ assert.equal(m.googleCalls,0);
  await act(async()=>view.unmount());
 });
-test('deployment login policy normalizes email and denies every account when admin configuration is missing',async()=>{
+test('each build has a separate login URL and identity endpoint',async()=>{
  const source=readFileSync(new URL('../../packages/shared/src/auth/site.ts',import.meta.url),'utf8');
- for(const [kind,emails,wantAdmin,wantClient] of [['admin','fixture@example.invalid',true,false],['admin','',false,false],['client','',true,true]]){
+ for(const kind of ['admin','client']){
   let {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}});
-  outputText=outputText.replaceAll('import.meta.env.VITE_SITE_KIND',JSON.stringify(kind)).replaceAll('import.meta.env.VITE_ADMIN_LOGIN_EMAILS',JSON.stringify(emails));
-  const {acceptsLoginEmail}=await import(uri(outputText));
-  assert.equal(acceptsLoginEmail(' FIXTURE@EXAMPLE.INVALID '),wantAdmin);
-  assert.equal(acceptsLoginEmail('client@example.invalid'),wantClient);
+  outputText=outputText.replaceAll('import.meta.env.VITE_SITE_KIND',JSON.stringify(kind));
+  const config=await import(uri(outputText));
+  assert.equal(config.loginPath,kind==='admin'?'/admin/login':'/portal/login');
+  assert.equal(config.sessionPath,`/${kind}-api/v1/me`);
+ }
+});
+test('client admission rejects administrators and preserves registration recovery',async()=>{
+ const clientMocks=uri(Buffer.from(mocks.split(',')[1],'base64').toString().replace('isAdminSite=true','isAdminSite=false').replace('/admin-api/v1/me','/client-api/v1/me'));
+ let {outputText}=ts.transpileModule(src,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}});
+ outputText=outputText.replaceAll('import.meta.env.DEV','false').replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:clientMocks)}`);
+ const client=await import(uri(outputText));
+ let clientState;
+ function ClientProbe(){clientState=client.useAuth();return null;}
+ for(const scenario of ['customer','admin','registration']){
+  m.signouts=0;m.auth.currentUser=null;
+  let resolve,reject;m.pending=new Promise((a,b)=>{resolve=a;reject=b;});
+  let view;await act(async()=>{view=Renderer.create(React.createElement(client.AuthProvider,null,React.createElement(ClientProbe)));});
+  const user={email:'fixture@example.invalid',emailVerified:true};m.auth.currentUser=user;
+  await act(async()=>m.listener(user));
+  await act(async()=>{
+   if(scenario==='registration')reject({code:'registration_required',status:403});
+   else resolve({role:scenario,customers:[],staffScopes:[],operator:scenario==='admin',mfaVerified:true});
+   await flush();
+  });
+  assert.equal(clientState.authenticated,scenario==='customer');
+  assert.equal(m.signouts,scenario==='admin'?1:0);
+  if(scenario==='admin'){assert.equal(clientState.user,null);assert.equal(clientState.loginError.code,'customer_required');}
+  if(scenario==='registration'){assert.equal(clientState.user,user);assert.equal(clientState.sessionError.code,'registration_required');}
+  await act(async()=>view.unmount());
  }
 });

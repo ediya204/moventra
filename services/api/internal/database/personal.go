@@ -16,10 +16,13 @@ func ProvisionPersonal(ctx context.Context, pool *pgxpool.Pool, uid string) (str
 		return "", err
 	}
 	defer tx.Rollback(ctx)
-	var owner, status, name string
-	err = tx.QueryRow(ctx, `SELECT id::text,status,display_name FROM users WHERE firebase_uid=$1 FOR UPDATE`, uid).Scan(&owner, &status, &name)
+	var owner, status, name, role string
+	err = tx.QueryRow(ctx, `SELECT id::text,status,display_name,role FROM users WHERE firebase_uid=$1 FOR UPDATE`, uid).Scan(&owner, &status, &name, &role)
 	if err != nil {
 		return "", errors.New("local user not found")
+	}
+	if role != "customer" {
+		return "", errors.New("customer role required")
 	}
 	if status != "active" {
 		return "", errors.New("local user disabled")

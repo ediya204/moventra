@@ -176,6 +176,13 @@
                               }
                             }
                           }
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "customer",
+                            "admin"
+                          ]
                         }
                       },
                       "required": [
@@ -184,7 +191,8 @@
                         "operator",
                         "mfaVerified",
                         "requiresMfa",
-                        "staffScopes"
+                        "staffScopes",
+                        "role"
                       ],
                       "additionalProperties": false
                     }
@@ -2099,6 +2107,316 @@
             }
           }
         }
+      }
+    },
+    "/client-api/v1/me": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Authenticated identity and owned/member subjects",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "customers": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Customer"
+                          }
+                        },
+                        "operator": {
+                          "type": "boolean",
+                          "description": "Has one or more explicit staff grants; not a global authorization."
+                        },
+                        "mfaVerified": {
+                          "type": "boolean"
+                        },
+                        "requiresMfa": {
+                          "type": "boolean"
+                        },
+                        "staffScopes": {
+                          "type": "array",
+                          "description": "Empty until MFA is verified. Every query rechecks authorization.",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "customerId",
+                              "name",
+                              "permission"
+                            ],
+                            "properties": {
+                              "customerId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "permission": {
+                                "type": "string",
+                                "enum": [
+                                  "accounts:read",
+                                  "transactions:read"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "customer",
+                            "admin"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "customers",
+                        "operator",
+                        "mfaVerified",
+                        "requiresMfa",
+                        "staffScopes",
+                        "role"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired, revoked or unverified-email identity",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "registration_required when verified UID has no local user; user_disabled when local user exists but is inactive. Only registration_required should offer registration.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency or audit unavailable",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "summary": "客户身份查询；错误角色返回 403"
+      }
+    },
+    "/admin-api/v1/me": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Authenticated identity and owned/member subjects",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "customers": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Customer"
+                          }
+                        },
+                        "operator": {
+                          "type": "boolean",
+                          "description": "Has one or more explicit staff grants; not a global authorization."
+                        },
+                        "mfaVerified": {
+                          "type": "boolean"
+                        },
+                        "requiresMfa": {
+                          "type": "boolean"
+                        },
+                        "staffScopes": {
+                          "type": "array",
+                          "description": "Empty until MFA is verified. Every query rechecks authorization.",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "customerId",
+                              "name",
+                              "permission"
+                            ],
+                            "properties": {
+                              "customerId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "permission": {
+                                "type": "string",
+                                "enum": [
+                                  "accounts:read",
+                                  "transactions:read"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "customer",
+                            "admin"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "customers",
+                        "operator",
+                        "mfaVerified",
+                        "requiresMfa",
+                        "staffScopes",
+                        "role"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired, revoked or unverified-email identity",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "registration_required when verified UID has no local user; user_disabled when local user exists but is inactive. Only registration_required should offer registration.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency or audit unavailable",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "summary": "管理员身份查询；错误角色返回 403"
       }
     }
   },

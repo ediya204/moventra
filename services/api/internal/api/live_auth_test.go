@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"moventra.local/api/internal/database"
 	firebase "firebase.google.com/go/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"moventra.local/api/internal/database"
 )
 
 // Opt-in only: real Firebase identities, but a fresh local test database.
@@ -55,7 +55,7 @@ func TestLiveFirebaseAuthorization(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if _, err = pool.Exec(ctx, `INSERT INTO users(id,firebase_uid,display_name) VALUES('00000000-0000-0000-0000-000000000005',$1,'Single factor operator')`, fixtures["staffNoMfa"].UID); err != nil {
+	if _, err = pool.Exec(ctx, `INSERT INTO users(id,firebase_uid,display_name,role) VALUES('00000000-0000-0000-0000-000000000005',$1,'Single factor operator','admin')`, fixtures["staffNoMfa"].UID); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = pool.Exec(ctx, `INSERT INTO staff_grants(user_id,customer_id,permission) VALUES('00000000-0000-0000-0000-000000000005',$1,'accounts:read')`, business); err != nil {
@@ -81,7 +81,7 @@ func TestLiveFirebaseAuthorization(t *testing.T) {
 		{"real TOTP operator granted", "staff", "/admin-api/v1/customers/" + business + "/accounts", 200},
 		{"operator wrong resource denied", "staff", "/admin-api/v1/customers/" + business + "/transactions", 404},
 		{"operator wrong customer denied", "staff", "/admin-api/v1/customers/" + other + "/accounts", 404},
-		{"operator has no implicit membership", "staff", "/client-api/v1/customers/" + business + "/accounts", 404},
+		{"operator has no implicit membership", "staff", "/client-api/v1/customers/" + business + "/accounts", 403},
 		{"unverified email denied", "unverified", "/api/v1/me", 401},
 		{"unprovisioned identity denied", "unprovisioned", "/api/v1/me", 403},
 		{"disabled local user denied", "disabled", "/api/v1/me", 403},

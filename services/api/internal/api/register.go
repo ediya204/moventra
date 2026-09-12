@@ -55,14 +55,18 @@ func (s *Server) register(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "temporarily_unavailable")
 		return
 	}
-	var id, status string
-	err = s.DB.QueryRow(r.Context(), `SELECT id::text,status FROM users WHERE firebase_uid=$1`, identity.UID).Scan(&id, &status)
+	var id, status, role string
+	err = s.DB.QueryRow(r.Context(), `SELECT id::text,status,role FROM users WHERE firebase_uid=$1`, identity.UID).Scan(&id, &status, &role)
 	if err != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return
 	}
 	if status != "active" {
 		fail(w, 403, "user_disabled")
+		return
+	}
+	if role != "customer" {
+		fail(w, 403, "customer_required")
 		return
 	}
 	respond(w, 200, map[string]any{"data": map[string]string{"id": id}})

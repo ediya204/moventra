@@ -16,7 +16,7 @@ const mocks=uri(`
 import React from ${JSON.stringify(reactURL)};
 const m=globalThis.__cardNavigation;
 const Pass=({children})=>React.createElement('div',null,children);
-export const Alert=Pass,Box=Pass,Container=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,TextField=Pass,Typography=Pass;
+export const DashboardLayout=Pass;export const Alert=Pass,Box=Pass,Container=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,TextField=Pass,Typography=Pass;
 export const Button=({component:Component='button',children,...props})=>React.createElement(Component,props,children);
 export const PageSkeleton=()=>null,MerchantCell=Pass,LogoAttribution=()=>null,BrandLogo=()=>null,TransactionStatusChip=()=>null;
 export const zhCN={components:{MuiDataGrid:{defaultProps:{localeText:{}}}}};

@@ -189,3 +189,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-13 开户默认功能权限（本地）
 
 用户确认：后台审批并开通后，全部客户端功能默认获得权限。审批与服务状态继续分开保存，由明确的组合操作原子更新；不自动执行资金、生成余额或开卡。暂停收回办理资格，恢复默认开放。新增接口、003迁移、权限及本次隔离验收见[开户功能权限](../frontend/onboarding-feature-access.md)；尚未部署，不将已有只读授权升级为审批权限。
+
+## 2026-09-13 联合候选：身份入口
+
+新增 GET `/client-api/v1/me` 与 `/admin-api/v1/me`，返回必需 role=customer/admin；兼容 `/api/v1/me` 保留真实角色。跨端角色 403（customer_required/operator_required），身份认证与客户/渠道授权、运营 MFA 分开验证。既有开户、渠道和金融金额契约保留。需增量迁移 004，当前生产未执行；见[联合发布记录](../releases/2026-09-13-admin-login-joint.md)。

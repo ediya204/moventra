@@ -61,16 +61,16 @@ test('deployment blocks the opposite API and admin registration before forwardin
 });
 test('identity discovery separates customer scopes, staff scopes and denies nonoperators', async () => {
   const req = new Request('https://web.invalid/api/v1/me',{headers:{Authorization:'Bearer fixture'}});
-  const source = {id:'user', customers:[{id:customer}],operator:true,mfaVerified:true,requiresMfa:false,staffScopes:[{customerId:customer,permission:'accounts:read'}]};
+  const source = {id:'user', customers:[{id:customer}],role:'admin',operator:true,mfaVerified:true,requiresMfa:false,staffScopes:[{customerId:customer,permission:'accounts:read'}]};
   for (const kind of ['admin','client']) {
-    const res = await handle(req,{...env,SITE_KIND:kind},async()=>Response.json({data:source}));
+    const res = await handle(req,{...env,SITE_KIND:kind},async()=>Response.json({data:{...source,role:kind==='admin'?'admin':'customer',operator:kind==='admin'}}));
     assert.equal(res.status,200);
     const {data}=await res.json();
     assert.equal(data.customers.length,kind==='admin'?0:1);
     assert.equal(data.staffScopes.length,kind==='admin'?1:0);
     assert.equal(data.operator,kind==='admin');
   }
-  const denied=await handle(req,{...env,SITE_KIND:'admin'},async()=>Response.json({data:{...source,operator:false}}));
+  const denied=await handle(req,{...env,SITE_KIND:'admin'},async()=>Response.json({data:{...source,role:'customer',operator:false}}));
   assert.equal(denied.status,403);
   const pending=await handle(req,{...env,SITE_KIND:'admin'},async()=>Response.json({data:{...source,mfaVerified:false,requiresMfa:true}}));
   assert.deepEqual((await pending.json()).data.staffScopes,[]);
@@ -122,4 +122,24 @@ test('onboarding is authenticated GET/POST only and preserves site isolation',as
   assert.equal((await handle(new Request('https://example.com'+path,{headers:{Authorization:'Bearer test'}}),{...env,SITE_KIND:site==='admin'?'client':'admin'},upstream)).status,404);
  }
  assert.equal(calls,4);
+});
+
+test('wrong-role identity is rejected, never rewritten to another role',async()=>{
+ for(const [kind,role] of [['client','admin'],['admin','customer'],['admin',undefined],['client',undefined]]) {
+  const req=new Request(`https://web.invalid/${kind}-api/v1/me`,{headers:{Authorization:'Bearer fixture'}});
+  const response=await handle(req,{...env,SITE_KIND:kind},async()=>Response.json({data:{role,operator:role==='admin',customers:[],staffScopes:[]}}));
+  assert.equal(response.status,403);
+ }
+});
+test('login aliases stay on their own origin and wrong-site pages return 404',async()=>{
+ for(const kind of ['admin','client']) {
+  const local={...env,SITE_KIND:kind};
+  const redirect=await handle(new Request('https://web.invalid/login?next=https://evil.invalid'),local);
+  assert.equal(redirect.status,302);assert.equal(redirect.headers.get('Location'),kind==='admin'?'/admin/login':'/portal/login');
+  const own=kind==='admin'?'/admin/login':'/portal/login';
+  assert.equal(await (await handle(new Request('https://web.invalid'+own),local)).text(),'SPA');
+  for(const path of kind==='admin'?['/portal/login','/portal','/register']:['/admin/login','/admin']) {
+   assert.equal((await handle(new Request('https://web.invalid'+path),local)).status,404);
+  }
+ }
 });

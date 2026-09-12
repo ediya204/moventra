@@ -11,6 +11,10 @@ const error = (status, code) => Response.json({ error: { code } }, {
 
 export async function handle(request, env, upstreamFetch = fetch) {
   const url = new URL(request.url);
+  if (env.SITE_KIND === 'admin' && /^\/(portal|register)(\/|$)/.test(url.pathname) || env.SITE_KIND === 'client' && /^\/admin(\/|$)/.test(url.pathname)) return error(404, 'page_not_available');
+  if (url.pathname === '/login' && ['admin', 'client'].includes(env.SITE_KIND)) {
+    return new Response(null, { status: 302, headers: { Location: env.SITE_KIND === 'admin' ? '/admin/login' : '/portal/login', 'Cache-Control': 'no-store' } });
+  }
   if (url.pathname === '/api/contact') return contact(request, env);
   const api = /^\/(api|admin-api|client-api|local-slash-demo)(\/|$)/.test(url.pathname);
   if (!api) return env.ASSETS.fetch(request);
@@ -20,7 +24,8 @@ export async function handle(request, env, upstreamFetch = fetch) {
   const overview = url.pathname === '/admin-api/v1/ops/overview';
   if (overview && env.SITE_KIND !== 'admin') return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
-  const readable = onboarding.test(url.pathname) || projections || overview || registration || url.pathname === '/api/v1/me' || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const identity = /^\/(api|client-api|admin-api)\/v1\/me$/.test(url.pathname);
+  const readable = onboarding.test(url.pathname) || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
   if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 
@@ -45,17 +50,16 @@ export async function handle(request, env, upstreamFetch = fetch) {
     // Never forward a token to a redirect target or return HTML upstream errors.
     if (response.status >= 300 && response.status < 400 || !response.headers.get('Content-Type')?.includes('application/json')) return error(502, 'invalid_api_response');
     // Identity discovery uses only verified Go authorization data.
-    if (url.pathname === '/api/v1/me' && response.ok && env.SITE_KIND) {
+    if (identity && response.ok && env.SITE_KIND) {
       const payload = await response.json();
       if (!payload?.data || !Array.isArray(payload.data.customers) || !Array.isArray(payload.data.staffScopes)) return error(502, 'invalid_api_response');
       if (env.SITE_KIND === 'admin') {
-        if (payload.data.operator !== true) return error(403, 'operator_required');
+        if (payload.data.role !== 'admin') return error(403, 'operator_required');
         payload.data.customers = [];
         if (payload.data.mfaVerified !== true) payload.data.staffScopes = [];
       } else {
+        if (payload.data.role !== 'customer') return error(403, 'customer_required');
         payload.data.staffScopes = [];
-        payload.data.operator = false;
-        payload.data.requiresMfa = false;
       }
       return Response.json(payload, { headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
     }

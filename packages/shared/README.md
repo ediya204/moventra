@@ -11,3 +11,5 @@
 共享包不得反向依赖 `apps/client` / `apps/admin`；两应用不得互相引用源码。根目录 `pnpm check:boundaries` 检查边界及本地导入；共享代码变更运行两端 `pnpm typecheck`、`pnpm build` 和 `pnpm test`，后台构建需预设批准的邮箱配置。
 
 素材在 `packages/assets/public`，构建工具在 `packages/tooling/vite.ts`。更多见 [主题约定](../../docs/frontend/ui-theme.md)、[文档索引](../../docs/README.md)。
+
+2026-09-13 联合候选：共用认证改用服务端 customer/admin 角色及站点专属身份端点，移除前端邮箱名单。共享 transport 同时保留已上线的开户 GET/POST 和渠道只读白名单。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。

@@ -1,3 +1,4 @@
+import { loginPath } from './site';
 import { isAdminSite, siteTitle } from './site';
 import { useEffect, useRef, useState } from 'react';
 import { multiFactor, sendEmailVerification, TotpMultiFactorGenerator, type TotpSecret } from 'firebase/auth';
@@ -30,7 +31,7 @@ export default function SessionPage() {
   useEffect(() => { generation.current++; setRows(null); setScope(!isAdminSite && session?.customers.find(c => c.kind === 'personal') ? `/client-api/v1/customers/${session.customers.find(c => c.kind === 'personal')!.id}/accounts` : ''); setError(''); }, [session]);
   useEffect(() => () => { generation.current++; }, []);
   if (!ready) return <Container sx={{py:6}}><CircularProgress /></Container>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to={loginPath} replace />;
   const run = async (action: () => Promise<void>) => { setBusy(true); setError(''); try { await action(); } catch (cause) { setError(authMessage(cause)); } finally { setBusy(false); } };
   if (!isAdminSite && needsRegistration(sessionError)) return <CompleteRegistration />;
   if (!session && !sessionError) return <Container sx={{py:6}}><CircularProgress aria-label="正在检查账户" /></Container>;
@@ -47,7 +48,7 @@ export default function SessionPage() {
       {sessionError != null && <Alert severity="warning">{authMessage(sessionError)}</Alert>}
       {session?.requiresMfa && <Alert severity="warning">运营访问需要双重验证。请先设置验证器，再退出并重新登录。</Alert>}
       {error && <Alert severity="error">{error}</Alert>}{notice && <Alert severity="info">{notice}</Alert>}
-      {!user.emailVerified && <Button disabled={busy} onClick={() => void run(async () => { await sendEmailVerification(user, { url: window.location.origin + '/login' }); setNotice('验证邮件已发送，请检查收件箱。'); })}>发送邮箱验证邮件</Button>}
+      {!user.emailVerified && <Button disabled={busy} onClick={() => void run(async () => { await sendEmailVerification(user, { url: window.location.origin + loginPath }); setNotice('验证邮件已发送，请检查收件箱。'); })}>发送邮箱验证邮件</Button>}
       <Button disabled={busy} onClick={() => void run(refreshSession)}>刷新身份和权限</Button>
     </Stack></Paper>
     {user.emailVerified && session && <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
@@ -59,7 +60,7 @@ export default function SessionPage() {
         <TextField label="验证器当前的六位验证码" value={code} onChange={e => setCode(e.target.value.replace(/\D/g,'').slice(0,6))} autoComplete="one-time-code" inputProps={{inputMode:'numeric',maxLength:6}} />
         <Button variant="contained" disabled={busy || code.length !== 6} onClick={() => void run(async () => {
           await multiFactor(user).enroll(TotpMultiFactorGenerator.assertionForEnrollment(secret, code), 'Moventra 验证器');
-          setSecret(null); setCode(''); signOut(); navigate('/login', { replace:true, state:{ notice:'验证器已绑定。请等待验证码刷新后，重新登录并完成双重验证。' } });
+          setSecret(null); setCode(''); signOut(); navigate(loginPath, { replace:true, state:{ notice:'验证器已绑定。请等待验证码刷新后，重新登录并完成双重验证。' } });
         })}>确认绑定并重新登录</Button><Button onClick={() => { setSecret(null); setCode(''); }}>取消设置</Button>
       </>}
     </Stack></Paper>}

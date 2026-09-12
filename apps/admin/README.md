@@ -1,6 +1,6 @@
 # Moventra 运营后台
 
-更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，开放 `/login`、`/forgot-password`、`/session`、`/workbench`、`/transactions`、`/cards/:id`；不引用客户端源码。完整流程见 [全站业务总览](../../docs/business/README.md)。
+更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，开放 `/admin/login`（旧 `/login` 自动跳转）、`/forgot-password`、`/session`、`/workbench`、`/transactions`、`/cards/:id`；不引用客户端源码。完整流程见 [全站业务总览](../../docs/business/README.md)。
 
 从仓库根目录运行：
 
@@ -29,3 +29,7 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 ## 正式渠道卡交易
 
 `/transactions` 与 `/cards/:id?connection=...` 读取手动导入的独立渠道投影，除 staff 身份和 MFA 外还要求 `channel_read_grants`。交易每页 20 条，UTC 开始含、截止不含，默认不限日期；刷新只重读导入版本。卡资料未绑定内部用户，不提供资金余额或控制动作。商户 Logo 仅辅助展示，不改变来源身份。业务代码 `0d5158d` 及部署结果见 [独立发布记录](../../docs/releases/channel-projection-2026-09-07.md)，本人登录验收仍待完成；本轮仅整理文档。
+
+## 2026-09-13 联合发布候选
+
+运营总览、渠道交易/卡片详情与开户审批共用本地 DashboardLayout。保留六组菜单，尚未接入的功能禁用。登录统一为 `/admin/login`，后端角色、MFA 与客户范围各自校验。发布依赖增量角色迁移 004，详见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。

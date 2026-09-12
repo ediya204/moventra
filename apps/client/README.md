@@ -13,3 +13,7 @@
 开发 Demo 路由仅在 DEV 且显式 Demo 配置下可用；对应历史 Node/SQLite 服务不在仓库，不能仅启动前端就复现完整旧 Demo。生产不打包 Portal 原型。
 
 参阅 [开发约束](../../AGENTS.md)、[文档索引](../../docs/README.md)、[认证配置](../../docs/frontend/firebase-setup.md)、[部署记录](../../deploy/README.md)。
+
+## 2026-09-13 登录隔离候选
+
+客户登录为 `/portal/login`，旧 `/login` 自动跳转。客户身份使用 `/client-api/v1/me`；管理员角色拒绝进入客户端。保留已上线的开户申请、功能资格和导航；部署依赖角色迁移 004。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。

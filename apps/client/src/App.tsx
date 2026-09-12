@@ -22,7 +22,8 @@ export default function App() {
   <Route path="/terms-of-service" element={<LegalPage kind="terms"/>}/>
   <Route path="/cookie-policy" element={<LegalPage kind="cookies"/>}/>
   <Route element={<LegalAccountLayout/>}>
-  <Route path="/login" element={<LoginPage/>}/>
+  <Route path="/portal/login" element={<LoginPage/>}/>
+  <Route path="/login" element={<Navigate to="/portal/login" replace/>}/>
   <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
   <Route path="/register" element={<RegisterPage/>}/>
   <Route path="/session" element={<SessionPage/>}/>
