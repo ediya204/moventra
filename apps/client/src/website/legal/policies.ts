@@ -89,8 +89,8 @@ export const policies: Record<PolicyKind, Policy> = {
         'These terms are provided by Moventra Technology Inc (“Moventra”, “we”, or “us”) for this website and service inquiries. A purchase or activation requires an order or service agreement confirmed by authorized representatives. Service-specific provisions take priority without excluding mandatory rights under applicable law. Browsing or submitting an inquiry does not itself authorize payment, activate a subscription, or create an order.'
       )),
       section('服务范围', 'Service scope', copy(
-        '官网介绍广告营销、AI 订阅、订阅卡及云服务。具体交付内容、适用平台与地区、账户资格、期限和支持范围须在合作前确认。订阅卡栏目用于介绍 Netflix（奈飞）、Google 等数字服务的订阅需求与方案，不代表任何平台、地区或付款方式均可使用，也不代表 Moventra 与上述品牌存在官方合作或背书。相关商标属于各自权利人。',
-        'The website describes marketing, AI subscriptions, subscription cards, and cloud services. Deliverables, eligible platforms and regions, account requirements, duration, and support scope must be confirmed before engagement. The subscription card section describes needs and options for digital services such as Netflix and Google. It does not guarantee acceptance by every platform, region, or payment method, or imply official affiliation or endorsement. Trademarks belong to their respective owners.'
+        '官网介绍广告营销、AI 订阅及云服务。具体交付内容、适用平台与地区、账户资格、期限和支持范围须在合作前确认。',
+        'The website describes marketing, AI subscriptions, and cloud services. Deliverables, eligible platforms and regions, account requirements, duration, and support scope must be confirmed before engagement.'
       )),
       section('预览功能与账户', 'Preview features and accounts', copy(
         '服务需求表会将留言发送至我们的咨询邮箱；提交成功表示邮件服务已接受请求，不保证即时送达或在特定时间回复。注册页仅作格式预览，找回密码功能会向 Firebase 提交重置邮件请求。登录后的资料补全可创建本站登录用户，但不自动开通业务或资金账户。真实账户仅供获授权用户使用，身份登录不自动授予其他客户或业务数据的访问权。您应提供准确资料、保护凭据，并仅代表您本人或您有权代表的组织操作。演示页面、示例金额和操作模拟不能作为真实资金可用性、支付完成或服务已开通的凭证。',

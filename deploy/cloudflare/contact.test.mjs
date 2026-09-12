@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { handle } from './gateway.mjs';
 const input = { name: 'Visitor <test>', email: 'visitor@example.com', description: 'Hello <script>alert(1)</script>', service: 2, website: '' };
@@ -38,4 +39,18 @@ test('fails closed on rate limit or missing bindings and never reports send fail
   assert.equal((await handle(request(), { ...env, CONTACT_EMAIL: undefined })).status, 503);
   assert.equal((await handle(request(), { ...env, CONTACT_EMAIL: { send: async () => { throw Error('provider unavailable'); } } })).status, 503);
   assert.equal(sent.length, 0);
+});
+
+test('visible service options retain the contact API identifiers after removing subscription cards', async () => {
+  const source = readFileSync(new URL('../../apps/client/src/website/Website.tsx', import.meta.url), 'utf8');
+  const mapping = source.match(/service: (\[[\d, ]+\])\[interest\]/);
+  assert.ok(mapping, 'frontend must map option positions to stable API identifiers');
+  const ids = JSON.parse(mapping[1]);
+  const names = ['Advertising', 'AI subscriptions', 'Cloud services', 'Combined solution'];
+  assert.equal(ids.length, names.length);
+  for (const [index, service] of ids.entries()) {
+    const { env, sent } = setup();
+    assert.equal((await handle(request({ ...input, service }), env)).status, 202);
+    assert.equal(sent[0].subject, `Website inquiry: ${names[index]}`);
+  }
 });

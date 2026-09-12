@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: {
       <Stack spacing={3} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' }, p: { md: 3, lg: 5 } }}>
         <Typography variant="h3" component="h2" textAlign="center">{siteTitle}</Typography>
         <SeoIllustration sx={{ maxWidth: 420, height: 'auto' }}/>
-        <Typography variant="body2" color="text.secondary">{t("广告营销 · AI 订阅 · 订阅卡 · 云服务")}</Typography>
+        <Typography variant="body2" color="text.secondary">{t("广告营销 · AI 订阅 · 云服务")}</Typography>
       </Stack>
       <Box sx={{ width: 1, maxWidth: 440, mx: 'auto' }}>{children}</Box>
     </Container>
