@@ -59,6 +59,17 @@ func run() error {
 		slog.Info("read-only projection imported; no customer ledger changed")
 		return nil
 	}
+	if len(os.Args) == 2 && os.Args[1] == "grant-existing-onboarding" {
+		if os.Getenv("CONFIRM_EXISTING_CUSTOMER_SCOPES") != "yes" {
+			return errors.New("CONFIRM_EXISTING_CUSTOMER_SCOPES=yes is required")
+		}
+		count, e := database.GrantExistingOnboarding(ctx, pool)
+		if e != nil {
+			return errors.New("onboarding scope grant failed; transaction rolled back")
+		}
+		slog.Info("existing customer onboarding scopes granted and audited", "new_grants", count)
+		return nil
+	}
 	if len(os.Args) > 1 {
 		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {
 			return errors.New("usage: api [migrate|provision-user|provision-personal|provision-operator]")

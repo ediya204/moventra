@@ -41,3 +41,7 @@ GET /admin-api/v1/customers/{customerID}/onboarding
 - 本机 /tmp PostgreSQL socket 随机 moventra_test_* 库，Go race 全套通过；新增开户测试涵盖客户越权、自审批、缺少审批授权/MFA、并发仅一次生效、暂停恢复、审计失败回滚、账户数量不变、迁移重放。
 - 自动化使用隔离身份与数据；真实Firebase、浏览器双会话、正式渠道未验收，不宣称生产闭环完成。
 - 生产生效需要另行授权003迁移、Go及两端/网关发布，以及指定审批人员和客户范围的 onboarding:review 授权。没有自动授予现有只读运营审批权。
+
+## 本次发布授权补充
+
+用户已授权生产发布，并明确同意沿用现有后台账号和客户范围授予审批权限。使用受控命令 `CONFIRM_EXISTING_CUSTOMER_SCOPES=yes api grant-existing-onboarding`，不是默认把未来只读授权升级。命令保持个人所有人与运营隔离，范围与审计同事务，重复运行不重复授权或审计；新增隔离测试检查范围、停用/混合身份排除、幂等和审计失败回滚。具体上线状态另见发布记录。

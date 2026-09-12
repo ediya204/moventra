@@ -67,3 +67,7 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 下一阶段需实现企业资料、审核、成员权限细化及独立服务激活，并接入客户端相应流程；当前 V1 客户端只开放个人范围。
 
 旧本地 Slash Python 预览/同步工具、私有 SQLite 及凭据未纳入此仓库；历史记录见 [Slash 本地投影档案](../../docs/frontend/slash-live-data.md)，不能按其旧路径运行本服务。当前机器契约仍有“未部署”的陈旧 servers 描述；实际部署以 [部署记录](../../deploy/README.md) 为准，本次 Markdown 校对不修改 JSON 契约。
+
+## 2026-09-13 开户审批权限授权
+
+`api grant-existing-onboarding` 仅在明确设置 `CONFIRM_EXISTING_CUSTOMER_SCOPES=yes` 后执行一次受控授权：沿用现有 active 运营的个人客户 accounts:read / transactions:read 范围，幂等添加 onboarding:review 并原子记录用户授权审计。跳过客户所有人、企业成员、停用身份和企业客户。不在迁移或启动时自动运行，不包含未来客户，也不审批或开通客户。生产运行依据用户本次“沿用现有后台账号和客户范围”的明确确认。客户端提交后，运营仍需 MFA 并填写审批说明。
