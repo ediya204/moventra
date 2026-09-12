@@ -21,3 +21,13 @@
 ## 发布
 
 发布前 GitHub main 为 00bb9b0b40175b55d78f31642b64f937098abb29；API dep-daipq3ek1f9s7395lnhg，后台 Worker 29b3a904-c760-4913-bcbc-6c5d54e94841。继续按已授权发布流程同步 main、部署指定 API 提交、就绪后发布后台；客户端本批不发布。生产结果待下方补充。
+
+## 生产结果
+
+- GitHub main 已同步运行源码 `f981baaea0cc79b25f97e475ee411e9433fba0bb`。
+- API `dep-daiq1jvqj5pc73b4pldg` 于 2026-09-13 02:59:59.549098 +08:00 live，就绪检查返回 ready；保持空 preDeployCommand 和关闭自动部署，没有运行数据库迁移。
+- 后台 Worker `a710e132-86f5-4b0b-9a20-a9312d25eb93` 已发布，客户端 Worker 未发布。
+- 线上详情路由 HTML 与 6 个关键 JavaScript 文件（含 UserDetailsPage、RegisteredUsersPage、登录及布局）和本批构建 SHA-256 全部一致。
+- 19 项线上健康、登录路由、匿名授权检查通过；另验证 userId 查询匿名返回 401，客户端同路径返回 404。
+- 入口 https://admin.moventra.me/user-groups/users 。登录后点击“查看详情”或邮箱；这些文件和接口边界验证不替代管理员本人完成 MFA 后的真实点击验收。
+- 回退目标为上节发布前 API 与后台 Worker；没有资金或权限变更需要撤销。
