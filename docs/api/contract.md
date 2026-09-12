@@ -199,3 +199,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 已有 `GET /admin-api/v1/channel-projections/:connection/cards` 开放正式目录：每页 20 条；page/keyword/cardStatus/revision。keyword 查卡名、尾号或 ID；cardStatus 精确来源状态，未知值不转换。卡片查询不接受交易日期或 detailedStatus。交易列表增加 cardId，严格限制在当前获授权连接/导入版本，不改变金额或状态。身份、MFA、channel_read_grants 和审计与原详情保持一致。
 
 正式账户目录使用既有 `GET /admin-api/v1/customers/:id/accounts?limit=20&offset=N`；前端保留 meta.hasMore，客户端/后台身份隔离不变。旧 Node 管理契约已恢复至 services/local-workspace，但未作为正式 API 开放。
+
+## 2026-09-13 正式注册用户目录
+
+新增候选 `GET /admin-api/v1/users?email=&limit=20&offset=0`，空邮箱参数应省略。完整邮箱精确查询由 Firebase Admin SDK 获取可信 UID，再关联正式注册资料；默认分页列出 PostgreSQL 中的 customer 用户，用户停用状态不隐藏。全部 active admin 经 MFA 后可查看基础注册资料，此范围由用户明确确认。客户名称、ID、业务链接继续受原 staff_grants 限制；未授权关联只返回存在状态。005 只新增独立查询审计表，不改角色、客户、资金或权限。接口详细参数、状态及范围以 OpenAPI 为准；部署以本批发布记录为准。

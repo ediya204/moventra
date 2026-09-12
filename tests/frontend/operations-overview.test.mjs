@@ -176,3 +176,14 @@ test('channel transport allows existing read queries and rejects foreign destina
  const client=await transport(false);await assert.rejects(client.liveGet(base),{code:'invalid_path'});
  assert.equal(requests.length,6);assert.ok(requests.every(r=>r.options.method==='GET'&&r.options.credentials==='omit'&&r.options.redirect==='error'));
 });
+
+test('registered directory transport rejects cross-site, extra paths and writes',async t=>{
+ const original=globalThis.fetch;t.after(()=>{globalThis.fetch=original;});
+ let calls=0;network.auth.currentUser={getIdToken:async()=>'fixture-token'};
+ globalThis.fetch=async()=>{calls++;return {ok:true,status:200,json:async()=>({data:[],meta:{hasMore:false}})}};
+ const admin=await transport(true),client=await transport(false);
+ await admin.liveGetPage('/admin-api/v1/users?email=registered%40example.com&limit=20&offset=0');assert.equal(calls,1);
+ for(const path of ['/admin-api/v1/users/other','/admin-api/v1/users?role=admin','/admin-api/v1/users?email=x&email=y','/admin-api/v1/users#x','https://evil.invalid/admin-api/v1/users'])await assert.rejects(admin.liveGet(path),{code:'invalid_path'});
+ await assert.rejects(client.liveGet('/admin-api/v1/users'),{code:'invalid_path'});
+ await assert.rejects(admin.updateOnboarding('/admin-api/v1/users',{action:'x',revision:0,reason:'x'}),{code:'invalid_path'});assert.equal(calls,1);
+});

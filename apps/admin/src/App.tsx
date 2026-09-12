@@ -4,6 +4,7 @@ import { PageSkeleton } from '../../../packages/shared/src/components/AsyncState
 import { isDemoMode } from '../../../packages/shared/src/utils/dataMode';
 import {useAuth} from '../../../packages/shared/src/auth/AuthContext';
 const CustomerDirectoryPage=lazy(()=>import('./operations/CustomerDirectoryPage'));
+const RegisteredUsersPage=lazy(()=>import('./operations/RegisteredUsersPage'));
 const CardsPage=lazy(()=>import('./operations/CardsPage'));
 const OnboardingPage=lazy(()=>import('./operations/OnboardingPage'));
 const ChannelTransactionsPage=lazy(()=>import('./operations/ChannelTransactionsPage'));
@@ -21,6 +22,7 @@ export default function App(){
   <Route path="/session" element={<SessionEntry/>}/>
   <Route path="/transactions" element={<ChannelTransactionsPage/>}/>
   <Route path="/customers" element={<CustomerDirectoryPage/>}/>
+  <Route path="/user-groups/users" element={<RegisteredUsersPage/>}/>
   <Route path="/cards" element={<CardsPage/>}/>
   <Route path="/system/channels" element={<CardsPage channels/>}/>
   <Route path="/cards/:id" element={<ChannelTransactionsPage/>}/>

@@ -93,7 +93,7 @@ func TestRoleMigration(t *testing.T) {
 		t.Fatal("grants changed", grants, err)
 	}
 	var channels, approvals, versions int
-	if err = pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM channel_read_grants),(SELECT count(*) FROM onboarding_events),(SELECT count(*) FROM schema_migrations)`).Scan(&channels, &approvals, &versions); err != nil || channels != 1 || approvals != 1 || versions != 4 {
+	if err = pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM channel_read_grants),(SELECT count(*) FROM onboarding_events),(SELECT count(*) FROM schema_migrations)`).Scan(&channels, &approvals, &versions); err != nil || channels != 1 || approvals != 1 || versions != 5 {
 		t.Fatal("prior production data changed", channels, approvals, versions, err)
 	}
 	if _, err = pool.Exec(ctx, `UPDATE users SET role='reviewer' WHERE firebase_uid='staff'`); err == nil {

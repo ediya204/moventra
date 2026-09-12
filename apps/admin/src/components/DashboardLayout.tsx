@@ -299,7 +299,7 @@ export function DashboardLayout({ production = false, children }: { production?:
     event.preventDefault();
     const keyword = search.trim();
     if (!keyword) return;
-    if (production) { navigate(`/transactions?keyword=${encodeURIComponent(keyword.replace(/^(tx|trade):/i, "").trim())}`); return; }
+    if (production) { navigate(keyword.includes('@') || /^(user|用户):/i.test(keyword) ? `/user-groups/users?email=${encodeURIComponent(keyword.replace(/^(user|用户):/i, '').trim())}` : `/transactions?keyword=${encodeURIComponent(keyword.replace(/^(tx|trade):/i, "").trim())}`); return; }
     if (/^(user|用户):/i.test(keyword)) {
       navigate(
         `/user-groups/users?keyword=${encodeURIComponent(keyword.replace(/^(user|用户):/i, "").trim())}`,
@@ -379,7 +379,7 @@ export function DashboardLayout({ production = false, children }: { production?:
               onSubmit={onGlobalSearch}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder={production ? "搜索商户、卡片尾号或交易 ID" : "邮箱、卡号，tx:交易 / order:订单"}
+              placeholder={production ? "搜索用户邮箱、商户或交易 ID" : "邮箱、卡号，tx:交易 / order:订单"}
               aria-label="全局搜索"
               sx={{ width: { xs: "100%", sm: 390 } }}
               InputProps={{

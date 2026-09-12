@@ -143,3 +143,13 @@ test('login aliases stay on their own origin and wrong-site pages return 404',as
   }
  }
 });
+
+test('registered directory has one authenticated GET route on admin only',async()=>{
+ const path='/admin-api/v1/users?email=registered%40example.com';
+ for(const [kind,method,auth,code] of [['client','GET',true,404],['admin','POST',true,405],['admin','GET',false,401]]){
+  const r=await handle(new Request('https://admin.example.invalid'+path,{method,headers:auth?{Authorization:'Bearer synthetic'}:{}}),{...env,SITE_KIND:kind},()=>assert.fail('must not reach source'));assert.equal(r.status,code);
+ }
+ let target;
+ const r=await handle(new Request('https://admin.example.invalid'+path,{headers:{Authorization:'Bearer synthetic'}}),{...env,SITE_KIND:'admin'},async url=>{target=url;return Response.json({data:[],meta:{hasMore:false}})});
+ assert.equal(r.status,200);assert.equal(target.pathname,'/admin-api/v1/users');assert.equal(target.searchParams.get('email'),'registered@example.com');assert.equal(r.headers.get('Cache-Control'),'no-store');
+});

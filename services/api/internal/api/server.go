@@ -15,8 +15,9 @@ import (
 )
 
 type Server struct {
-	DB       *pgxpool.Pool
-	Verifier Verifier
+	DB        *pgxpool.Pool
+	Verifier  Verifier
+	Directory UserDirectory
 }
 type principal struct {
 	ID       string
@@ -39,7 +40,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { respond(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		var version int
-		if err := s.DB.QueryRow(r.Context(), `SELECT version FROM schema_migrations WHERE version=4`).Scan(&version); err != nil {
+		if err := s.DB.QueryRow(r.Context(), `SELECT version FROM schema_migrations WHERE version=5`).Scan(&version); err != nil {
 			fail(w, 503, "not_ready")
 			return
 		}
@@ -49,6 +50,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}/{id}", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.HandleFunc("POST /api/v1/register", s.register)
+	mux.Handle("GET /admin-api/v1/users", s.authenticate(http.HandlerFunc(s.userDirectory)))
 	mux.Handle("GET /api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
 	mux.Handle("GET /client-api/v1/me", s.authenticate(http.HandlerFunc(s.me)))
 	mux.Handle("GET /admin-api/v1/me", s.authenticate(http.HandlerFunc(s.me)))

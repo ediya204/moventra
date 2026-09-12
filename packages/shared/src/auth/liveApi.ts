@@ -10,6 +10,9 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
+  invalid_email_query: '请输入完整、有效的登录邮箱。',
+  identity_directory_unavailable: '登录身份服务暂不可用，无法核对邮箱，请稍后重试。',
+  invalid_query: '查询参数无效，请重新输入。',
   onboarding_changed: '开户状态已更新，请刷新后重新操作。',
   invalid_onboarding_transition: '当前开户状态不允许此操作，请刷新。',
   review_reason_required: '请填写审批或状态变更说明。',
@@ -74,9 +77,15 @@ export function isCustomerReadPath(path: string): boolean {
 }
 
 // Dedicated same-origin transport. Firebase tokens never enter legacy/Demo APIs.
+export function isUserDirectoryPath(path:string):boolean {
+ const [pathname,query='']=path.split('?');
+ if(pathname!=='/admin-api/v1/users'||path.includes('#')||path.split('?').length>2)return false;
+ const params=new URLSearchParams(query);
+ return [...params.keys()].every(key=>['email','limit','offset'].includes(key)&&params.getAll(key).length===1);
+}
 async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}, envelope = false): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);

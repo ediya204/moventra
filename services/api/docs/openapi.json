@@ -2442,6 +2442,100 @@
         },
         "summary": "管理员身份查询；错误角色返回 403"
       }
+    },
+    "/admin-api/v1/users": {
+      "get": {
+        "operationId": "listRegisteredUsers",
+        "summary": "Read customer registration metadata (active admin with MFA)",
+        "description": "All active administrators with verified MFA may read customer login email, registration status and customer-link existence. Business customer names/IDs/actions are returned only under existing staff_grants. No customer/grant creation or financial writes. Default list is registered PostgreSQL customer-role users, sorted created_at/id descending; exact email lookup can additionally identify Firebase-only registrations. Firebase failure returns 503, never an empty result. Successful reads, including empty results, require a committed user_directory_audit row. Additional/duplicate query keys are rejected. No credentials or provider payloads returned.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Exact primary login email. Includes identity-only users that have not completed Moventra registration. Not a substring search. offset must be zero.",
+            "schema": {
+              "type": "string",
+              "format": "email",
+              "maxLength": 254
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audited registration directory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RegisteredDirectoryUser"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "limit",
+                        "offset",
+                        "hasMore"
+                      ],
+                      "properties": {
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "hasMore": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query or incomplete email"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Administrator or MFA required"
+          },
+          "503": {
+            "description": "Database, identity lookup or audit unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2998,6 +3092,102 @@
           "sync"
         ],
         "additionalProperties": false
+      },
+      "RegisteredDirectoryUser": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "emailVerified",
+          "authStatus",
+          "registrationStatus",
+          "userStatus",
+          "registeredAt",
+          "customerLinkState",
+          "customers"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "emailVerified": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "authStatus": {
+            "enum": [
+              "enabled",
+              "disabled",
+              "missing"
+            ]
+          },
+          "registrationStatus": {
+            "enum": [
+              "registered",
+              "identity_only"
+            ]
+          },
+          "userStatus": {
+            "enum": [
+              "active",
+              "disabled",
+              null
+            ]
+          },
+          "registeredAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "customerLinkState": {
+            "enum": [
+              "unlinked",
+              "linked",
+              "linked_restricted"
+            ]
+          },
+          "customers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "canReadAccounts",
+                "canReviewOnboarding"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "canReadAccounts": {
+                  "type": "boolean"
+                },
+                "canReviewOnboarding": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
