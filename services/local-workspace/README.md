@@ -10,12 +10,13 @@
 
 ```sh
 pnpm test:workspace
+python3 -m unittest discover -s services/local-workspace/collector/scripts -p 'test_*.py'
 pnpm workspace:dev
 ```
 
 `workspace:dev` 初始化本目录忽略的隔离 SQLite，使用原场景生成器；启动 API `127.0.0.1:8868` 和后台 `127.0.0.1:8850`。端口被占用即失败，不停止其他已有服务。访问 `/admin/login`，用本地演示账号 `demo@moventra.local` / `demo-only` 登录，再进入管理会话。旧 `8862` 服务及真实采集文件保持原样。此预览为合成数据，不复制用户已有本地客户记录。
 
-默认不会配置或调用真实 Slash；旧采集器/私有配置没有迁入此服务。`live.mjs` 的默认私有路径没有数据时返回未配置；手动同步能力另行迁移，不从用户主目录自动寻找凭据。
+默认不会配置或调用真实 Slash；旧 Python 只读采集器及其单元测试已恢复到 collector/scripts；私有配置未迁入此服务。`live.mjs` 使用 collector/.slash-preview 中的显式私有配置；没有数据时返回未配置，不从用户主目录自动寻找凭据或自动请求上游。配置、真实快照与既有渠道范围的迁入仍待确认。
 
 原 `assertLocal`、本地 Origin、独立会话、固定数据目录及真实卡片执行限制保留。`NODE_ENV=production` 或远程数据库配置被拒绝。不要把该服务直接代理到公网，不要把演示余额导入正式账本。
 
@@ -27,3 +28,5 @@ pnpm workspace:dev
 - 资金流程明确账本权威及执行模式后再接入；隔离成功不能当作真实出金成功。
 
 本次已恢复源码并执行 136 项隔离测试（135 项原有测试加 1 项当前品牌管理登录回归）。生产目前使用 Go/PostgreSQL；这里没有改变其数据库或上线写入口。
+
+Python 采集器的 33 项测试通过，使用模拟 HTTP 客户端和临时 SQLite；本次没有调用真实 Slash，也没有迁入私有配置。Schema 参考文件为 2026-09-07 历史快照；本次另复核官方 Card/Transaction 页面，不把历史快照声称为最新完整 OpenAPI。

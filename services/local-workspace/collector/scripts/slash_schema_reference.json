@@ -1,0 +1,1694 @@
+{
+  "source": "https://api.slash.com/openapi",
+  "checkedAt": "2026-09-07",
+  "sha256": "013031ce79340b529594d6401ee84d00a71ae1802d6a097aa971b80cfecab481",
+  "infoVersion": "0.0.1",
+  "paths": {
+    "/account": {
+      "get": {
+        "parameters": [
+          {
+            "name": "filter:legalEntityId",
+            "in": "query",
+            "description": "Pass in a legal entity ID to filter for accounts under a specific legal entity.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "List all accounts you have access to",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Account",
+                        "x-entrypoint": {
+                          "virtualPath": "schemas/Account",
+                          "sourcePath": "schemas/Account.yaml",
+                          "title": "Account",
+                          "origin": "./src/publicApi"
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "$ref": "#/components/schemas/Pagination.PaginationResponse",
+                      "x-entrypoint": {
+                        "virtualPath": "schemas/Pagination/PaginationResponse",
+                        "sourcePath": "schemas/Pagination/PaginationResponse.yaml",
+                        "title": "PaginationResponse",
+                        "origin": "./src/publicApi"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "metadata"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "x-reference-path": "paths/account/route.yaml"
+    },
+    "/transaction": {
+      "get": {
+        "description": "Get all transactions",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "A cursor string to fetch the next page of results",
+            "x-reference-path": "schemas/Pagination/CursorParameter.yaml"
+          },
+          {
+            "name": "accountId",
+            "deprecated": true,
+            "description": "Use filter:accountId to filter by account ID",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:legalEntityId",
+            "in": "query",
+            "description": "Pass in a legal entity ID to filter transactions by accounts under a specific legal entity.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter:accountId",
+            "description": "Pass in an account ID to filter transactions by account ID. This will return all transactions that match the account ID passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:virtualAccountId",
+            "description": "Pass in a virtual account ID to filter transactions by virtual account ID. This will return all transactions that match the virtual account ID passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:from_date",
+            "description": "Pass in a unix timestamp in milliseconds to filter transactions by date. This will return all transactions that occurred on or after the date passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:to_date",
+            "description": "Pass in a unix timestamp in milliseconds to filter transactions by date. This will return all transactions that occurred on or before the date passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:from_authorized_at",
+            "description": "Pass in a unix timestamp in milliseconds to filter transactions by authorization time. This will return all transactions that are authorized on or after the date passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:to_authorized_at",
+            "description": "Pass in a unix timestamp in milliseconds to filter transactions by authorization time. This will return all transactions that are authorized on or before the date passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:status",
+            "description": "Filter transactions by status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "`pending` - The transaction is pending and has not been posted to the account yet (the balance doesn't reflect the transaction yet).\n`posted` - The transaction has been posted to the account and the balance reflects the transaction.\n`failed` - The transaction failed to post to the account\n",
+              "enum": [
+                "pending",
+                "posted",
+                "failed"
+              ]
+            }
+          },
+          {
+            "name": "filter:detailed_status",
+            "description": "Filter transactions by detailed status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "- `pending`: Used for any transaction type that has not posted to the account yet, but is affecting the account's available balance.\n- `canceled`: Used for any transaction that was canceled.\n- `failed`: Used for any transaction that failed to post to the account.\n- `settled`: Used for any transaction that has posted to the account, except for card refunds, which use the `refund` status, and ACH returns, which use the `returned` status.\n- `declined`: Used for card transactions that were declined.\n- `refund`: Used for card transactions that were refunded, increasing the account's available and posted balances.\n- `reversed`: Used for card transactions that were authorized, but reversed by the merchant.\n- `returned`: Used for ACH returns. In the case of an ACH return, there are two possibilities: (1) if the ACH settled and then returned, then there will be one transaction with status `settled` for the ACH settling, and one transaction with status `returned` for the ACH return. Both of these are posted transactions. (2) if the ACH returned before settling, then there will only be one transaction with status `canceled`.\n- `dispute`: Used for disputed card transactions.\n",
+              "enum": [
+                "pending",
+                "canceled",
+                "failed",
+                "settled",
+                "declined",
+                "refund",
+                "reversed",
+                "returned",
+                "dispute"
+              ]
+            }
+          },
+          {
+            "name": "filter:cardId",
+            "description": "Filter transactions by cardId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:category",
+            "description": "Filter transactions by category type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Filter by transaction category:\n- `card`: Card transactions (authorizations, purchases, refunds)\n- `ach`: ACH transfers (credits and debits)\n- `wire`: Domestic wire transfers\n- `international_wire`: International wire transfers\n- `rtp`: Real-time payments\n- `fee`: Fees (card fees, transfer fees, subscription fees)\n- `internal`: Internal transfers (between accounts, treasury transfers)\n",
+              "enum": [
+                "card",
+                "ach",
+                "wire",
+                "international_wire",
+                "rtp",
+                "fee",
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "filter:cardGroupId",
+            "description": "Filter transactions by card group ID. This will return all card transactions that belong to cards in the specified card group.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:providerAuthorizationId",
+            "description": "Filter transactions by provider authorization ID",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transaction",
+                        "x-entrypoint": {
+                          "virtualPath": "schemas/Transaction",
+                          "sourcePath": "schemas/Transaction.yaml",
+                          "title": "Transaction",
+                          "origin": "./src/publicApi"
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "$ref": "#/components/schemas/Pagination.PaginationResponse",
+                      "x-entrypoint": {
+                        "virtualPath": "schemas/Pagination/PaginationResponse",
+                        "sourcePath": "schemas/Pagination/PaginationResponse.yaml",
+                        "title": "PaginationResponse",
+                        "origin": "./src/publicApi"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "x-reference-path": "paths/transaction/route.yaml"
+    },
+    "/account/{accountId}/balance": {
+      "parameters": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        }
+      ],
+      "get": {
+        "description": "Retrieve a list of balances for an account. \nThe balances are returned in an array, with each item representing a balance for that account.\n\nFor charge_card accounts, there will be two balances returned: \"cash\" and \"credit\".\nFor debit accounts, there will only be one balance returned: \"debit\".\n",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balances": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Balance",
+                        "x-entrypoint": {
+                          "virtualPath": "schemas/Balance",
+                          "sourcePath": "schemas/Balance.yaml",
+                          "title": "Balance",
+                          "origin": "./src/publicApi"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "balances"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "x-reference-path": "paths/account/{accountId}/balance/route.yaml"
+    },
+    "/card": {
+      "get": {
+        "description": "List all cards you have access to.",
+        "parameters": [
+          {
+            "name": "filter:legalEntityId",
+            "in": "query",
+            "description": "Pass in a legal entity ID to filter for cards in accounts under a specific legal entity.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter:accountId",
+            "in": "query",
+            "description": "Pass in an account ID to filter for cards under a specific account.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter:virtualAccountId",
+            "in": "query",
+            "description": "Pass in a virtual account ID to filter for cards under a specific virtual account.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "A cursor string to fetch the next page of results",
+            "x-reference-path": "schemas/Pagination/CursorParameter.yaml"
+          },
+          {
+            "name": "filter:status",
+            "description": "Returns all cards matching the status passed in.",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "paused",
+                "closed",
+                "inactive"
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "filter:cardGroupId",
+            "description": "Pass in a card group ID, This will return all cards that belong to the card group ID passed in. Cannot be combined with filter:cardGroupName.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:cardGroupName",
+            "description": "Pass in a card group name, This will return all cards that belong to the card group name passed in. Cannot be combined with filter:cardGroupId.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "filter:modifier",
+            "description": "Filter cards by modifier. Format is \"modifier_name:value\" (e.g., \"only_allow_recurring_payments:true\"). Returns cards where the specified modifier has the given value.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "sort",
+            "description": "Sorts card by creation date or name.",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "name"
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "sortDirection",
+            "description": "The direction to apply the sort filter by. Default ASC.",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Card",
+                        "x-entrypoint": {
+                          "virtualPath": "schemas/Card",
+                          "sourcePath": "schemas/Card.yaml",
+                          "title": "Card",
+                          "origin": "./src/publicApi"
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "$ref": "#/components/schemas/Pagination.PaginationResponse",
+                      "x-entrypoint": {
+                        "virtualPath": "schemas/Pagination/PaginationResponse",
+                        "sourcePath": "schemas/Pagination/PaginationResponse.yaml",
+                        "title": "PaginationResponse",
+                        "origin": "./src/publicApi"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Create a card",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accountId": {
+                    "type": "string",
+                    "description": "The ID of the account to create the card under. You can get this by calling `GET /account`. This field is required unless you are authenticating via API key, in which case it will default to your first commercial account. We recommend supplying this even if you are authenticating via API key."
+                  },
+                  "virtualAccountId": {
+                    "type": "string",
+                    "description": "The ID of the virtual account to create the card under. Virtual accounts can be retrieved by calling `GET /virtual-account`."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Specify the type of card you'd like to create. At the moment, only virtual cards are supported.",
+                    "enum": [
+                      "virtual"
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "spendingConstraint": {
+                    "$ref": "#/components/schemas/SpendingConstraint",
+                    "x-entrypoint": {
+                      "virtualPath": "schemas/SpendingConstraint",
+                      "sourcePath": "schemas/SpendingConstraint.yaml",
+                      "title": "SpendingConstraint",
+                      "origin": "./src/publicApi"
+                    }
+                  },
+                  "isSingleUse": {
+                    "type": "boolean",
+                    "description": "Defaults to false. When set to true, the card will be automatically closed after a single authorization attempt. Note that the card will be closed even if the authorization declines or drops"
+                  },
+                  "userData": {
+                    "type": "object",
+                    "description": "Arbitrary information that can be attached to the card. This should be a JSON object and cannot exceed 4kb.",
+                    "additionalProperties": true
+                  },
+                  "cardGroupId": {
+                    "type": "string"
+                  },
+                  "cardholderId": {
+                    "type": "string",
+                    "description": "The ID of the cardholder to assign to the card. You can get cardholder IDs by calling `GET /cardholder`."
+                  },
+                  "cardProductId": {
+                    "description": "The ID of the card product to use when creating this card, if not specified a random card product will be chosen.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Card",
+                  "x-entrypoint": {
+                    "virtualPath": "schemas/Card",
+                    "sourcePath": "schemas/Card.yaml",
+                    "title": "Card",
+                    "origin": "./src/publicApi"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "x-reference-path": "paths/card/route.yaml"
+    },
+    "/card/{cardId}": {
+      "parameters": [
+        {
+          "name": "cardId",
+          "in": "path",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        }
+      ],
+      "patch": {
+        "description": "Update a card",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/CardStatus",
+                    "x-entrypoint": {
+                      "virtualPath": "schemas/CardStatus",
+                      "sourcePath": "schemas/CardStatus.yaml",
+                      "title": "CardStatus",
+                      "origin": "./src/publicApi"
+                    }
+                  },
+                  "cardGroupId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Explicitly set this value to null to remove the card from a group. Omitting this field entirely will not affect the group the card belongs to."
+                  },
+                  "spendingConstraint": {
+                    "nullable": true,
+                    "description": "Explicitly set this value to null to remove all card level spending constraints.",
+                    "$ref": "#/components/schemas/SpendingConstraint",
+                    "x-entrypoint": {
+                      "virtualPath": "schemas/SpendingConstraint",
+                      "sourcePath": "schemas/SpendingConstraint.yaml",
+                      "title": "SpendingConstraint",
+                      "origin": "./src/publicApi"
+                    }
+                  },
+                  "userData": {
+                    "nullable": true,
+                    "description": "Arbitrary information that can be attached to the card. This should be a JSON object and cannot exceed 4kb.",
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Card",
+                  "x-entrypoint": {
+                    "virtualPath": "schemas/Card",
+                    "sourcePath": "schemas/Card.yaml",
+                    "title": "Card",
+                    "origin": "./src/publicApi"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "description": "Fetch details for a single card by card ID",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_pan",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "include_cvv",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Card",
+                  "x-entrypoint": {
+                    "virtualPath": "schemas/Card",
+                    "sourcePath": "schemas/Card.yaml",
+                    "title": "Card",
+                    "origin": "./src/publicApi"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TooManyRequests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "x-reference-path": "paths/card/{cardId}/route.yaml"
+    }
+  },
+  "schemas": {
+    "Transaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "description": "The date in UTC time when the transaction was posted. If the transaction is pending or failed, this is the date the transaction was created.",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "memo": {
+          "description": "The memo associated with the transaction. For virtual account transfers, this is the memo provided when creating the transfer. For ACH transactions, this is the company entry description. For wire transactions, this is the sender reference.",
+          "type": "string"
+        },
+        "merchantDescription": {
+          "type": "string",
+          "description": "DEPRECATED. Use `merchantData.description` instead. For card transactions, the description of the transaction as reported by the merchant. For other transactions, this field is undefined.",
+          "deprecated": true
+        },
+        "merchantData": {
+          "$ref": "#/components/schemas/TransactionMerchant",
+          "description": "For card transactions, contains description of the transaction as reported by the merchant, merchant category code, and location of the merchant or origin of the transaction.\nFor other transactions, this field is undefined.\n",
+          "x-entrypoint": {
+            "virtualPath": "schemas/TransactionMerchant",
+            "sourcePath": "schemas/TransactionMerchant.yaml",
+            "title": "TransactionMerchant",
+            "origin": "./src/publicApi"
+          }
+        },
+        "amountCents": {
+          "description": "The amount of the transaction in cents in USD. If the transaction amount is negative, the transaction is a debit. If the transaction amount is positive, the transaction is a credit.",
+          "type": "number"
+        },
+        "status": {
+          "$ref": "#/components/schemas/TransactionStatus",
+          "x-entrypoint": {
+            "virtualPath": "schemas/TransactionStatus",
+            "sourcePath": "schemas/TransactionStatus.yaml",
+            "title": "TransactionStatus",
+            "origin": "./src/publicApi"
+          }
+        },
+        "detailedStatus": {
+          "$ref": "#/components/schemas/TransactionDetailedStatus",
+          "x-entrypoint": {
+            "virtualPath": "schemas/TransactionDetailedStatus",
+            "sourcePath": "schemas/TransactionDetailedStatus.yaml",
+            "title": "TransactionDetailedStatus",
+            "origin": "./src/publicApi"
+          }
+        },
+        "accountId": {
+          "description": "The account ID associated with the transaction"
+        },
+        "virtualAccountId": {
+          "description": "The virtual account ID where the transaction occurred",
+          "type": "string"
+        },
+        "accountSubtype": {
+          "description": "For charge cards, specifies if the transaction belongs to the cash or credit account. For debit accounts, this field is always cash.",
+          "type": "string",
+          "enum": [
+            "cash",
+            "credit"
+          ]
+        },
+        "cardId": {
+          "description": "The card ID associated with the transaction. If the transaction is not associated with a card, this field is not sent.",
+          "type": "string"
+        },
+        "cashbackInfo": {
+          "$ref": "#/components/schemas/TransactionCashbackInfo",
+          "x-entrypoint": {
+            "virtualPath": "schemas/TransactionCashbackInfo",
+            "sourcePath": "schemas/TransactionCashbackInfo.yaml",
+            "title": "TransactionCashbackInfo",
+            "origin": "./src/publicApi"
+          }
+        },
+        "fxFeeInfo": {
+          "$ref": "#/components/schemas/TransactionFxFeeInfo",
+          "x-entrypoint": {
+            "virtualPath": "schemas/TransactionFxFeeInfo",
+            "sourcePath": "schemas/TransactionFxFeeInfo.yaml",
+            "title": "TransactionFxFeeInfo",
+            "origin": "./src/publicApi"
+          }
+        },
+        "originalCurrency": {
+          "$ref": "#/components/schemas/OriginalCurrency",
+          "x-entrypoint": {
+            "virtualPath": "schemas/OriginalCurrency",
+            "sourcePath": "schemas/OriginalCurrency.yaml",
+            "title": "OriginalCurrency",
+            "origin": "./src/publicApi"
+          }
+        },
+        "orderId": {
+          "description": "The order ID, as reported by the merchant, associated with the specific transaction.",
+          "type": "string"
+        },
+        "referenceNumber": {
+          "description": "The reference number provided by Visa for this transaction.",
+          "type": "string"
+        },
+        "authorizedAt": {
+          "description": "The UTC timestamp of when the transaction was authorized. Only exists for card transactions.",
+          "type": "string"
+        },
+        "declineReason": {
+          "type": "string",
+          "description": "The reason for the decline. Only exists for card transactions with `detailedStatus` = `declined`."
+        },
+        "approvalReason": {
+          "type": "string",
+          "description": "The reason for the approval. Only exists for card transactions with `detailedStatus` = `pending` or `settled`."
+        },
+        "providerAuthorizationId": {
+          "type": "string",
+          "description": "The provider authorization ID for the transaction. Only exists for card transactions."
+        },
+        "wireInfo": {
+          "type": "object",
+          "description": "Information about the associated wire transfer if the transaction is a wire transfer.",
+          "properties": {
+            "counterpartyBank": {
+              "type": "string",
+              "description": "The name of the bank or financial institution of the counterparty in the wire transfer"
+            },
+            "typeCode": {
+              "type": "string",
+              "description": "A code that identifies the type of wire transfer (e.g., domestic, international)"
+            },
+            "subtypeCode": {
+              "type": "string",
+              "description": "A code that identifies the specific type or subtype of the wire transfer"
+            },
+            "omad": {
+              "type": "string",
+              "description": "Outgoing Message Authentication Data - a unique identifier assigned by the originating bank for the outgoing wire transfer. If the other bank is an account with Column N.A., this field is empty."
+            },
+            "imad": {
+              "type": "string",
+              "description": "Incoming Message Authentication Data - a unique identifier assigned by the receiving bank for the incoming wire transfer.  If the other bank is an account with Column N.A., this field is empty."
+            },
+            "senderReference": {
+              "type": "string",
+              "description": "A reference number or identifier provided by the sender of the wire transfer for tracking purposes"
+            },
+            "businessFunctionCode": {
+              "type": "string",
+              "description": "A code that identifies the business function or purpose of the wire transfer (e.g., customer transfer, bank transfer, etc.)"
+            }
+          },
+          "required": [
+            "subtypeCode",
+            "omad",
+            "imad",
+            "senderReference",
+            "businessFunctionCode",
+            "typeCode"
+          ]
+        },
+        "achInfo": {
+          "type": "object",
+          "description": "Information about the associated ACH transfer if the transaction is an ACH transfer.",
+          "properties": {
+            "counterpartyBank": {
+              "type": "string",
+              "description": "The name of the bank or financial institution of the counterparty in the ACH transfer"
+            },
+            "receiverId": {
+              "type": "string",
+              "description": "The unique identifier for the receiver of the ACH transfer"
+            },
+            "companyId": {
+              "type": "string",
+              "description": "The company identification number assigned by the originating depository financial institution"
+            },
+            "companyDiscretionaryData": {
+              "type": "string",
+              "description": "Optional data field that can be used by the originating company for internal purposes"
+            },
+            "companyEntryDescription": {
+              "type": "string",
+              "description": "An optional description of the purpose of the ACH entry as provided by the originating company"
+            },
+            "traceNumber": {
+              "type": "string",
+              "description": "A unique number assigned by the originating depository financial institution to identify the ACH entry"
+            },
+            "entryClassCode": {
+              "type": "string",
+              "description": "A three-character code that identifies the type of ACH entry (e.g., PPD for Prearranged Payment and Deposit, CCD for Corporate Credit or Debit)"
+            },
+            "paymentRelatedInfo": {
+              "type": "string",
+              "description": "Additional information related to the payment, such as invoice numbers, payment references, or other payment-specific details"
+            }
+          },
+          "required": [
+            "receiverId",
+            "companyId",
+            "companyDiscretionaryData",
+            "traceNumber",
+            "entryClassCode",
+            "paymentRelatedInfo"
+          ]
+        },
+        "rtpInfo": {
+          "type": "object",
+          "description": "Information about the associated Real-Time Payment (RTP) transfer if the transaction is a real-time transfer.",
+          "properties": {
+            "counterpartyBank": {
+              "type": "string",
+              "description": "The name of the bank or financial institution of the counterparty in the real-time transfer"
+            },
+            "endToEndId": {
+              "type": "string",
+              "description": "A unique end-to-end identifier for the real-time payment transaction that remains with the payment throughout its lifecycle"
+            },
+            "routingNumber": {
+              "type": "string",
+              "description": "The routing number of the counterparty's bank"
+            },
+            "originatorName": {
+              "type": "string",
+              "description": "The name of the originator of the real-time payment"
+            },
+            "description": {
+              "type": "string",
+              "description": "Additional description or purpose of the real-time payment"
+            }
+          }
+        },
+        "sepaInfo": {
+          "type": "object",
+          "description": "Information about the associated SEPA (Single Euro Payments Area) transfer if the transaction is a SEPA deposit into a Global USD account.",
+          "properties": {
+            "senderName": {
+              "type": "string",
+              "description": "The name of the originator of the SEPA transfer."
+            },
+            "recipientName": {
+              "type": "string",
+              "description": "The name of the recipient of the SEPA transfer."
+            },
+            "reference": {
+              "type": "string",
+              "description": "The free-form reference field set by the originator on the SEPA transfer."
+            },
+            "iban": {
+              "type": "string",
+              "description": "The full IBAN of the counterparty on the SEPA transfer."
+            },
+            "ibanLast4": {
+              "type": "string",
+              "description": "The last 4 characters of the IBAN of the counterparty on the SEPA transfer."
+            },
+            "bic": {
+              "type": "string",
+              "description": "The BIC of the counterparty bank on the SEPA transfer."
+            },
+            "uetr": {
+              "type": "string",
+              "description": "The unique end-to-end transaction reference (UETR) for the SEPA transfer."
+            },
+            "paymentScheme": {
+              "type": "string",
+              "description": "The SEPA payment scheme used (e.g., `sepa_credit_transfer`, `sepa_instant`)."
+            }
+          }
+        },
+        "pixInfo": {
+          "type": "object",
+          "description": "Information about the associated PIX (Brazilian instant-payment) transfer if the transaction is a PIX deposit into a Global USD account.",
+          "properties": {
+            "senderName": {
+              "type": "string",
+              "description": "The name of the originator of the PIX transfer."
+            },
+            "description": {
+              "type": "string",
+              "description": "A description of the PIX transfer provided by the originator."
+            },
+            "reference": {
+              "type": "string",
+              "description": "The free-form reference field set by the originator on the PIX transfer."
+            },
+            "trackingNumber": {
+              "type": "string",
+              "description": "The PIX network tracking number (`endToEndId`) for the transfer."
+            }
+          }
+        },
+        "speiInfo": {
+          "type": "object",
+          "description": "Information about the associated SPEI (Mexican real-time payment) transfer if the transaction is a SPEI deposit into a Global USD account.",
+          "properties": {
+            "senderName": {
+              "type": "string",
+              "description": "The name of the originator of the SPEI transfer."
+            },
+            "description": {
+              "type": "string",
+              "description": "A description of the SPEI transfer provided by the originator."
+            },
+            "reference": {
+              "type": "string",
+              "description": "The free-form reference field (concepto de pago) set by the originator on the SPEI transfer."
+            },
+            "clabe": {
+              "type": "string",
+              "description": "The CLABE of the counterparty on the SPEI transfer."
+            },
+            "trackingNumber": {
+              "type": "string",
+              "description": "The SPEI network tracking number (clave de rastreo) for the transfer."
+            }
+          }
+        },
+        "fpsInfo": {
+          "type": "object",
+          "description": "Information about the associated Faster Payments transfer if the transaction is a Faster Payments deposit into a Global USD account.",
+          "properties": {
+            "senderName": {
+              "type": "string",
+              "description": "The name of the originator of the Faster Payments transfer."
+            },
+            "recipientName": {
+              "type": "string",
+              "description": "The name of the recipient of the Faster Payments transfer."
+            },
+            "reference": {
+              "type": "string",
+              "description": "The free-form reference field set by the originator on the Faster Payments transfer."
+            },
+            "accountNumber": {
+              "type": "string",
+              "description": "The account number of the counterparty on the Faster Payments transfer."
+            },
+            "last4": {
+              "type": "string",
+              "description": "The last 4 digits of the account number of the counterparty on the Faster Payments transfer."
+            },
+            "sortCode": {
+              "type": "string",
+              "description": "The sort code of the counterparty bank on the Faster Payments transfer."
+            },
+            "uetr": {
+              "type": "string",
+              "description": "The unique end-to-end transaction reference (UETR) for the Faster Payments transfer."
+            }
+          }
+        },
+        "feeInfo": {
+          "type": "object",
+          "description": "Information populated if this transaction is a fee assessed by Slash.",
+          "properties": {
+            "relatedTransaction": {
+              "type": "object",
+              "required": [
+                "id",
+                "amount"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "cryptoInfo": {
+          "type": "object",
+          "description": "Information populated if this transaction is a crypto on/off-ramp transaction.",
+          "properties": {
+            "txHash": {
+              "type": "string",
+              "description": "The transaction hash of the crypto on/off-ramp transaction."
+            },
+            "senderAddress": {
+              "type": "string",
+              "description": "The sender address of the crypto on/off-ramp transaction."
+            }
+          }
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "description",
+        "amountCents",
+        "status",
+        "detailedStatus",
+        "accountId",
+        "accountSubtype"
+      ],
+      "x-entrypoint": {
+        "virtualPath": "schemas/Transaction",
+        "sourcePath": "schemas/Transaction.yaml",
+        "title": "Transaction",
+        "origin": "./src/publicApi"
+      },
+      "title": "Transaction"
+    },
+    "Balance": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "The ID of the account associated with the balance."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of balance.\n- \"cash\" represents the excess balance not used as collateral for the charge card. Not applicable to debit accounts.\n- \"credit\" represents the balance that can be spent on the charge card. Not applicable to debit accounts.\n- \"debit\" represents the balance that can be spent or withdrawn. Not applicable to charge card accounts.\n",
+          "enum": [
+            "cash",
+            "credit",
+            "debit"
+          ]
+        },
+        "available": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/Money",
+              "x-entrypoint": {
+                "virtualPath": "schemas/Money",
+                "sourcePath": "schemas/Money.yaml",
+                "title": "Money",
+                "origin": "./src/publicApi"
+              }
+            },
+            {
+              "description": "The amount of money that is immediately available to use. \n- For \"credit\" balances, this is the immediately available amount that can be spent on the charge card.\n- For \"cash\" balances, this value represents the immediately available excess cash that is not being used as collateral for the charge card. You can choose to transfer more than these funds to your bank account, but any amount not coverable by the available balance will be removed from the charge card's collateral balance (the \"credit\" balance).\n- For \"debit\" balances, this is the amount of money available that can be spent or withdrawn immediately.\n"
+            }
+          ]
+        },
+        "posted": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/Money",
+              "x-entrypoint": {
+                "virtualPath": "schemas/Money",
+                "sourcePath": "schemas/Money.yaml",
+                "title": "Money",
+                "origin": "./src/publicApi"
+              }
+            },
+            {
+              "description": "The amount of money that has been posted to the account. This value does not include any pending transactions and instead represents the amount of money that has been posted to the balance.\n"
+            }
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The UTC timestamp associated with the balance. Since the balance can change rapidly, the timestamp is included to indicate the time when the balance was computed."
+        }
+      },
+      "required": [
+        "accountId",
+        "type",
+        "available",
+        "posted",
+        "timestamp"
+      ],
+      "x-entrypoint": {
+        "virtualPath": "schemas/Balance",
+        "sourcePath": "schemas/Balance.yaml",
+        "title": "Balance",
+        "origin": "./src/publicApi"
+      },
+      "title": "Balance"
+    },
+    "Money": {
+      "type": "object",
+      "description": "Represents a monetary value",
+      "properties": {
+        "amountCents": {
+          "type": "integer",
+          "description": "The amount in cents"
+        }
+      },
+      "required": [
+        "amountCents"
+      ],
+      "x-entrypoint": {
+        "virtualPath": "schemas/Money",
+        "sourcePath": "schemas/Money.yaml",
+        "title": "Money",
+        "origin": "./src/publicApi"
+      },
+      "title": "Money"
+    },
+    "OriginalCurrency": {
+      "type": "object",
+      "description": "The original currency of the transaction. This is only applicable to transactions. If this field is not sent, the original currency is in USD.\n",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The original currency code of the transaction"
+        },
+        "amountCents": {
+          "type": "number",
+          "description": "The amount of the transaction in its original currency in cents."
+        },
+        "conversionRate": {
+          "type": "number",
+          "description": "The conversion rate used to convert the transaction amount from its original currency to the account currency. The currency rate is computed at the time of the transaction."
+        }
+      },
+      "required": [
+        "code",
+        "amountCents",
+        "conversionRate"
+      ],
+      "x-entrypoint": {
+        "virtualPath": "schemas/OriginalCurrency",
+        "sourcePath": "schemas/OriginalCurrency.yaml",
+        "title": "OriginalCurrency",
+        "origin": "./src/publicApi"
+      },
+      "title": "OriginalCurrency"
+    },
+    "Pagination.PaginationResponse": {
+      "type": "object",
+      "description": "Response sent when requesting a list of data",
+      "properties": {
+        "nextCursor": {
+          "type": "string",
+          "description": "The cursor to use to retrieve the next page of data. If this is not sent, there is no more data to retrieve."
+        },
+        "count": {
+          "type": "number",
+          "description": "The number of items in the current page of data."
+        }
+      },
+      "x-entrypoint": {
+        "virtualPath": "schemas/Pagination/PaginationResponse",
+        "sourcePath": "schemas/Pagination/PaginationResponse.yaml",
+        "title": "PaginationResponse",
+        "origin": "./src/publicApi"
+      },
+      "title": "PaginationResponse"
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string",
+          "description": "The account that this card is associated with"
+        },
+        "virtualAccountId": {
+          "type": "string",
+          "description": "The virtual account that this card is associated with"
+        },
+        "last4": {
+          "type": "string",
+          "description": "The last 4 digits of the card number"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name assigned to the card that appears on the user dashboard"
+        },
+        "expiryMonth": {
+          "type": "string",
+          "description": "The month the card expires formatted as MM (01, 02, ..., 12)"
+        },
+        "expiryYear": {
+          "type": "string",
+          "description": "The year the card expires formatted as YYYY (2024, 2025, ...)"
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/CardStatus",
+              "x-entrypoint": {
+                "virtualPath": "schemas/CardStatus",
+                "sourcePath": "schemas/CardStatus.yaml",
+                "title": "CardStatus",
+                "origin": "./src/publicApi"
+              }
+            },
+            {
+              "description": "The status of the card"
+            }
+          ]
+        },
+        "isPhysical": {
+          "type": "boolean",
+          "description": "When true, a physical card has been issued. Otherwise, this is a virtual card."
+        },
+        "isSingleUse": {
+          "type": "boolean",
+          "description": "When true, the card will be automatically closed after a single authorization attempt. Note that the card will be closed even if the authorization declines or drops"
+        },
+        "pan": {
+          "type": "string",
+          "description": "This field contains the full PAN which will only be sent on a request for a single card when you set the query param \"include_pan\" to \"true\""
+        },
+        "cvv": {
+          "type": "string",
+          "description": "This field will contain full CVV which will only be sent on a request for a single card when you set the query param \"include_pan\" to \"true\""
+        },
+        "cardGroupId": {
+          "type": "string",
+          "description": "The card group the card belongs to."
+        },
+        "cardGroupName": {
+          "type": "string",
+          "description": "The name of the card group the card belongs to."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "spendingConstraint": {
+          "$ref": "#/components/schemas/SpendingConstraint",
+          "description": "The spending constraint applied to the card",
+          "x-entrypoint": {
+            "virtualPath": "schemas/SpendingConstraint",
+            "sourcePath": "schemas/SpendingConstraint.yaml",
+            "title": "SpendingConstraint",
+            "origin": "./src/publicApi"
+          }
+        },
+        "userData": {
+          "type": "object",
+          "description": "Arbitrary information that can be attached to the card. See the [`PATCH /card/{cardId}`](api-reference/card-patch) endpoint for more details on how to add user data."
+        },
+        "cardProductId": {
+          "type": "string",
+          "description": "The ID of the card product this card was created with."
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/CardModifier",
+            "x-entrypoint": {
+              "virtualPath": "schemas/CardModifier",
+              "sourcePath": "schemas/CardModifier.yaml",
+              "title": "CardModifier",
+              "origin": "./src/publicApi"
+            }
+          },
+          "description": "The modifiers applied to this card. Modifiers control card behavior like restricting to recurring payments only."
+        }
+      },
+      "required": [
+        "id",
+        "accountId",
+        "last4",
+        "name",
+        "expiryMonth",
+        "expiryYear",
+        "status",
+        "isPhysical"
+      ],
+      "x-entrypoint": {
+        "virtualPath": "schemas/Card",
+        "sourcePath": "schemas/Card.yaml",
+        "title": "Card",
+        "origin": "./src/publicApi"
+      },
+      "title": "Card"
+    }
+  }
+}

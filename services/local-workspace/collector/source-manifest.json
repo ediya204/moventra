@@ -1,0 +1,30 @@
+[
+  {
+    "file": "slash_preview.py",
+    "sha256": "b298e9a7b3b3b3d3fb497ef8eb8040b17593c4d3b4e1ccf059cbc407b76c9d7b"
+  },
+  {
+    "file": "slash_live.py",
+    "sha256": "81451fae95ed6d30b68a31f338f453a467301a4f49d67b639c75f0cedee45f0e"
+  },
+  {
+    "file": "slash_cards_export.py",
+    "sha256": "d5164e1794815a82aee842fdc2a5a8770e05c886fe1526c0b4f1ef34d142ccb0"
+  },
+  {
+    "file": "test_slash_preview.py",
+    "sha256": "47c3074db8346cea691b4dd74fea2dbbcd05e056a4af04ec0a6c5475cc99f979"
+  },
+  {
+    "file": "test_slash_live.py",
+    "sha256": "1ba8c3f4c747cd04552c784ae93932808b6be6b3f1ddf2fde053f132480e3844"
+  },
+  {
+    "file": "test_slash_cards_export.py",
+    "sha256": "60eb2059501e4a512a6a7064bb2464fe2ae94a2c7e9a478a5ae4f27d37690b3a"
+  },
+  {
+    "file": "slash_schema_reference.json",
+    "sha256": "7dede534197b67bc0f1650cf0ce359f847b96034535416230f4c3e2d4f3ad806"
+  }
+]

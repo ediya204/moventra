@@ -40,3 +40,5 @@ GitHub main `a9f4253`；隔离工作分支 `codex/restore-existing-admin-modules
 本批生产部署状态以发布记录为准，源码恢复不表示所有旧写流程已上线。Slash 卡字段复核依据 https://docs.slash.com/api-reference/schema-card （2026-09-13）；本批只用既有白名单字段，不采集 PAN/CVV。
 
 本地浏览器复现另发现品牌更名后演示管理账号不兼容，已在本地入口兼容 Moventra/ADSFLOW 名称，仍映射同一隔离经办身份；不改变正式账号或权限。LiveSlashPage 的现有详情/日期恢复增量已纳入；生产构建不包含这些 DEV 变更，正式产物摘要保持一致。
+
+只读采集代码同步恢复：collector/scripts 中的 Python 预览、选卡导出、手动同步及参考 Schema，共 7 个源/测试文件，33 项模拟客户端测试通过。Node 桥接路径已指向恢复后的 collector；私有 .env 和 .slash-preview 未迁入，启动不会自动采集。

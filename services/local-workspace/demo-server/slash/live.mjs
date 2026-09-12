@@ -6,8 +6,8 @@ import {readFileSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-const folder=fileURLToPath(new URL('../../../adsflow-api/.slash-preview/',import.meta.url));
-const script=fileURLToPath(new URL('../../../adsflow-api/scripts/slash_live.py',import.meta.url));
+const folder=fileURLToPath(new URL('../../collector/.slash-preview/',import.meta.url));
+const script=fileURLToPath(new URL('../../collector/scripts/slash_live.py',import.meta.url));
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export function createLiveBridge(options={}){
  const configPath=options.configPath||`${folder}live-config.json`,dbPath=options.dbPath||`${folder}live.sqlite`;

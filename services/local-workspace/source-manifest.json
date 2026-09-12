@@ -49,7 +49,7 @@
     {
       "path": "demo-server/slash/live.mjs",
       "sha256": "a5555611dc62399cb1a9d50e25bff9598980ca8f6056e2c7c1307299e51c12af",
-      "recoveredSha256": "a5555611dc62399cb1a9d50e25bff9598980ca8f6056e2c7c1307299e51c12af"
+      "recoveredSha256": "b572b103ce7544e7bac48a7b8ad0962e51367a16c2f387fcb008ec313c71f05b"
     },
     {
       "path": "demo-server/slash/start.mjs",

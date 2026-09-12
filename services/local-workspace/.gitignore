@@ -3,3 +3,5 @@ demo-server/slash/fx/data/
 *.sqlite*
 *.db*
 .env*
+collector/.slash-preview/
+__pycache__/
