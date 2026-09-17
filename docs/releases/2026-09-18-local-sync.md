@@ -27,4 +27,12 @@
 
 ## 发布结果
 
-待本次实际发布及线上只读检查后补充；本文件的准备记录本身不表示已部署。
+- GitHub main 运行源码提交：`524b9989cb7dd0e65b1c95c5d535410988f1101c`；后续发布记录提交仅修改本文件，不改变运行源码。
+- 客户端 `moventra-web`：`27a0d224-ceea-41ec-b57a-57890902da9e`，100% 流量；https://moventra.me 与 https://www.moventra.me。
+- 运营后台 `moventra-admin`：`4f2f49a0-edfd-480d-8977-094c24186a0f`，100% 流量；https://admin.moventra.me。
+- Render API：`dep-dam1fju7bikc73fvn1jg` 已 live，关联精确提交 524b998；UTC 2026-09-17 16:40:20 完成。autoDeploy 关闭、preDeployCommand 为空；本次未修改环境配置。
+- 16 项线上 HTTP 检查通过：首页、www、两端登录、注册预览返回 200；对端入口/注册/跨端 API 返回 404；me、用户目录和渠道投影无凭据返回 401；API healthz/readyz 返回 200 JSON。
+- 两端主 JS/CSS 共 4 个文件与本次构建字节一致；注册页分包也字节一致且包含 /portal/login。初次 Python 默认 User-Agent 资源探测遇到 403；浏览器 User-Agent 重试均为 200，没有修改边缘安全策略，具体 403 原因未另行取证。
+- Render 启动日志确认监听 10000、服务 live；检查窗口未见应用错误。
+- 以上公开探测不代表已完成本人 Firebase 登录、MFA 或真实业务验收。未执行生产迁移和真实金融写入，未实施本轮 Slash/Blnk 设计。
+- 原共享目录未重置；旧本地 main 与未提交开发仍保留。后续实施须以最新 origin/main 或独立发布工作树为源码基线，不能继续把共享目录旧快照当作线上版本。
