@@ -26,7 +26,7 @@ const session=uri(`import React from ${JSON.stringify(resolve('react'))};export 
 const admission=uri(source('../../packages/shared/src/auth/onboarding.ts'));
 const panel=uri(`import React from ${JSON.stringify(resolve('react'))};export default function Panel({onState}) {globalThis.__clientWorkspaceFixture.setAdmission=onState;return null;}`);
 const navigation=uri(source('../../apps/client/src/portal/workspaceNavigation.ts'));
-const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
+const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:name==='./CardSnapshots'?uri('export default ()=>null;'):name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
 const ClientHome=(await import(uri(compiled))).default;
 const flush=()=>new Promise(r=>setImmediate(r));
 function reset(customer='A'){state.requests=[];state.auth={ready:true,user:{email:'fixture@example.invalid'},session:{customers:customer?[{id:customer,kind:'personal'}]:[],mfaVerified:true},signOut(){}};}
@@ -46,7 +46,7 @@ test('七项导航和原账户安全深链可直接打开，不回退到首页',
  }
 });
 test('未关联和读取失败分别显示，不伪装成空账户',async()=>{
- reset(null);let tree=await mount();assert.equal(state.requests.length,0);assert.ok(text(tree).includes('当前尚未开通个人账户'));await act(()=>tree.unmount());
+ reset(null);let tree=await mount();assert.equal(state.requests.length,0);assert.ok(text(tree).includes('当前登录身份尚未关联个人客户主体'));await act(()=>tree.unmount());
  reset();tree=await mount();await act(async()=>{state.requests.forEach(r=>r.reject(new Error('failed')));await flush();});assert.ok(text(tree).includes('读取失败'));assert.ok(!text(tree).includes('暂无业务账户'));await act(()=>tree.unmount());
 });
 test('切换客户后拒绝旧请求结果，保留当前主体数据',async()=>{
@@ -58,11 +58,13 @@ test('切换客户后拒绝旧请求结果，保留当前主体数据',async()=>
 
 test('审批开通后默认开放四项功能入口，暂停后恢复禁用',async()=>{
  reset();const tree=await mount();
+ assert.ok(!text(tree).includes('待审批开通'));
  const button=label=>tree.root.findAllByType('button').find(b=>b.props.children===label);
  const approval={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
  await act(()=>state.setAdmission(approval));
  for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,false);
  assert.ok(text(tree).includes('全部客户端功能权限默认开放'));
+ assert.ok(!text(tree).includes('待审批开通'));
  await act(()=>state.setAdmission({...approval,serviceStatus:'suspended',allFeaturesEnabled:false}));
  for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,true);
  await act(()=>tree.unmount());
@@ -87,4 +89,24 @@ test('开户申请提交后重新查询服务端状态，失败显示错误并�
  await act(async()=>{state.requests.at(-1).resolve({...draft,onboardingStatus:'submitted',revision:1});await flush();});
  assert.ok(text(tree).includes('待后台审批'));assert.equal(lastState.onboardingStatus,'submitted');
  await act(()=>tree.unmount());
+});
+
+test('各工作台页面按真实审批状态显示，未知、暂停、未激活不冒充待审批',async()=>{
+ for(const route of ['/portal','/portal/funds','/portal/cards','/portal/transactions','/portal/messages','/portal/support','/portal/settings']) {
+  reset();const tree=await mount(route);
+  assert.ok(!text(tree).includes('待审批开通'),route);
+  const approved={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
+  await act(()=>state.setAdmission(approved));assert.ok(text(tree).includes('已审批开通'),route);assert.ok(!text(tree).includes('待后台审批'),route);
+  await act(()=>state.setAdmission({...approved,serviceStatus:'suspended',allFeaturesEnabled:false}));assert.ok(text(tree).includes('服务已暂停'),route);assert.ok(!text(tree).includes('待后台审批'),route);
+  await act(()=>state.setAdmission({...approved,serviceStatus:'inactive',allFeaturesEnabled:false}));assert.ok(text(tree).includes('审核已通过，等待后台开通服务'),route);assert.ok(!text(tree).includes('待后台审批'),route);
+  await act(()=>tree.unmount());
+ }
+});
+test('开户状态读取失败后成功恢复不保留过期报错',async()=>{
+ reset();let tree;await act(async()=>{tree=Renderer.create(React.createElement(AdmissionPanel,{customerId:'A'}));await flush()});
+ assert.ok(text(tree).includes('正在读取开户状态'));
+ await act(async()=>{state.requests[0].reject(new Error('offline'));await flush()});assert.ok(text(tree).includes('读取失败'));
+ await act(async()=>{tree.root.findAllByType('button').find(b=>b.props.children==='刷新开户状态').props.onClick();await flush()});
+ await act(async()=>{state.requests[1].resolve({customerId:'A',onboardingStatus:'approved',serviceStatus:'active',allFeaturesEnabled:true,revision:1});await flush()});
+ assert.ok(text(tree).includes('已审批开通'));assert.ok(!text(tree).includes('读取失败'));await act(()=>tree.unmount());
 });

@@ -70,7 +70,8 @@ func run() error {
 		slog.Info("existing customer onboarding scopes granted and audited", "new_grants", count)
 		return nil
 	}
-	if len(os.Args) > 1 {
+	bindingCommand := len(os.Args) == 2 && (os.Args[1] == "card-bindings-plan" || os.Args[1] == "bind-card-snapshot")
+	if len(os.Args) > 1 && !bindingCommand {
 		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {
 			return errors.New("usage: api [migrate|provision-user|provision-personal|provision-operator]")
 		}
@@ -96,6 +97,9 @@ func run() error {
 	auth, err := app.Auth(ctx)
 	if err != nil {
 		return errors.New("firebase credentials unavailable")
+	}
+	if bindingCommand {
+		return cardBindings(ctx, pool, auth, os.Args[1] == "bind-card-snapshot")
 	}
 	if len(os.Args) == 2 && (os.Args[1] == "provision-user" || os.Args[1] == "provision-personal" || os.Args[1] == "provision-operator") {
 		uid, email := strings.TrimSpace(os.Getenv("PROVISION_FIREBASE_UID")), strings.TrimSpace(os.Getenv("PROVISION_EMAIL"))

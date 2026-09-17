@@ -82,6 +82,18 @@ func TestReadyMigrationIntegrity(t *testing.T) {
 	if err = Ready(ctx, db, false); err != nil {
 		t.Fatal(err)
 	}
+	if _, err = db.Exec(ctx, "UPDATE schema_migrations SET checksum='corrupt' WHERE version=7"); err != nil {
+		t.Fatal(err)
+	}
+	if Ready(ctx, db, false) == nil {
+		t.Fatal("corrupt card snapshot migration accepted")
+	}
+	if _, err = db.Exec(ctx, "DELETE FROM schema_migrations WHERE version=7"); err != nil {
+		t.Fatal(err)
+	}
+	if Ready(ctx, db, false) == nil {
+		t.Fatal("missing card snapshot migration accepted")
+	}
 	if _, err = db.Exec(ctx, "UPDATE schema_migrations SET checksum='corrupt' WHERE version=1"); err != nil {
 		t.Fatal(err)
 	}

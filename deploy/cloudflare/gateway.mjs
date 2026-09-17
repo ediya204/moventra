@@ -27,7 +27,8 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (overview && env.SITE_KIND !== 'admin') return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
   const identity = /^\/(api|client-api|admin-api)\/v1\/me$/.test(url.pathname);
-  const readable = onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const cardSnapshots = new RegExp(`^/client-api/v1/customers/${id}/card-projections(?:/[A-Za-z0-9_-]+/(?:cards|transactions)(?:/[A-Za-z0-9_-]+)?)?$`).test(url.pathname);
+  const readable = cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
   if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 

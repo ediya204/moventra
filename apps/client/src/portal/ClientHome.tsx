@@ -1,3 +1,4 @@
+import CardSnapshots from './CardSnapshots';
 import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
 import {clientFeaturesEnabled,onboardingMessage,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
 import { workspaceNavigation, workspaceWidth, workspaceGrid, workspaceChartsGrid } from "./workspaceNavigation";
@@ -99,7 +100,7 @@ export default function ClientHome() {
   }, [customer?.id, session, user, reload]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
-  if (!links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
+  if (!/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
@@ -107,7 +108,7 @@ export default function ClientHome() {
   const admission=onboarding?.customerId===customer?.id?onboarding:null;
   const enabled=clientFeaturesEnabled(admission);
   const security = pathname === "/portal/security";
-  const page = links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
+  const page = pathname.startsWith("/portal/card-transactions/") ? "卡片交易详情" : links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
   const nav = (
     <Stack sx={{ height: "100%", p: 2.5, overflowY: "auto" }} spacing={3}>
       <Box sx={{ py: 2 }}>
@@ -182,7 +183,7 @@ export default function ClientHome() {
         <Stack spacing={1} sx={{ py: 5, textAlign: "center" }}>
           <Typography variant="subtitle1">暂无业务账户</Typography>
           <Typography variant="body2" color="text.secondary">
-            账户开通后，将在这里显示。
+            当前没有业务账户记录；开户审核状态以上方“开户与功能权限”为准。
           </Typography>
         </Stack>
       ) : (
@@ -359,7 +360,7 @@ export default function ClientHome() {
               {error && <Alert severity="error">{error}</Alert>}
               {!customer && (
                 <Alert severity="info">
-                  当前尚未开通个人账户，请联系支持。
+                  当前登录身份尚未关联个人客户主体，请联系支持。
                 </Alert>
               )}
               {pathname === "/portal" && (
@@ -377,7 +378,7 @@ export default function ClientHome() {
                     {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
                       <Paper key={label} variant="outlined" sx={{ p: 2 }}>
                         <Button component={Link} to={label === "申请新卡" ? "/portal/cards" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
-                        <Typography variant="caption" color="text.secondary">{enabled ? "功能权限已开放 · 查看接入状态" : "待审批开通"}</Typography>
+                        <Typography variant="caption" color="text.secondary">{enabled ? "功能权限已开放 · 查看接入状态" : onboardingMessage(admission)}</Typography>
                       </Paper>
                     ))}
                   </Box>
@@ -408,10 +409,11 @@ export default function ClientHome() {
                   <Button component={Link} to="/portal/security" variant="outlined">账户与安全</Button>
                 </Stack>
               </Paper>}
-              {["funds", "cards", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
+              {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={customer.id} customerId={customer.id}/> }
+              {["funds", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>
                   <Typography variant="h6">{page}</Typography>
-                  <Typography color="text.secondary" sx={{ my: 2 }}>{enabled ? `${page}功能权限已开放，办理接口尚未接入。` : `${page}办理权限待后台审批开通。`} 当前可查询已授权的账户与交易。</Typography>
+                  <Typography color="text.secondary" sx={{ my: 2 }}>{enabled ? `${page}功能权限已开放，办理接口尚未接入。` : onboardingMessage(admission)} 当前可查询已授权的账户与交易。</Typography>
                   <Button component={Link} to="/portal/transactions" variant="outlined">查看交易与账单</Button>
                 </Paper>
               )}

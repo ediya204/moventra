@@ -43,7 +43,7 @@ test('CSV neutralizes formula prefixes including leading whitespace and preserve
 const network=globalThis.__moventraOverviewTransport={auth:{currentUser:null}};
 async function transport(admin){
  const mock=uri(`export const isAdminSite=${admin};export const getFirebaseAuth=()=>globalThis.__moventraOverviewTransport.auth;`);
- const code=transpile('../../packages/shared/src/auth/liveApi.ts').replace(/from ["']([^"']+)["']/g,(_,specifier)=>`from ${JSON.stringify(specifier==='./ledgerContract'?uri(transpile('../../packages/shared/src/auth/ledgerContract.ts')):mock)}`);
+ const code=transpile('../../packages/shared/src/auth/liveApi.ts').replace(/from ["']([^"']+)["']/g,(_,specifier)=>`from ${JSON.stringify(specifier==='./cardSnapshotContract'?uri(transpile('../../packages/shared/src/auth/cardSnapshotContract.ts')):specifier==='./ledgerContract'?uri(transpile('../../packages/shared/src/auth/ledgerContract.ts')):mock)}`);
  return import(uri(code));
 }
 test('production overview transport permits only the exact admin read route, retains Bearer isolation and rejects client access before fetch',async t=>{

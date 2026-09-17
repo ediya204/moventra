@@ -215,3 +215,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-18 运行就绪检查
 
 `GET /readyz` 保持原成功 200、失败 503 格式；2 秒内核验本地数据库的迁移 001–005 及 checksum，启用 ledger 时额外核验 006。`/healthz` 仅确认进程。两者不证明 Firebase/Blnk/渠道或真实业务验收。没有新增公网监控接口；本地 CLI status 不扩大客户或运营权限。
+
+## 2026-09-18 客户卡片测试快照增量
+
+新增 `GET /client-api/v1/customers/{customerID}/card-projections` 和连接内 `cards|transactions` 列表/详情，见 [流程及契约](../business/customer-card-binding.md) 与 OpenAPI。本地业务交易契约保持不变；快照按来源有符号金额和双层状态展示，不写入客户 transactions 或账本。仅既有个人主体所有人和逐卡显式绑定可读，不沿用运营连接权限。部署状态见流程记录。

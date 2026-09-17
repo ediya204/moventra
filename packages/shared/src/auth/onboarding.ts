@@ -6,6 +6,6 @@ export function onboardingMessage(state:OnboardingState|null){
  if(state.serviceStatus==='suspended')return '服务已暂停，请联系运营。';
  if(state.onboardingStatus==='submitted')return '开户申请待后台审批。';
  if(state.onboardingStatus==='rejected')return '开户申请已驳回，请联系运营确认后重新提交。';
- if(state.onboardingStatus==='approved')return '开户审核已通过，等待后台开通服务。';
+ if(state.onboardingStatus==='approved')return state.serviceStatus==='active'?'开户审核已通过且服务已开通，功能权限暂不可用，请刷新或联系运营。':'开户审核已通过，等待后台开通服务。';
  return '尚未提交开户申请。';
 }

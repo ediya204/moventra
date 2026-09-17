@@ -19,3 +19,5 @@
 客户登录为 `/portal/login`，旧 `/login` 自动跳转。客户身份使用 `/client-api/v1/me`；管理员角色拒绝进入客户端。保留已上线的开户申请、功能资格和导航；部署依赖角色迁移 004。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。
 
 官网 SEO 实现、验证和 Google 提交步骤见 [官网 SEO](../../docs/frontend/website-seo.md)。`pnpm test:seo` 检查首页索引与应用页面 noindex 边界。
+
+2026-09-18：`/portal/cards`、卡片详情及 `/portal/transactions` 的卡片交易区支持显式分配的只读测试快照。深链 `/portal/cards/:id?connection=...`、`/portal/card-transactions/:id?connection=...`；每页20条、搜索及分页在 URL 保存。绑定不激活资金功能，余额保持未知，新增导入不自动扩大测试授权。见 [客户卡片测试绑定](../../docs/business/customer-card-binding.md)。
