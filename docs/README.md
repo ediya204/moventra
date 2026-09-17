@@ -114,3 +114,11 @@
 - [Slash 字段差异与实施顺序（2026-09-06）](frontend/slash-field-gap.md)
 - [Slash 真实数据接入现有本地后台](frontend/slash-live-data.md)
 - [用户组与开户管理（本地实现）](frontend/user-management.md)
+
+### 2026-09-17 Blnk 本地影子账本
+
+- [架构、流程与契约](integrations/blnk.md)
+- [本地运行](../deploy/blnk/README.md)
+- [验收与剩余边界](testing/blnk-shadow-2026-09-17.md)
+
+- [Blnk 集成代码发布与激活边界](releases/2026-09-18-blnk-shadow.md)

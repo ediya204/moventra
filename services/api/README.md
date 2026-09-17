@@ -81,3 +81,7 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 `GET /admin-api/v1/users` 供所有 active admin 经 MFA 查看客户用户基础资料，复用 Firebase Admin SDK 的 GetUsers/GetUserByEmail，已有及后来注册的用户均可查询。精确邮箱搜索可识别仅存在于 Firebase、尚未完成本地注册的身份。不会写入客户或自动授权；业务关联详情保持 staff_grants。新增 005_user_directory_audit，/readyz 要求版本 005；发布前显式迁移。身份服务失败或审计提交失败返回 503，不把失败伪装为空列表。官方依据：https://firebase.google.com/docs/auth/admin/manage-users 。
 
 注册用户查询支持 `userId` 精确过滤（与 email 互斥、offset=0），用于后台直接加载用户详情。权限与审计规则保持一致，无新增迁移。
+
+## 2026-09-17 Blnk 本地影子账本
+
+新增用户钱包、多卡/在途分户、持久化记账任务与恢复、本地账本核对、独立授权的双端只读接口。默认关闭，仅支持本地隔离 shadow 库；现有账户/交易投影不切换为资金账本。说明与命令见 [Blnk 接入](../../docs/integrations/blnk.md)、[本地环境](../../deploy/blnk/README.md)，机器契约见 [ledger.openapi.json](docs/ledger.openapi.json)。真实 Blnk 集成验收运行 `bash scripts/test-blnk.sh`，普通 `go test` 缺少环境变量时会跳过该项。

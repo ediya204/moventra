@@ -20,6 +20,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"moventra.local/api/internal/api"
 	"moventra.local/api/internal/database"
+	"moventra.local/api/internal/ledger"
 )
 
 func run() error {
@@ -146,7 +147,11 @@ func run() error {
 	if port == "" {
 		port = "8870"
 	}
-	server := http.Server{Addr: ":" + port, Handler: (&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}}).Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
+	shadowLedger, err := ledger.FromEnv(pool)
+	if err != nil {
+		return err
+	}
+	server := http.Server{Addr: ":" + port, Handler: (&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger}).Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()
 	result := make(chan error, 1)

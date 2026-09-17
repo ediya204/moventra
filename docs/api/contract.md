@@ -207,3 +207,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-13 用户详情查询
 
 既有 `GET /admin-api/v1/users` 增加可选 `userId`（完整 UUID）精确过滤，与 email 互斥、offset 必须为 0；仍返回分页信封，未找到或非 customer 用户返回已审计空列表。复用 `users:list` 审计，无新增迁移。全部 active admin + MFA 可读基础资料；关联客户和账户仍按原资源授权。详情页通过既有账户 GET 展示真实字段，未提供余额的接口不生成余额。
+
+## 2026-09-17：独立 Blnk shadow 契约（LOCAL）
+
+新增 `GET /{client|admin}-api/v1/customers/{customerID}/ledger`，仅本地影子模式启用。客户个人所有权、运营 MFA 与独立 ledger_read_grants、强制审计；不沿用原查询权限扩权。所有金额为最小单位字符串，按币种汇总。返回 `mode=shadow`、`executionEligible=false` 和明确核对范围，不替换原 accounts/transactions。写入只在受信本地 CLI，未新增公共金融写接口。详见 [Blnk 契约](../integrations/blnk.md) 与 [机器契约](../../services/api/docs/ledger.openapi.json)。

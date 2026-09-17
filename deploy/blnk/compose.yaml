@@ -1,0 +1,31 @@
+# Local isolated shadow ledger. Never point these volumes at application data.
+name: moventra-blnk-shadow
+services:
+  postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: blnk_shadow
+      POSTGRES_USER: blnk
+      POSTGRES_PASSWORD: local-shadow-only
+    volumes: [blnk_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U blnk -d blnk_shadow]
+      interval: 2s
+      retries: 30
+  redis:
+    image: redis:7.2.4
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      retries: 30
+  server:
+    image: jerryenebeli/blnk:0.15.4@sha256:741665b0d7d5a1c6dc0a989aacf249c05637c52dcf96163c67f9d7a7010ec22d
+    entrypoint: [/bin/sh, -c]
+    command: ['blnk migrate up && blnk start']
+    ports: ['127.0.0.1:${BLNK_LOCAL_PORT:-5501}:5001']
+    volumes: ['./blnk.local.json:/blnk.json:ro']
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+volumes:
+  blnk_data:

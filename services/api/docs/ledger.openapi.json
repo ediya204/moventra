@@ -1,0 +1,255 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Moventra shadow ledger API",
+    "version": "0.1.0",
+    "description": "Local shadow mode only. No financial write routes or production balance authority."
+  },
+  "paths": {
+    "/client-api/v1/customers/{customerID}/ledger": {
+      "get": {
+        "operationId": "clientShadowLedger",
+        "description": "Personal owner only.",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audited shadow snapshot; local journal reconciliation only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Snapshot"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID or query"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role, disabled user or missing MFA"
+          },
+          "404": {
+            "description": "Missing or unauthorized customer"
+          },
+          "503": {
+            "description": "Disabled ledger, unavailable ledger/database or failed audit; never zero balances"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/ledger": {
+      "get": {
+        "operationId": "adminShadowLedger",
+        "description": "Admin + verified MFA + explicit ledger_read_grants required.",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audited shadow snapshot; local journal reconciliation only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Snapshot"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID or query"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role, disabled user or missing MFA"
+          },
+          "404": {
+            "description": "Missing or unauthorized customer"
+          },
+          "503": {
+            "description": "Disabled ledger, unavailable ledger/database or failed audit; never zero balances"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "firebaseBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Snapshot": {
+        "type": "object",
+        "required": [
+          "mode",
+          "executionEligible",
+          "authorizationCoverage",
+          "externalReconciliation",
+          "reconciliationScope",
+          "reconciliation",
+          "observedAt",
+          "pendingOperations",
+          "totalsMinor",
+          "accounts"
+        ],
+        "properties": {
+          "mode": {
+            "const": "shadow"
+          },
+          "executionEligible": {
+            "const": false
+          },
+          "authorizationCoverage": {
+            "const": "not_integrated"
+          },
+          "externalReconciliation": {
+            "const": "not_checked"
+          },
+          "reconciliationScope": {
+            "const": "local_journal_vs_blnk"
+          },
+          "reconciliation": {
+            "enum": [
+              "matched",
+              "mismatch",
+              "insufficient_data"
+            ]
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pendingOperations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalsMinor": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^-?(0|[1-9][0-9]*)$"
+            }
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountBalance"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountBalance": {
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "key",
+          "kind",
+          "currency",
+          "postedMinor",
+          "heldMinor",
+          "ledgerAvailableMinor",
+          "scale"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "wallet",
+              "card",
+              "transit"
+            ]
+          },
+          "currency": {
+            "enum": [
+              "USD",
+              "USDT"
+            ]
+          },
+          "postedMinor": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]*)$"
+          },
+          "heldMinor": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]*)$"
+          },
+          "ledgerAvailableMinor": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]*)$"
+          },
+          "scale": {
+            "type": "integer",
+            "enum": [
+              2,
+              6
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

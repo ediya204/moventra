@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"moventra.local/api/internal/ledger"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,6 +20,7 @@ type Server struct {
 	DB        *pgxpool.Pool
 	Verifier  Verifier
 	Directory UserDirectory
+	Ledger    *ledger.Service
 }
 type principal struct {
 	ID       string
@@ -58,6 +61,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.submitUpgrade)))
 	mux.Handle("GET /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.getUpgrade)))
 	for _, surface := range []string{"client", "admin"} {
+		mux.Handle("GET /"+surface+"-api/v1/customers/{customerID}/ledger", s.authenticate(s.ledgerSnapshot(surface)))
 		for _, method := range []string{"GET", "POST"} {
 			mux.Handle(method+" /"+surface+"-api/v1/customers/{customerID}/onboarding", s.authenticate(s.onboarding(surface == "admin")))
 		}

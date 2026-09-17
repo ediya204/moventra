@@ -2,7 +2,7 @@ import { contact } from './contact.mjs';
 // Only the implemented Go contract is routable. Legacy and local Demo APIs
 // must not be silently redirected to the new service.
 const id = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
-const lists = new RegExp(`^/(client|admin)-api/v1/customers/${id}/(accounts|transactions)$`);
+const lists = new RegExp(`^/(client|admin)-api/v1/customers/${id}/(accounts|transactions|ledger)$`);
 const onboarding = new RegExp(`^/(client|admin)-api/v1/customers/${id}/onboarding$`);
 const upgrade = new RegExp(`^/client-api/v1/customers/${id}/business-upgrade$`);
 const error = (status, code) => Response.json({ error: { code } }, {

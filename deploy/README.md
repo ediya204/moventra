@@ -1,5 +1,7 @@
 # Moventra 部署记录
 
+2026-09-18 Blnk 集成发布见 [本次记录](../docs/releases/2026-09-18-blnk-shadow.md)；生产账本保持关闭，未迁移生产余额。
+
 最新卡片导航修复见 [卡片详情导航发布](2026-09-07-card-detail-navigation.md)；资金概览见 [资金运营概览发布记录](2026-09-07-operations-overview.md)。
 
 ## 新域名接入（2026-09-07）

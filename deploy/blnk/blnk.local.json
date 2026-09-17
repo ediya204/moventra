@@ -1,0 +1,6 @@
+{
+  "project_name": "Moventra shadow ledger",
+  "data_source": {"dns": "postgres://blnk:local-shadow-only@postgres:5432/blnk_shadow?sslmode=disable"},
+  "redis": {"dns": "redis:6379"},
+  "server": {"port": "5001", "secure": true, "secret_key": "moventra-local-shadow-only"}
+}
