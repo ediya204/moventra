@@ -23,7 +23,7 @@ GET /client-api/v1/customers/{customerID}/card-projections/{connection}/{cards|t
 
 验证绑定幂等、数量/revision变化拒绝、冲突回滚、禁用/管理员/其他客户拒绝、跨连接同ID、25张卡分页、无卡交易排除、精确金额、导入更新不扩大测试范围、审计失败不返回数据。网关验证仅客户端 GET、跨端和写请求拒绝。页面验证加载、空态、错误、深链和返回。生产迁移前备份、校验、隔离恢复；绑定后读取计数与快照关联一致，原金融表不变。
 
-设计：已记录。实现、自动化、浏览器、线上绑定、部署：待本次执行更新。真实渠道调用不适用（只读既有导入数据）。
+设计、实现、自动化、线上绑定、部署已完成；本人浏览器验收等待双重验证。真实渠道调用不适用（只读既有导入数据）。
 
 ## 同批开户状态文案修正
 
@@ -37,3 +37,12 @@ GET /client-api/v1/customers/{customerID}/card-projections/{connection}/{cards|t
 - 还原库真实快照验证：260 张卡全部可查询；关联交易 3818 笔，卡/交易页各返回20条及准确总数，客户响应无共享 accountId。其余1755笔交易引用缺少卡资料的269个 cardId，未授权、未伪造卡片，也未转移历史资金归属。
 - 原 users/customers/memberships/accounts/transactions/staff_grants/channel_connections/channel_records 计数及逐行聚合摘要已保存，生产迁移与绑定后复核。线上账户核验 active/customer、approved/active，未重新审批。
 - 生产执行与本人浏览器验收结果另行追加；本节只记录以上已经执行的验证。
+
+## 生产执行记录
+
+- main 代码 `d70b04a51bb8de66b6a20c7fba27493cdd7d0bea`，Render `dep-dam1r97qj5pc73bhcb50` 已 live。healthz/readyz 均正常。
+- 备份及隔离恢复验证后，仅应用 007（作业 `job-dam1qe7qj5pc73bh9qp0` 成功）；生产迁移版本为 1–5、7，未启用 006 或 Blnk。
+- 受控 CLI 计划核验 Firebase 和既有客户后，作业 `job-dam1sb0u01pc73b66oi0` 新增260条测试绑定、1个固定快照；复核作业 `job-dam1sgmk1f9s73e5v5hg` 确认关联3818笔交易。1755笔缺少卡资料的交易仍不开放。
+- 迁移前、迁移后、绑定后八张原表的计数及逐行聚合摘要完全一致：users、customers、memberships、accounts、transactions、staff_grants、channel_connections、channel_records。未改变角色、审批、源数据或金融账本；未调用真实金融写接口。
+- 客户端 Worker `37f0091f-64f7-404a-883d-499bd9c3e1ba`、后台 Worker `c7ad27de-678f-4f68-9c71-a38ae6b8f4a7` 已发布。通过 curl 验证客户卡片接口未登录401、POST405、后台域名跨端访问404。
+- 新窗口通过 Google 选择指定客户账户后到达双重验证页面；已请用户自行完成，尚不把页面登录后的业务验收标为通过。自动化及还原库读取结果见上文。
