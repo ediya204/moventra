@@ -33,3 +33,20 @@
 生产执行前保存备份及校验并隔离恢复验证；先发布兼容查询/CLI，再执行008和指定测试额度操作，最后发布客户端查询区。未安装008时仅测试钱包端点返回503，不影响现有查询与就绪检查；生产旧版本回退不需要删除008。
 
 本次最终测试、备份、部署及在线回读证据在完成后追加。真实渠道验证不适用，本批没有真实资金操作。
+
+### 发布前验证
+
+- 客户端及后台 typecheck、客户端 build、93项前端/网关测试通过；Go 隔离 PostgreSQL race 全套、go vet/build通过。需要真实Firebase/Blnk凭据的集成测试未执行；本次不调用真实渠道。
+- Render 2026-09-17T17:31Z 新备份下载成功，SHA256 `e1ef3b3b879147ccffbc7e551b8595cefc4e1a6aa7d47a0c9d108d2e5062904e`。应用库在独立 `moventra_test_wallet_restore_20260918` 恢复；仅008及重复执行通过，版本保持1–5、7、8，未安装006。
+- 发布前核验10张原表计数及逐行聚合摘要；原accounts/transactions均为空，不把测试额度写进这两张正式投影表。
+- GitHub main 代码 `87448878d7b89e6146d7ab7af5d74a6b64dd4027`；本批不包含原共享目录其他未提交改动。
+
+### 线上执行结果
+
+- API deploy `dep-dam28q8ae00c73cr5pn0` 于 2026-09-17T17:35:10Z live；readyz正常。保持autoDeploy关闭、preDeployCommand为空。
+- 仅008迁移作业 `job-dam29vu7bikc7382gc1g` 成功；未激活或接入006影子账本。
+- 指定已验证邮箱的受控加额作业 `job-dam2a4ek1f9s73e7cah0` 成功。第一次查询无测试余额；首次执行新增一条记录，再次执行同request返回newGrant=false，最终独立查询保持USD=10000000（scale2）、USDT=20009000000（scale6）。requestId=`b1549f95-4a90-4202-90c4-3bc5bfd72580`；mode=online_test，两项执行资格均false。
+- 执行前/后的校验作业 `job-dam28lbm8hqs73bbbns0` / `job-dam2abmk1f9s73e7d260` 对users、customers、memberships、accounts、transactions、staff_grants、channel_connections、channel_records、customer_card_snapshots、customer_card_bindings十表计数与逐行摘要完全一致。
+- 客户端Worker版本 `e4c59666-007f-4082-8299-1d4663c015d6` 已发布；线上 `/portal/funds` HTML及ClientHome JS与本次构建逐字节一致。未发布后台Worker。
+- 线上测试钱包GET无凭据401、POST405、后台域名跨端404。本人登录后的浏览器余额验收未执行；持有人可刷新资金中心查看，本记录不把未登录HTML或拒绝响应视为认证业务验收。
+- 本批先完成用户优先要求的线上测试加额及显示。原充值/提现/兑换执行页面仍待正式服务或独立测试流程接入，未开放旧DEV后端，未调用任何真实金融写接口。
