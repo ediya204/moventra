@@ -110,3 +110,22 @@ test('开户状态读取失败后成功恢复不保留过期报错',async()=>{
  await act(async()=>{state.requests[1].resolve({customerId:'A',onboardingStatus:'approved',serviceStatus:'active',allFeaturesEnabled:true,revision:1});await flush()});
  assert.ok(text(tree).includes('已审批开通'));assert.ok(!text(tree).includes('读取失败'));await act(()=>tree.unmount());
 });
+
+const integratedCode=compiled.replaceAll(panel,uri(panelCode));
+const IntegratedClient=(await import(uri(integratedCode))).default;
+test('卡片及交易页刷新开户状态时面板唯一，顶部与面板保持同步',async()=>{
+ for(const route of ['/portal/cards','/portal/transactions']) {
+  reset();let tree;const warnings=[];const previous=console.error;console.error=(...args)=>warnings.push(args.join(' '));
+  try {
+   await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:[route]},React.createElement(IntegratedClient)));await flush()});
+   for(let revision=1;revision<=3;revision++) {
+    const request=state.requests.filter(r=>r.path.endsWith('/onboarding')).at(-1);
+    await act(async()=>{request.resolve({customerId:'A',onboardingStatus:'approved',serviceStatus:'active',allFeaturesEnabled:true,revision});await flush()});
+    assert.equal(tree.root.findAllByType('button').filter(b=>b.props.children==='刷新开户状态').length,1);
+    assert.ok(!text(tree).includes('开户状态暂不可用'));
+    assert.ok(!warnings.some(w=>w.includes('same key')),warnings.join('\n'));
+    if(revision<3)await act(async()=>{tree.root.findAllByType('button').find(b=>b.props.children==='刷新开户状态').props.onClick();await flush()});
+   }
+  } finally {if(tree)await act(()=>tree.unmount());console.error=previous;}
+ }
+});

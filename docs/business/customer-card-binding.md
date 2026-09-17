@@ -46,3 +46,7 @@ GET /client-api/v1/customers/{customerID}/card-projections/{connection}/{cards|t
 - 迁移前、迁移后、绑定后八张原表的计数及逐行聚合摘要完全一致：users、customers、memberships、accounts、transactions、staff_grants、channel_connections、channel_records。未改变角色、审批、源数据或金融账本；未调用真实金融写接口。
 - 客户端 Worker `37f0091f-64f7-404a-883d-499bd9c3e1ba`、后台 Worker `c7ad27de-678f-4f68-9c71-a38ae6b8f4a7` 已发布。通过 curl 验证客户卡片接口未登录401、POST405、后台域名跨端访问404。
 - 新窗口通过 Google 选择指定客户账户后到达双重验证页面；已请用户自行完成，尚不把页面登录后的业务验收标为通过。自动化及还原库读取结果见上文。
+
+## 登录后发现的渲染回归
+
+用户完成 MFA 后截图显示多个开户面板及顶部状态冲突。定位为 ClientHome 同级 OnboardingPanel 与 CardSnapshots 同用 customer.id 作为 React key，状态更新导致错误组件复用。分别使用 onboarding/cards 命名空间，保留客户切换时卸载旧状态。集成测试以真实 OnboardingPanel 连续刷新三次，同时验证卡片、交易两页面板唯一、顶部状态同步、无重复 key 警告；修复前失败，修复后通过。

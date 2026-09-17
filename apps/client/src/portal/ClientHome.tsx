@@ -398,7 +398,7 @@ export default function ClientHome() {
                   </Box>
                 </>
               )}
-              {customer && <OnboardingPanel key={customer.id} customerId={customer.id} onState={setOnboarding}/> }
+              {customer && <OnboardingPanel key={`onboarding:${customer.id}`} customerId={customer.id} onState={setOnboarding}/> }
               {["/portal", "/portal/accounts", "/portal/funds"].includes(pathname) && accounts}
               {["/portal", "/portal/transactions"].includes(pathname) && transactions}
               {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
@@ -409,7 +409,7 @@ export default function ClientHome() {
                   <Button component={Link} to="/portal/security" variant="outlined">账户与安全</Button>
                 </Stack>
               </Paper>}
-              {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={customer.id} customerId={customer.id}/> }
+              {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={`cards:${customer.id}`} customerId={customer.id}/> }
               {["funds", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>
                   <Typography variant="h6">{page}</Typography>
