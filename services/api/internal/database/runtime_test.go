@@ -82,6 +82,10 @@ func TestReadyMigrationIntegrity(t *testing.T) {
 	if err = Ready(ctx, db, false); err != nil {
 		t.Fatal(err)
 	}
+	var cardChecksum string
+	if err = db.QueryRow(ctx, "SELECT checksum FROM schema_migrations WHERE version=7").Scan(&cardChecksum); err != nil {
+		t.Fatal(err)
+	}
 	if _, err = db.Exec(ctx, "UPDATE schema_migrations SET checksum='corrupt' WHERE version=7"); err != nil {
 		t.Fatal(err)
 	}
@@ -93,6 +97,9 @@ func TestReadyMigrationIntegrity(t *testing.T) {
 	}
 	if Ready(ctx, db, false) == nil {
 		t.Fatal("missing card snapshot migration accepted")
+	}
+	if _, err = db.Exec(ctx, "INSERT INTO schema_migrations(version,checksum) VALUES(7,$1)", cardChecksum); err != nil {
+		t.Fatal(err)
 	}
 	if _, err = db.Exec(ctx, "UPDATE schema_migrations SET checksum='corrupt' WHERE version=1"); err != nil {
 		t.Fatal(err)
