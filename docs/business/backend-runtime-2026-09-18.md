@@ -51,3 +51,7 @@ worker 首版单实例、串行有界批次，无独立队列依赖。每轮日�
 ## 发布适配：最新 main 基线 bdb7c7f
 
 发布使用独立 worktree，保留 main 的渠道投影、onboarding、用户目录及角色功能。旧本地迁移 003/004 对应关系已过时，发布版 Ready 核验 main 的 001–005，ledger 启用时核验 006；没有新增或修改迁移 SQL。Docker 同时打包 worker/ledger，默认仍启动 API；本次不创建云端 Worker、不开放生产账本。此前“待确认工作区”已由用户提供项目 prj-daep4m8n74is73es7g1g 及当前 CLI workspace 元数据明确目标。
+
+### 发布状态更新
+
+运行源码 8bfc0b5 已推送 GitHub main 并部署 Render API，deploy dep-dam1melbedkc73abet4g 已 live。Docker 包含三个工具，只有 API 被启动；云端 Worker/生产账本及报警接收端仍未启用。正式迁移序列按最新 main 的 001–005（ledger 启用时 006）核验，不沿用早期本地编号。详情与验收边界见 [发布记录](../../deploy/2026-09-18-runtime-optimization.md)。
