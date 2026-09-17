@@ -29,3 +29,15 @@
 - Cloudflare 客户端与后台 dry-run 通过。
 - Render 新备份：2026-09-17T17:54:00Z，SHA-256 `38ed169383fb46b29dc6f536b92009281c44bfaaf659f796ef5755f12531969a`。已在新建本地测试数据库恢复 moventra，连续两次执行选择性迁移，版本从 `1,2,3,4,5,7,8` 变为 `1,2,3,4,5,7,8,9`，未启用006。原始测试额度仍是USD 10000000 minor、USDT 20009000000 minor，新订单0。恢复数据库已清理。
 - 发布前线上10张原始表的计数与内容摘要已留存，以便发布后核对。真实渠道执行未进行。
+
+## 线上发布结果
+
+- GitHub `main` 功能提交 `9906385a4353d16c1446baf7dd22019c0f2146ac`。
+- Render API 部署 `dep-dam2kdlbedkc73aejf50` 为live；`/readyz`返回ready。
+- 009迁移及重复执行job `job-dam2sc6k1f9s73e99id0` succeeded；最终版本 `1,2,3,4,5,7,8,9`。
+- 为目标账户既有唯一开户审核人增加独立测试资金审核授权：job `job-dam2smoae00c73ctal7g` succeeded；首次newGrants=1、重试=0；realFundsPermission=false。
+- Cloudflare 客户端 `moventra-web` 版本 `e9208e76-a654-475b-b4c4-111c3c7fd7f8`；后台 `moventra-admin` 版本 `a79d29a8-f2d4-4833-b7f4-823621314c61`。
+- `/portal/funds`、`/finance/test-funds` 在线HTML及各自页面JS与本次构建字节一致；两端新API未认证GET/POST均401、错误方法405、跨站API404，响应no-store。HTTP成功仅证明资源发布，拒绝测试仅证明访问边界。
+- 发布后job `job-dam2suou01pc73b9iha0` succeeded：10张原业务表计数与内容摘要完全未变；测试grant仍1条、USD 10000000 minor、USDT 20009000000 minor；新增订单0、资金变动0、审核授权1；客户approved/active。没有额外模拟扣款或真实资金操作。
+- 浏览器检查：实际OnlineFunds组件与正式主题在隔离本地视觉夹具渲染，余额、导航及兑换表单可见；夹具不连接生产、不发送写入。线上浏览器出现网络加载错误，未完成真实客户登录及运营MFA后的下单/审核人工验收。自动化HTTP集成已覆盖完整状态流程，不能替代这项线上人工验收。
+- 回退：可将两端Worker及API回退到前一版本；008/009为附加表，保留审计数据，不删除或反向修改额度。恢复旧版008页面会显示期初额度，因此有测试订单后应暂停测试操作并以前述完整余额接口复核，不能把旧版展示当当前可用余额。
