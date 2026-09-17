@@ -162,3 +162,7 @@ Demo 必须包含 namespace、seed、scenarioId、assumptionLevel、sourceEviden
 ## 2026-09-18 测试卡片授权（无资金执行）
 
 `TestCustomerCardSnapshot` 验证：明确批次和数量、角色/主体隔离、跨连接同ID、卡/交易关联、幂等绑定、改绑和快照替换拒绝、冲突回滚、分页与精确金额、刷新导入不扩大授权、读取审计故障关闭。前端 `card-snapshot.test.mjs` 验证 transport/网关 GET 白名单、跨端和写请求拒绝、金额精度。绑定不产生资金影响，真实金融执行不适用。
+
+## 2026-09-18 线上测试余额专项
+
+FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、并发幂等、跨客户隔离和不可真实执行。测试金额不属于资金矩阵的真实入账净变化；真实账户/交易保持不变。见[本批记录](../business/online-test-wallet.md)。

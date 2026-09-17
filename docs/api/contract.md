@@ -219,3 +219,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-18 客户卡片测试快照增量
 
 新增 `GET /client-api/v1/customers/{customerID}/card-projections` 和连接内 `cards|transactions` 列表/详情，见 [流程及契约](../business/customer-card-binding.md) 与 OpenAPI。本地业务交易契约保持不变；快照按来源有符号金额和双层状态展示，不写入客户 transactions 或账本。仅既有个人主体所有人和逐卡显式绑定可读，不沿用运营连接权限。部署状态见流程记录。
+
+## 2026-09-18 线上测试余额
+
+新增 `GET /client-api/v1/customers/{customerID}/test-wallet`：个人所有权、active/customer 身份、读取审计、no-store，无查询参数和HTTP写入口。返回 mode=online_test、executionEligible=false、withdrawalEligible=false、enabled、按USD(2)/USDT(6)的余额字符串、最近50条测试额度记录及hasMore。未配置不是读取失败；真实交易与账本不参与。见[独立测试流程](../business/online-test-wallet.md)。

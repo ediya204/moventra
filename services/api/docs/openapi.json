@@ -2786,6 +2786,168 @@
           }
         }
       }
+    },
+    "/client-api/v1/customers/{customerID}/test-wallet": {
+      "get": {
+        "summary": "Read isolated online test credits; never eligible for financial execution",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personal owner only; all amounts are exact minor-unit strings. No grants returns enabled=false and empty arrays.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "customerId",
+                        "mode",
+                        "enabled",
+                        "executionEligible",
+                        "withdrawalEligible",
+                        "balances",
+                        "grants",
+                        "hasMore"
+                      ],
+                      "properties": {
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "online_test"
+                          ]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "executionEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "withdrawalEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "balances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "currency",
+                              "amountMinor",
+                              "scale"
+                            ],
+                            "properties": {
+                              "currency": {
+                                "type": "string",
+                                "enum": [
+                                  "USD",
+                                  "USDT"
+                                ]
+                              },
+                              "amountMinor": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                              },
+                              "scale": {
+                                "type": "integer",
+                                "enum": [
+                                  2,
+                                  6
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "grants": {
+                          "type": "array",
+                          "maxItems": 50,
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "requestId",
+                              "usdMinor",
+                              "usdtMinor",
+                              "reason",
+                              "createdAt"
+                            ],
+                            "properties": {
+                              "requestId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "usdMinor": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                              },
+                              "usdtMinor": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                              },
+                              "reason": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "hasMore": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid customer ID or unsupported query"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Disabled user or wrong role"
+          },
+          "404": {
+            "description": "Customer not found or not personally owned"
+          },
+          "503": {
+            "description": "Test wallet or mandatory audit unavailable"
+          }
+        }
+      }
     }
   },
   "components": {

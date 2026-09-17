@@ -21,3 +21,7 @@
 官网 SEO 实现、验证和 Google 提交步骤见 [官网 SEO](../../docs/frontend/website-seo.md)。`pnpm test:seo` 检查首页索引与应用页面 noindex 边界。
 
 2026-09-18：`/portal/cards`、卡片详情及 `/portal/transactions` 的卡片交易区支持显式分配的只读测试快照。深链 `/portal/cards/:id?connection=...`、`/portal/card-transactions/:id?connection=...`；每页20条、搜索及分页在 URL 保存。绑定不激活资金功能，余额保持未知，新增导入不自动扩大测试授权。见 [客户卡片测试绑定](../../docs/business/customer-card-binding.md)。
+
+## 线上测试钱包
+
+`/portal` 和 `/portal/funds` 新增独立的线上测试余额查询区，仅显示受控配置的测试额度，明确不可提现或充值到真实卡片。见[流程与验证](../../docs/business/online-test-wallet.md)。

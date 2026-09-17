@@ -1,3 +1,4 @@
+import TestWallet from './TestWallet';
 import CardSnapshots from './CardSnapshots';
 import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
 import {clientFeaturesEnabled,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
@@ -398,7 +399,8 @@ export default function ClientHome() {
                   </Box>
                 </>
               )}
-              {["/portal", "/portal/accounts", "/portal/funds"].includes(pathname) && accounts}
+              {["/portal", "/portal/funds"].includes(pathname) && customer && <TestWallet key={`test-wallet:${customer.id}`} customerId={customer.id} reload={reload}/> }
+              {["/portal", "/portal/accounts"].includes(pathname) && accounts}
               {["/portal", "/portal/transactions"].includes(pathname) && transactions}
               {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
                 <Typography variant="h6">个人账户设置</Typography>

@@ -13,6 +13,7 @@ export class SessionError extends Error {
 }
 const messages: Record<string, string> = {
   projection_updated: '数据版本已变化，请刷新后重试。',
+  test_wallet_unavailable: '测试余额暂时无法读取，请稍后重试。',
   ledger_disabled: '账本查询尚未启用。',
   ledger_unavailable: '账本暂时无法读取，请稍后重试。',
   invalid_email_query: '请输入完整、有效的登录邮箱。',
@@ -90,7 +91,7 @@ export function isUserDirectoryPath(path:string):boolean {
 }
 async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}, envelope = false): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
@@ -115,3 +116,5 @@ export async function liveGetPage<T>(path:string):Promise<{data:T[];meta:{limit:
  if(!Array.isArray(result.data)||typeof result.meta?.hasMore!=='boolean')throw new SessionError('invalid_api_response');
  return result;
 }
+
+export function isTestWalletPath(path:string):boolean { return /^\/client-api\/v1\/customers\/[0-9a-f-]{36}\/test-wallet$/.test(path); }

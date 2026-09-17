@@ -57,6 +57,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /admin-api/v1/channel-projections", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}/{id}", s.authenticate(http.HandlerFunc(s.channelRead)))
+	mux.Handle("GET /client-api/v1/customers/{customerID}/test-wallet", s.authenticate(http.HandlerFunc(s.testWallet)))
 	mux.HandleFunc("POST /api/v1/register", s.register)
 	mux.Handle("GET /admin-api/v1/users", s.authenticate(http.HandlerFunc(s.userDirectory)))
 	mux.Handle("GET /api/v1/me", s.authenticate(http.HandlerFunc(s.me)))

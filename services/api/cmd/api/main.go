@@ -70,8 +70,12 @@ func run() error {
 		slog.Info("existing customer onboarding scopes granted and audited", "new_grants", count)
 		return nil
 	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-test-wallet" {
+		return database.MigrateTestWallet(ctx, pool)
+	}
+	testWalletCmd := len(os.Args) == 2 && (os.Args[1] == "test-wallet-plan" || os.Args[1] == "grant-test-wallet")
 	bindingCommand := len(os.Args) == 2 && (os.Args[1] == "card-bindings-plan" || os.Args[1] == "bind-card-snapshot")
-	if len(os.Args) > 1 && !bindingCommand {
+	if len(os.Args) > 1 && !bindingCommand && !testWalletCmd {
 		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {
 			return errors.New("usage: api [migrate|provision-user|provision-personal|provision-operator]")
 		}
@@ -97,6 +101,9 @@ func run() error {
 	auth, err := app.Auth(ctx)
 	if err != nil {
 		return errors.New("firebase credentials unavailable")
+	}
+	if testWalletCmd {
+		return testWalletCommand(ctx, pool, auth, os.Args[1] == "grant-test-wallet")
 	}
 	if bindingCommand {
 		return cardBindings(ctx, pool, auth, os.Args[1] == "bind-card-snapshot")

@@ -99,3 +99,7 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 新增受控 `api card-bindings-plan` / `api bind-card-snapshot` 与客户只读卡片、关联交易接口；流程和边界见 [FLOW-CARD-TEST-01](../../docs/business/customer-card-binding.md)。CLI 要求 BIND_EMAIL，由服务端 Firebase 核验已验证且未禁用邮箱；不接受调用方自报 UID。执行另需 BIND_CONNECTION、BIND_REVISION、BIND_EXPECTED_CARDS、BIND_REASON。目标必须已有 active/customer 登录身份及个人主体，不修改角色或审批，不接管资金归属。
 
 生产本次仅显式应用 007 及登记 checksum；006 影子账本不属于本次范围，不能使用全量 `api migrate` 顺带执行。新版本 readiness 要求 007，先迁移后部署。已有 001–005 字节及 checksum 保持不变，回退旧 API 时保留新增授权和审计表。
+
+## 线上测试余额
+
+受控 `migrate-test-wallet` / `test-wallet-plan` / `grant-test-wallet` 命令和独立客户 GET 查询。仅008测试表，不启用 Blnk 或任何真实资金接口。配置、幂等和验收见[流程](../../docs/business/online-test-wallet.md)。
