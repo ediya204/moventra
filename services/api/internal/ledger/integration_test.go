@@ -7,10 +7,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"moventra.local/api/internal/blnk"
 	"moventra.local/api/internal/database"
+	"moventra.local/api/internal/worker"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestBlnkPostgresLifecycle(t *testing.T) {
@@ -119,7 +121,31 @@ func TestBlnkPostgresLifecycle(t *testing.T) {
 		return v
 	}
 	t.Run("fund multi-card transfer unknown success and rejection", func(t *testing.T) {
-		process(t, submit(t, "wallet_credit", "opening", "10000", clearing, wallet, ""), "applied")
+		opening := submit(t, "wallet_credit", "opening", "10000", clearing, wallet, "")
+		workCtx, stopWorker := context.WithTimeout(ctx, 10*time.Second)
+		defer stopWorker()
+		selected := 0
+		if err := worker.Run(workCtx, time.Millisecond, 5*time.Second, 20, svc.Drain, func(n int, err error) {
+			selected = n
+			if err != nil {
+				t.Error("worker drain", err)
+			}
+			stopWorker()
+		}); err != nil {
+			t.Fatal(err)
+		}
+		if selected != 1 {
+			t.Fatal("worker did not select opening", selected)
+		}
+		applied, err := svc.Get(ctx, customer, opening.ID)
+		if err != nil || applied.State != "applied" {
+			t.Fatal("worker did not apply opening", applied.State, err)
+		}
+		// Restart/replay must not add another credit.
+		if n, err := svc.Drain(ctx, 20); err != nil || n != 0 {
+			t.Fatal("replayed completed task", n, err)
+		}
+		process(t, opening, "applied")
 		a := process(t, submit(t, "wallet_to_card", "transfer-a", "3000", wallet, cardA, holdA.ID), "awaiting_provider")
 		b := process(t, submit(t, "wallet_to_card", "transfer-b", "2000", wallet, cardB, holdB.ID), "awaiting_provider")
 		resolve(t, a, "unknown")

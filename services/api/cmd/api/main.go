@@ -29,11 +29,10 @@ func run() error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cfg, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	cfg, err := database.PoolConfig(os.Getenv("DATABASE_URL"), os.Getenv("DB_MAX_CONNS"))
 	if err != nil {
-		return errors.New("invalid DATABASE_URL")
+		return err
 	}
-	cfg.MaxConns = 5
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return errors.New("database initialization failed")

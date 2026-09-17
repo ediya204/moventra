@@ -211,3 +211,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-17：独立 Blnk shadow 契约（LOCAL）
 
 新增 `GET /{client|admin}-api/v1/customers/{customerID}/ledger`，仅本地影子模式启用。客户个人所有权、运营 MFA 与独立 ledger_read_grants、强制审计；不沿用原查询权限扩权。所有金额为最小单位字符串，按币种汇总。返回 `mode=shadow`、`executionEligible=false` 和明确核对范围，不替换原 accounts/transactions。写入只在受信本地 CLI，未新增公共金融写接口。详见 [Blnk 契约](../integrations/blnk.md) 与 [机器契约](../../services/api/docs/ledger.openapi.json)。
+
+## 2026-09-18 运行就绪检查
+
+`GET /readyz` 保持原成功 200、失败 503 格式；2 秒内核验本地数据库的迁移 001–005 及 checksum，启用 ledger 时额外核验 006。`/healthz` 仅确认进程。两者不证明 Firebase/Blnk/渠道或真实业务验收。没有新增公网监控接口；本地 CLI status 不扩大客户或运营权限。

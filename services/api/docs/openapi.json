@@ -56,6 +56,7 @@
     "/readyz": {
       "get": {
         "operationId": "readyz",
+        "description": "Checks required database migration checksums within 2 seconds: versions 1-5, plus 6 when ledger is enabled. Does not attest external dependency or business readiness.",
         "security": [],
         "responses": {
           "200": {

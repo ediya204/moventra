@@ -35,7 +35,7 @@ go run ./cmd/api migrate
 go run ./cmd/api
 ```
 
-默认端口 8870，`GET /healthz` 检查进程，`GET /readyz` 检查数据库及迁移 004 存在，角色迁移完成前新 API 不接受流量。API 启动不自动执行迁移，也不自动创建用户/成员/运营权限。
+默认端口 8870，`GET /healthz` 检查进程，`GET /readyz` 在 2 秒内核验迁移 001–005 的存在及 checksum，启用 ledger 时额外核验 006。API 启动不自动执行迁移，也不自动创建用户/成员/运营权限。
 
 认证 API 使用 `Authorization: Bearer <Firebase ID token>`。选定第一阶段为 Bearer 模式，尚未实现此前讨论的 Cookie 会话交换。Go 用可信 UID 映射本地用户，不接受客户端邮箱、角色或自报 UID 作为授权依据。仅在已验证 token 上读取 MFA 因子；每次请求检查 Firebase 撤销状态，因此也依赖 Firebase 网络可用性。
 
@@ -85,3 +85,11 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 ## 2026-09-17 Blnk 本地影子账本
 
 新增用户钱包、多卡/在途分户、持久化记账任务与恢复、本地账本核对、独立授权的双端只读接口。默认关闭，仅支持本地隔离 shadow 库；现有账户/交易投影不切换为资金账本。说明与命令见 [Blnk 接入](../../docs/integrations/blnk.md)、[本地环境](../../deploy/blnk/README.md)，机器契约见 [ledger.openapi.json](docs/ledger.openapi.json)。真实 Blnk 集成验收运行 `bash scripts/test-blnk.sh`，普通 `go test` 缺少环境变量时会跳过该项。
+
+## 2026-09-18 运行优化发布候选
+
+API 支持 `DB_MAX_CONNS`（默认 5，范围 1–100）；按进程配置，总预算需包含所有副本及 Blnk。`/readyz` 在 2 秒内核验最新 main 的迁移 001–005 checksum；启用 ledger 时额外核验 006。此前旧本地 003/004 编号不适用于本次发布，既有 SQL 字节保持不变。就绪检查不执行迁移，不代表上游或业务验收。
+
+Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api。worker 为独立 shadow 任务消费程序，具备超时、重试恢复及 JSON 队列/连接池观测；`ledger status` 为受信本地只读观测。两者继续保留本地隔离保护，不允许通过此次部署启用生产账本。云端不新增不可运行的 Worker 服务。
+
+验证命令包括 scripts/test-blnk.sh、scripts/test-runtime-restore.sh、scripts/test-worker-runtime.sh，分别验证真实本地 Blnk、合成应用库恢复及实际 Worker 进程。见 [运行手册](../../deploy/blnk/monitoring-and-recovery.md)。

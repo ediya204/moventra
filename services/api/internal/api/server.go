@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"moventra.local/api/internal/database"
 	"moventra.local/api/internal/ledger"
 
 	"github.com/google/uuid"
@@ -42,8 +43,9 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { respond(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
-		var version int
-		if err := s.DB.QueryRow(r.Context(), `SELECT version FROM schema_migrations WHERE version=5`).Scan(&version); err != nil {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		if err := database.Ready(ctx, s.DB, s.Ledger != nil); err != nil {
 			fail(w, 503, "not_ready")
 			return
 		}

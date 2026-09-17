@@ -28,7 +28,7 @@ func decode(v any) error {
 }
 func run() error {
 	if len(os.Args) != 2 {
-		return errors.New("usage: ledger migrate|provision|submit|asset|card-posting|crypto-credit|get|process|resolve|drain|snapshot (JSON on stdin)")
+		return errors.New("usage: ledger migrate|provision|submit|asset|card-posting|crypto-credit|get|process|resolve|drain|status|snapshot (JSON on stdin)")
 	}
 	cfg, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -111,6 +111,10 @@ func run() error {
 		if err = decode(&in); err == nil {
 			result, err = s.Snapshot(ctx, in.CustomerID)
 		}
+	case "status":
+		statusCtx, cancelStatus := context.WithTimeout(ctx, 2*time.Second)
+		result, err = s.QueueStatus(statusCtx)
+		cancelStatus()
 	case "drain":
 		result, err = s.Drain(ctx, 100)
 	default:

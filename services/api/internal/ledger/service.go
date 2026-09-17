@@ -405,6 +405,9 @@ func (s *Service) Drain(ctx context.Context, limit int) (int, error) {
 	}
 	var first error
 	for _, r := range work {
+		if err := ctx.Err(); err != nil {
+			return len(work), err
+		}
 		_, e := s.Process(ctx, r[0], r[1])
 		if first == nil {
 			first = e
