@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"moventra.local/api/internal/testfunds"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +18,9 @@ import (
 
 //go:embed 008_online_test_wallet.sql
 var onlineTestWallet string
+
+//go:embed 009_online_test_funds.sql
+var onlineTestFunds string
 
 // Explicit additive migration; does not activate or apply the shadow ledger.
 func MigrateTestWallet(ctx context.Context, db *pgxpool.Pool) error {
@@ -131,6 +135,20 @@ func ReadTestWallet(ctx context.Context, tx pgx.Tx, customer string) (TestWallet
 		return out, nil
 	}
 	out.Balances = []TestWalletBalance{{"USD", usd, 2}, {"USDT", usdt, 6}}
+	var hasFunds bool
+	if err = tx.QueryRow(ctx, `SELECT to_regclass('online_test_funds_movements') IS NOT NULL`).Scan(&hasFunds); err != nil {
+		return out, err
+	}
+	if hasFunds {
+		bs, e := testfunds.Balances(ctx, tx, customer)
+		if e != nil {
+			return out, e
+		}
+		out.Balances = []TestWalletBalance{}
+		for _, b := range bs {
+			out.Balances = append(out.Balances, TestWalletBalance{b.Currency, b.Available, b.Scale})
+		}
+	}
 	rows, err := tx.Query(ctx, `SELECT request_id::text,usd_minor::text,usdt_minor::text,reason,created_at FROM online_test_wallet_grants WHERE customer_id=$1 ORDER BY created_at DESC,request_id LIMIT 50`, customer)
 	if err != nil {
 		return out, err
@@ -144,4 +162,38 @@ func ReadTestWallet(ctx context.Context, tx pgx.Tx, customer string) (TestWallet
 		out.Grants = append(out.Grants, g)
 	}
 	return out, rows.Err()
+}
+
+// MigrateTestFunds applies only 009 after validating the existing test-credit schema.
+func MigrateTestFunds(ctx context.Context, db *pgxpool.Pool) error {
+	if err := MigrateTestWallet(ctx, db); err != nil {
+		return err
+	}
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(73019001)`); err != nil {
+		return err
+	}
+	checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(onlineTestFunds)))
+	var prior string
+	err = tx.QueryRow(ctx, `SELECT checksum FROM schema_migrations WHERE version=9`).Scan(&prior)
+	if err == nil {
+		if prior != checksum {
+			return errors.New("migration_checksum_mismatch")
+		}
+		return tx.Commit(ctx)
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+	if _, err = tx.Exec(ctx, onlineTestFunds); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `INSERT INTO schema_migrations(version,checksum) VALUES(9,$1)`, checksum); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }

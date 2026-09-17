@@ -26,11 +26,11 @@ export default function TestWallet({customerId,reload=0}:{customerId:string;relo
   <Stack direction="row" alignItems="center" justifyContent="space-between" gap={2} mb={2}>
    <Typography variant="h6">线上测试钱包</Typography><Chip size="small" variant="outlined" label="测试资金" color="warning"/>
   </Stack>
-  <Alert severity="info" sx={{mb:2}}>仅用于线上功能测试，不代表真实到账资金，不可提现、转账或充值到真实卡片。</Alert>
+  <Alert severity="info" sx={{mb:2}}>仅用于线上功能测试，不代表真实到账资金，不可提现到真实账户、转账或充值到真实卡片；可在资金中心进行模拟操作。</Alert>
   {error?<Alert severity="error" action={<Button onClick={()=>setRetry(n=>n+1)}>重试</Button>}>{error}</Alert>:!current?<Typography color="text.secondary">正在读取测试余额…</Typography>:!current.enabled?<Typography color="text.secondary">当前账户尚未配置测试余额。</Typography>:<>
    <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',sm:'1fr 1fr'},gap:2,mb:3}}>
     {current.balances.map(b=><Paper key={b.currency} variant="outlined" sx={{p:2.5}}>
-     <Typography variant="body2" color="text.secondary">{b.currency} 测试余额</Typography>
+     <Typography variant="body2" color="text.secondary">{b.currency} 可用测试余额</Typography>
      <Typography variant="h4" sx={{mt:1,fontVariantNumeric:'tabular-nums',overflowWrap:'anywhere'}}>{testMoney(b.amountMinor,b.scale)}</Typography>
     </Paper>)}
    </Box>
@@ -40,7 +40,7 @@ export default function TestWallet({customerId,reload=0}:{customerId:string;relo
      <TableCell>{new Date(g.createdAt).toLocaleString('zh-CN')}<Typography variant="caption" display="block" color="text.secondary">{g.requestId}</Typography></TableCell>
      <TableCell sx={{whiteSpace:'nowrap'}}>+{testMoney(g.usdMinor,2)}</TableCell><TableCell sx={{whiteSpace:'nowrap'}}>+{testMoney(g.usdtMinor,6)}</TableCell><TableCell>{g.reason}</TableCell>
     </TableRow>)}</TableBody></Table></TableContainer>
-   {current.hasMore&&<Typography variant="caption" color="text.secondary">仅展示最近 50 条记录；余额包含全部测试额度。</Typography>}
+   {current.hasMore&&<Typography variant="caption" color="text.secondary">仅展示最近 50 条记录；可用余额包含全部测试额度、已完成操作及提现预占。</Typography>}
   </>}
  </Paper>;
 }

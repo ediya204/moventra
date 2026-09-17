@@ -66,7 +66,12 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /admin-api/v1/ops/overview", s.authenticate(http.HandlerFunc(s.opsOverview)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.submitUpgrade)))
 	mux.Handle("GET /client-api/v1/customers/{customerID}/business-upgrade", s.authenticate(http.HandlerFunc(s.getUpgrade)))
+	mux.Handle("GET /admin-api/v1/test-funds-scopes", s.authenticate(http.HandlerFunc(s.testFundsScopes)))
 	for _, surface := range []string{"client", "admin"} {
+		for _, suffix := range []string{"", "/orders/{orderID}"} {
+			mux.Handle("GET /"+surface+"-api/v1/customers/{customerID}/test-funds"+suffix, s.authenticate(s.testFunds(surface == "admin")))
+		}
+		mux.Handle("POST /"+surface+"-api/v1/customers/{customerID}/test-funds/commands", s.authenticate(s.testFunds(surface == "admin")))
 		mux.Handle("GET /"+surface+"-api/v1/customers/{customerID}/ledger", s.authenticate(s.ledgerSnapshot(surface)))
 		for _, method := range []string{"GET", "POST"} {
 			mux.Handle(method+" /"+surface+"-api/v1/customers/{customerID}/onboarding", s.authenticate(s.onboarding(surface == "admin")))

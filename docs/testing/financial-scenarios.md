@@ -166,3 +166,7 @@ Demo 必须包含 namespace、seed、scenarioId、assumptionLevel、sourceEviden
 ## 2026-09-18 线上测试余额专项
 
 FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、并发幂等、跨客户隔离和不可真实执行。测试金额不属于资金矩阵的真实入账净变化；真实账户/交易保持不变。见[本批记录](../business/online-test-wallet.md)。
+
+## FLOW-TEST-FUNDS-01 自动化验收
+
+`services/api/internal/api/test_funds_test.go` 使用隔离 PostgreSQL schema，实际 HTTP handler + 事务覆盖两端权限、MFA、充值两阶段确认、精确报价、兑换消费一次、提现预占/审批/未知/失败释放/模拟结算、暂停后取消、并发超支、同键重试、审计失败回滚及不可变事件。`tests/frontend/online-funds.test.mjs` 挂载实际生产组件，覆盖超时后刷新恢复同一幂等键、成功深链及网关方法/跨站边界。真实渠道测试不适用，线上测试余额不得执行真实付款。

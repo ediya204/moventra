@@ -223,3 +223,11 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-18 线上测试余额
 
 新增 `GET /client-api/v1/customers/{customerID}/test-wallet`：个人所有权、active/customer 身份、读取审计、no-store，无查询参数和HTTP写入口。返回 mode=online_test、executionEligible=false、withdrawalEligible=false、enabled、按USD(2)/USDT(6)的余额字符串、最近50条测试额度记录及hasMore。未配置不是读取失败；真实交易与账本不参与。见[独立测试流程](../business/online-test-wallet.md)。
+
+## 正式线上测试资金契约（2026-09-18，LOCAL）
+
+`GET /{client|admin}-api/v1/customers/{customerID}/test-funds` 返回 `mode=online_test`、`executionEligible=false`、`withdrawalEligible=false`、`enabled`、`canOperate`、全量聚合余额及最多20条分页订单。筛选 `kind/status/page` 不影响余额，`page` 从0开始（最大500），`total` 对应筛选后的全量订单。`GET .../orders/{orderID}` 返回独立订单与按revision排序的处理事件。
+
+`POST .../commands` 严格 JSON，必带 UUID `Idempotency-Key`。请求字段 action/currency/amountMinor/quoteId/orderId/revision/recipientLabel/note；动作字段含义与金额规则见 [流程卡](../business/online-test-funds.md)。客户端允许deposit/quote/exchange/withdraw/cancel；运营允许detect/approve/reject/unknown/complete/fail，并必须填写note。幂等键绑定客户+操作者+完整请求；重复返回原结果，异载荷409。未知结果复用原键，不重新建单；409报价失效、余额不足、版本冲突均不变动余额。后台MFA与逐客户测试审核授权不继承为真实资金权限。
+
+旧 `test-wallet` 的 `amountMinor` 现在为当前可用测试余额（包含009变动及预占），`grants` 仍是原始不可变额度记录。真实账户与卡片投影未合并入测试余额。

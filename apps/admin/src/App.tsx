@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { PageSkeleton } from '../../../packages/shared/src/components/AsyncState';
 import { isDemoMode } from '../../../packages/shared/src/utils/dataMode';
 import {useAuth} from '../../../packages/shared/src/auth/AuthContext';
+const TestFundsPage=lazy(()=>import('./operations/TestFundsPage'));
 const CustomerDirectoryPage=lazy(()=>import('./operations/CustomerDirectoryPage'));
 const RegisteredUsersPage=lazy(()=>import('./operations/RegisteredUsersPage'));
 const UserDetailsPage=lazy(()=>import('./operations/UserDetailsPage'));
@@ -29,6 +30,8 @@ export default function App(){
   <Route path="/system/channels" element={<CardsPage channels/>}/>
   <Route path="/cards/:id" element={<ChannelTransactionsPage/>}/>
   <Route path="/" element={<Navigate to="/workbench" replace/>}/>
+  <Route path="/finance/test-funds" element={<TestFundsPage/>}/>
+  <Route path="/finance/test-funds/:customerId/*" element={<TestFundsPage/>}/>
   <Route path="/onboarding" element={<OnboardingPage/>}/>
   <Route path="/onboarding/:customerId" element={<OnboardingPage/>}/>
   <Route path="/workbench" element={<OperationsPage/>}/>

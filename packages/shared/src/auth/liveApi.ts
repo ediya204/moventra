@@ -1,3 +1,4 @@
+import { isFundsPath, type FundsCommand } from './fundsContract';
 import { isCardSnapshotPath } from './cardSnapshotContract';
 import { isAdminSite } from './site';
 import { isLedgerReadPath } from './ledgerContract';
@@ -89,15 +90,15 @@ export function isUserDirectoryPath(path:string):boolean {
  const params=new URLSearchParams(query);
  return [...params.keys()].every(key=>['email','userId','limit','offset'].includes(key)&&params.getAll(key).length===1);
 }
-async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string}, envelope = false): Promise<T> {
+async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand, envelope = false, requestId?:string): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !onboarding : !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
   const token = await user.getIdToken();
   if (getFirebaseAuth().currentUser !== user) throw new SessionError('unauthenticated', 401);
-  const response = await fetch(path, { method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : JSON.stringify(body), headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), Authorization: `Bearer ${token}`, Accept: 'application/json' }, cache: 'no-store', credentials: 'omit', redirect: 'error' });
+  const response = await fetch(path, { method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : JSON.stringify(body), headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(requestId ? {'Idempotency-Key':requestId} : {}), Authorization: `Bearer ${token}`, Accept: 'application/json' }, cache: 'no-store', credentials: 'omit', redirect: 'error' });
   let payload;
   try { payload = await response.json(); } catch { throw new SessionError('invalid_api_response', response.status); }
   if (!response.ok) throw new SessionError(payload?.error?.code || 'temporarily_unavailable', response.status);
@@ -118,3 +119,5 @@ export async function liveGetPage<T>(path:string):Promise<{data:T[];meta:{limit:
 }
 
 export function isTestWalletPath(path:string):boolean { return /^\/client-api\/v1\/customers\/[0-9a-f-]{36}\/test-wallet$/.test(path); }
+
+export const fundsCommand = <T>(path:string,body:FundsCommand,requestId:string)=>liveRequest<T>(path,body,false,requestId);

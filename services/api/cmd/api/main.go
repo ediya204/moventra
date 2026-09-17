@@ -70,10 +70,13 @@ func run() error {
 		slog.Info("existing customer onboarding scopes granted and audited", "new_grants", count)
 		return nil
 	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-test-funds" {
+		return database.MigrateTestFunds(ctx, pool)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-test-wallet" {
 		return database.MigrateTestWallet(ctx, pool)
 	}
-	testWalletCmd := len(os.Args) == 2 && (os.Args[1] == "test-wallet-plan" || os.Args[1] == "grant-test-wallet")
+	testWalletCmd := len(os.Args) == 2 && (os.Args[1] == "test-wallet-plan" || os.Args[1] == "grant-test-wallet" || os.Args[1] == "test-funds-review-plan" || os.Args[1] == "enable-test-funds-reviews")
 	bindingCommand := len(os.Args) == 2 && (os.Args[1] == "card-bindings-plan" || os.Args[1] == "bind-card-snapshot")
 	if len(os.Args) > 1 && !bindingCommand && !testWalletCmd {
 		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {
@@ -103,6 +106,9 @@ func run() error {
 		return errors.New("firebase credentials unavailable")
 	}
 	if testWalletCmd {
+		if os.Args[1] == "test-funds-review-plan" || os.Args[1] == "enable-test-funds-reviews" {
+			return testFundsReviewCommand(ctx, pool, auth, os.Args[1] == "enable-test-funds-reviews")
+		}
 		return testWalletCommand(ctx, pool, auth, os.Args[1] == "grant-test-wallet")
 	}
 	if bindingCommand {

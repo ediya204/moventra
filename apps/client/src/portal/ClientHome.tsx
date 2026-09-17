@@ -1,3 +1,4 @@
+import OnlineFunds from '../../../../packages/shared/src/finance/OnlineFunds';
 import TestWallet from './TestWallet';
 import CardSnapshots from './CardSnapshots';
 import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
@@ -101,7 +102,7 @@ export default function ClientHome() {
   }, [customer?.id, session, user, reload]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
-  if (!/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
+  if (!/^\/portal\/funds(?:\/(?:deposit|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
@@ -378,7 +379,7 @@ export default function ClientHome() {
                   <Box sx={workspaceGrid}>
                     {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
                       <Paper key={label} variant="outlined" sx={{ p: 2 }}>
-                        <Button component={Link} to={label === "申请新卡" ? "/portal/cards" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
+                        <Button component={Link} to={label === "申请新卡" ? "/portal/cards" : label === "充值 USDT" ? "/portal/funds/deposit" : label === "兑换 USD" ? "/portal/funds/exchange" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
                         <Typography variant="caption" color="text.secondary">查看办理详情</Typography>
                       </Paper>
                     ))}
@@ -399,7 +400,7 @@ export default function ClientHome() {
                   </Box>
                 </>
               )}
-              {["/portal", "/portal/funds"].includes(pathname) && customer && <TestWallet key={`test-wallet:${customer.id}`} customerId={customer.id} reload={reload}/> }
+              {pathname === "/portal" && customer && <TestWallet key={`test-wallet:${customer.id}`} customerId={customer.id} reload={reload}/> }
               {["/portal", "/portal/accounts"].includes(pathname) && accounts}
               {["/portal", "/portal/transactions"].includes(pathname) && transactions}
               {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
@@ -411,7 +412,8 @@ export default function ClientHome() {
                 </Stack>
               </Paper>}
               {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={`cards:${customer.id}`} customerId={customer.id}/> }
-              {["funds", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
+              {pathname.startsWith("/portal/funds") && customer && <OnlineFunds key={`funds:${customer.id}`} customerId={customer.id} reload={reload}/> }
+              {["messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>
                   <Typography variant="h6">{page}</Typography>
                   <Typography color="text.secondary" sx={{ my: 2 }}>{page}办理功能暂未提供。当前可查询账户与交易。</Typography>

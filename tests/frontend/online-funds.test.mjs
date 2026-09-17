@@ -1,0 +1,51 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+import React from 'react';
+import Renderer,{act} from 'react-test-renderer';
+import {MemoryRouter} from 'react-router-dom';
+import ts from 'typescript';
+import {handle} from '../../deploy/cloudflare/gateway.mjs';
+const require=createRequire(import.meta.url),resolve=s=>pathToFileURL(require.resolve(s)).href;
+const uri=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
+const source=p=>ts.transpileModule(readFileSync(new URL(p,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+const contract=uri(source('../../packages/shared/src/auth/fundsContract.ts'));
+const {isFundsPath,parseFundsAmount,fundsAmount}=await import(contract);
+const id='10000000-0000-0000-0000-000000000001',path=`/client-api/v1/customers/${id}/test-funds`;
+test('金额精度、币种小数限制与资金路由边界',()=>{
+ assert.equal(parseFundsAmount('20009.123456','USDT'),'20009123456');assert.equal(parseFundsAmount('100000.01','USD'),'10000001');assert.equal(fundsAmount('9007199254740993','USDT'),'9,007,199,254.740993 USDT');
+ for(const s of ['-1','1e3','0','01','1.001','1000001'])assert.throws(()=>parseFundsAmount(s,'USD'));
+ assert.ok(isFundsPath(path+'?kind=deposit&page=0'));assert.ok(isFundsPath(path+'/commands',true));assert.ok(!isFundsPath(path+'/commands'));assert.ok(!isFundsPath(path,true));assert.ok(!isFundsPath(path+'?page=0&page=1'));assert.ok(!isFundsPath('https://evil.invalid'+path,true));
+});
+test('gateway only forwards exact funds methods, preserves key and enforces site isolation',async()=>{
+ const env={SITE_KIND:'client',API_ORIGIN:'https://api.invalid'},headers={Authorization:'Bearer fixture','Idempotency-Key':id,'Content-Type':'application/json'};
+ for(const [p,method,code] of [[path,'POST',405],[path+'/commands','GET',405],[path+'/commands','DELETE',405],[path+'/anything','POST',404],['/admin-api/v1/test-funds-scopes','GET',404]])assert.equal((await handle(new Request('https://web.invalid'+p,{method,headers}),env,()=>assert.fail())).status,code);
+ assert.equal((await handle(new Request('https://web.invalid'+path+'/commands',{method:'POST',headers,body:'{"action":"quote"}'}),env,async(u,o)=>{assert.equal(o.headers.get('Idempotency-Key'),id);assert.equal(o.method,'POST');return Response.json({data:{}});})).status,200);
+ assert.equal((await handle(new Request('https://web.invalid'+path),env)).status,401);
+});
+const state=globalThis.__onlineFundsFixture={reads:[],writes:[],id:'actor'};
+const memory=new Map();globalThis.sessionStorage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)};
+const shell=uri(`import React from ${JSON.stringify(resolve('react'))};const Pass=({children,...props})=>React.createElement('div',props,children);export const Box=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,Typography=Pass,FormControl=Pass,InputLabel=Pass,Select=Pass,MenuItem=Pass;export const TextField=props=>React.createElement('input',props);export const Chip=({label})=>React.createElement('span',null,label);export const Alert=({children,action})=>React.createElement('div',null,children,action);export const Button=({children,...p})=>React.createElement('button',p,children);`);
+const api=uri(`export class SessionError extends Error{constructor(code,status=0){super(code);this.code=code;this.status=status;}};export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__onlineFundsFixture.reads.push({path,resolve,reject}));export const fundsCommand=(path,input,id)=>new Promise((resolve,reject)=>globalThis.__onlineFundsFixture.writes.push({path,input,id,resolve,reject}));`);
+const auth=uri('export const useAuth=()=>({session:{id:globalThis.__onlineFundsFixture.id}});');
+const code=source('../../packages/shared/src/finance/OnlineFunds.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name.endsWith('/liveApi')?api:name.endsWith('/AuthContext')?auth:name.endsWith('/fundsContract')?contract:resolve(name)));
+const Funds=(await import(uri(code))).default;
+const fixture={enabled:true,canOperate:true,balances:[{currency:'USD',postedMinor:'10000000',heldMinor:'0',availableMinor:'10000000'},{currency:'USDT',postedMinor:'20009000000',heldMinor:'0',availableMinor:'20009000000'}],orders:[],total:0};
+const flush=()=>new Promise(r=>setImmediate(r));
+const content=n=>typeof n==='string'?n:Array.isArray(n)?n.map(content).join(''):n?.children?content(n.children):'';
+const text=t=>content(t.toJSON());
+async function mount(path){let tree;await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(Funds,{customerId:id})));await flush();});return tree;}
+const button=(t,s)=>t.root.findAllByType('button').find(b=>content(b.props.children)===s);
+test('充值页面挂载真实服务契约；超时重载保留幂等键并重试，成功跳转服务端详情',async()=>{
+ state.reads=[];state.writes=[];memory.clear();let tree=await mount('/portal/funds/deposit');
+ await act(async()=>{state.reads[0].resolve(fixture);await flush();});assert.ok(text(tree).includes('20,009.000000 USDT'));
+ await act(()=>tree.root.findAllByType('input').find(x=>x.props.label==='金额').props.onChange({target:{value:'12.123456'}}));
+ await act(async()=>{button(tree,'提交测试充值').props.onClick();await flush();});const first=state.writes[0];assert.deepEqual(first.input,{action:'deposit',currency:'USDT',amountMinor:'12123456',note:''});
+ await act(async()=>{first.reject(new Error('timeout'));await flush();});assert.ok(text(tree).includes('核对并重试原请求'));assert.equal(button(tree,'提交测试充值').props.disabled,true);
+ await act(()=>tree.unmount());tree=await mount('/portal/funds/deposit');assert.ok(text(tree).includes(first.id));
+ await act(async()=>{button(tree,'核对并重试原请求').props.onClick();await flush();});assert.equal(state.writes[1].id,first.id);assert.deepEqual(state.writes[1].input,first.input);
+ await act(async()=>{state.writes[1].resolve({order:{id}});await flush();});assert.equal(memory.size,0);assert.ok(state.reads.some(r=>r.path.endsWith('/orders/'+id)));
+ await act(()=>tree.unmount());
+});

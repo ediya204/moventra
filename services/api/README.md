@@ -103,3 +103,11 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 ## 线上测试余额
 
 受控 `migrate-test-wallet` / `test-wallet-plan` / `grant-test-wallet` 命令和独立客户 GET 查询。仅008测试表，不启用 Blnk 或任何真实资金接口。配置、幂等和验收见[流程](../../docs/business/online-test-wallet.md)。
+
+### 正式登录后的线上测试资金
+
+见 [FLOW-TEST-FUNDS-01](../../docs/business/online-test-funds.md)。`migrate-test-funds` 仅补充 008/009，跳过尚未启用的 006 影子账本。所有测试资金写入在独立表内；不调用付款、发卡或渠道接口。
+
+客户及后台分别访问 `/client-api/v1/customers/{id}/test-funds`、`/admin-api/v1/customers/{id}/test-funds`；订单详情 `/orders/{orderId}`；POST `/commands` 必须带 UUID `Idempotency-Key`。后台还要求 MFA 和逐客户 `online_test_funds_review_grants`。固定测试报价、金额精度、状态与幂等契约见流程卡和 OpenAPI。
+
+对已有线上测试账户启用既有开户审核人：先使用 `TEST_WALLET_EMAIL` 执行 `test-funds-review-plan`，核对唯一的 `eligibleReviewerIds`，再设置 `TEST_FUNDS_REVIEWER_ID`、`CONFIRM_ONLINE_TEST_ONLY=yes` 执行 `enable-test-funds-reviews`。此命令不会新增真实资金权限，也不会开通客户服务。

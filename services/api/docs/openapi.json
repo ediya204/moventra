@@ -2948,6 +2948,666 @@
           }
         }
       }
+    },
+    "/client-api/v1/customers/{customerID}/test-funds": {
+      "get": {
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Inactive account, role/MFA or operation denied"
+          },
+          "404": {
+            "description": "Resource scope denied"
+          },
+          "409": {
+            "description": "Stale revision, quote, balance or idempotency conflict"
+          },
+          "503": {
+            "description": "Unavailable; retry same idempotency key for uncertain writes"
+          },
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "online_test"
+                          ]
+                        },
+                        "executionEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "withdrawalEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "canOperate": {
+                          "type": "boolean"
+                        },
+                        "balances": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TestFundsBalance"
+                          }
+                        },
+                        "orders": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TestFundsOrder"
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "policyVersion": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read online test balances and orders"
+      }
+    },
+    "/client-api/v1/customers/{customerID}/test-funds/orders/{orderID}": {
+      "get": {
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Inactive account, role/MFA or operation denied"
+          },
+          "404": {
+            "description": "Resource scope denied"
+          },
+          "409": {
+            "description": "Stale revision, quote, balance or idempotency conflict"
+          },
+          "503": {
+            "description": "Unavailable; retry same idempotency key for uncertain writes"
+          },
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "online_test"
+                          ]
+                        },
+                        "executionEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "order": {
+                          "$ref": "#/components/schemas/TestFundsOrder"
+                        },
+                        "events": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "action": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "note": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "revision": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read scoped test order and events"
+      }
+    },
+    "/client-api/v1/customers/{customerID}/test-funds/commands": {
+      "post": {
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Inactive account, role/MFA or operation denied"
+          },
+          "404": {
+            "description": "Resource scope denied"
+          },
+          "409": {
+            "description": "Stale revision, quote, balance or idempotency conflict"
+          },
+          "503": {
+            "description": "Unavailable; retry same idempotency key for uncertain writes"
+          },
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "quote": {
+                          "$ref": "#/components/schemas/TestFundsQuote"
+                        },
+                        "order": {
+                          "$ref": "#/components/schemas/TestFundsOrder"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Execute an idempotent synthetic test funds command",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestFundsCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/test-funds": {
+      "get": {
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Inactive account, role/MFA or operation denied"
+          },
+          "404": {
+            "description": "Resource scope denied"
+          },
+          "409": {
+            "description": "Stale revision, quote, balance or idempotency conflict"
+          },
+          "503": {
+            "description": "Unavailable; retry same idempotency key for uncertain writes"
+          },
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "online_test"
+                          ]
+                        },
+                        "executionEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "withdrawalEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "customerId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "canOperate": {
+                          "type": "boolean"
+                        },
+                        "balances": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TestFundsBalance"
+                          }
+                        },
+                        "orders": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TestFundsOrder"
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "policyVersion": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read online test balances and orders"
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/test-funds/orders/{orderID}": {
+      "get": {
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Inactive account, role/MFA or operation denied"
+          },
+          "404": {
+            "description": "Resource scope denied"
+          },
+          "409": {
+            "description": "Stale revision, quote, balance or idempotency conflict"
+          },
+          "503": {
+            "description": "Unavailable; retry same idempotency key for uncertain writes"
+          },
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "online_test"
+                          ]
+                        },
+                        "executionEligible": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "order": {
+                          "$ref": "#/components/schemas/TestFundsOrder"
+                        },
+                        "events": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "action": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "note": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "revision": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read scoped test order and events"
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/test-funds/commands": {
+      "post": {
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Inactive account, role/MFA or operation denied"
+          },
+          "404": {
+            "description": "Resource scope denied"
+          },
+          "409": {
+            "description": "Stale revision, quote, balance or idempotency conflict"
+          },
+          "503": {
+            "description": "Unavailable; retry same idempotency key for uncertain writes"
+          },
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "quote": {
+                          "$ref": "#/components/schemas/TestFundsQuote"
+                        },
+                        "order": {
+                          "$ref": "#/components/schemas/TestFundsOrder"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Execute an idempotent synthetic test funds command",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestFundsCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/test-funds-scopes": {
+      "get": {
+        "summary": "List independently authorized test funds customer scopes; operator MFA required",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated synthetic funds only; never real settlement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "MFA/operator required"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3598,6 +4258,224 @@
                 }
               }
             }
+          }
+        }
+      },
+      "TestFundsCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "deposit",
+              "quote",
+              "exchange",
+              "withdraw",
+              "cancel",
+              "detect",
+              "approve",
+              "reject",
+              "unknown",
+              "complete",
+              "fail"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USDT"
+            ]
+          },
+          "amountMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "quoteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "recipientLabel": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "TestFundsBalance": {
+        "type": "object",
+        "required": [
+          "currency",
+          "scale",
+          "postedMinor",
+          "heldMinor",
+          "availableMinor"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USDT"
+            ]
+          },
+          "scale": {
+            "type": "integer",
+            "enum": [
+              2,
+              6
+            ]
+          },
+          "postedMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "heldMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "availableMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          }
+        }
+      },
+      "TestFundsOrder": {
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "kind",
+          "currency",
+          "amountMinor",
+          "feeMinor",
+          "receiveMinor",
+          "status",
+          "revision"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "deposit",
+              "exchange",
+              "withdraw"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USDT"
+            ]
+          },
+          "toCurrency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USDT"
+            ]
+          },
+          "amountMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "feeMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "receiveMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "recipientLabel": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirming",
+              "pending_review",
+              "processing",
+              "unknown",
+              "completed",
+              "cancelled",
+              "rejected",
+              "failed"
+            ]
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TestFundsQuote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "toCurrency": {
+            "type": "string"
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "amountMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "feeMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "receiveMinor": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }
