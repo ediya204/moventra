@@ -17,3 +17,5 @@
 ## 2026-09-13 登录隔离候选
 
 客户登录为 `/portal/login`，旧 `/login` 自动跳转。客户身份使用 `/client-api/v1/me`；管理员角色拒绝进入客户端。保留已上线的开户申请、功能资格和导航；部署依赖角色迁移 004。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。
+
+官网 SEO 实现、验证和 Google 提交步骤见 [官网 SEO](../../docs/frontend/website-seo.md)。`pnpm test:seo` 检查首页索引与应用页面 noindex 边界。
