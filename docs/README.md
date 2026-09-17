@@ -122,3 +122,5 @@
 - [验收与剩余边界](testing/blnk-shadow-2026-09-17.md)
 
 - [Blnk 集成代码发布与激活边界](releases/2026-09-18-blnk-shadow.md)
+
+- [Blnk 私有服务与共享 PostgreSQL 实例](releases/2026-09-18-blnk-private-service.md)

@@ -10,9 +10,33 @@ services:
     plan: starter
     autoDeployTrigger: off
     numInstances: 1
-    dockerCommand: blnk --config /etc/secrets/blnk.json start
-    # Supply blnk.json as a Render Secret File. It contains dedicated DB/Redis
-    # credentials plus independently generated API and metrics keys.
+    dockerCommand: blnk start
+    envVars:
+      - key: BLNK_DATA_SOURCE_DNS
+        sync: false
+      - key: BLNK_REDIS_DNS
+        fromService:
+          type: keyvalue
+          name: moventra-blnk-redis
+          property: connectionString
+      - key: BLNK_SERVER_SECRET_KEY
+        sync: false
+      - key: BLNK_METRICS_BEARER_TOKEN
+        sync: false
+      - key: BLNK_SERVER_SECURE
+        value: "true"
+      - key: BLNK_SERVER_PORT
+        value: "5001"
+      - key: BLNK_DATABASE_MAX_OPEN_CONNS
+        value: "10"
+      - key: BLNK_DATABASE_MAX_IDLE_CONNS
+        value: "5"
+      - key: BLNK_REDIS_POOL_SIZE
+        value: "10"
+      - key: BLNK_REDIS_MIN_IDLE_CONNS
+        value: "2"
+      - key: BLNK_ENABLE_TELEMETRY
+        value: "false"
     # Initial migration is a one-time pre-deploy command, cleared after success.
   - type: keyvalue
     name: moventra-blnk-redis

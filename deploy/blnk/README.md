@@ -45,9 +45,11 @@ Blnk 客户端强制同步 `skip_queue=true`；`QUEUED` 永远不算成功。本
 
 `render.yaml` 描述Blnk Core 和 Redis 资源；PostgreSQL 复用现有 `moventra-postgres` 实例中的专属 `moventra_blnk` 逻辑库及受限账号，位于 Moventra 相同的 Singapore 内网。Blnk 无公网 URL；现有 PostgreSQL 和新 Redis 均关闭公网 IP allow-list。镜像与本地验收固定到同一 digest。
 
-将 `blnk.render.example.json` 中占位符替换为专属内部连接串，以及分别独立生成的 API/metrics 密钥，然后作为 Render Secret File `blnk.json` 上传。真实文件仅保存在密钥设施，不能提交仓库或放进 CLI 参数/日志。API 必须保持 secure=true。
+`blnk.render.example.json` 仅是配置字段参考；实际部署使用 `render.yaml` 中的 `BLNK_*` 环境变量。Blnk 0.15.4 源码的 preRun 固定读取当前目录 blnk.json，忽略 `--config` 参数，不能据 CLI 帮助假定该参数生效。将专属逻辑库连接串（`sslmode=require`）、Redis 内部连接串和独立生成的 API/metrics 密钥写入 Render 环境配置，不提交真实值。API 必须保持 `BLNK_SERVER_SECURE=true`。
 
-初次新空 Blnk 数据库执行 `blnk --config /etc/secrets/blnk.json migrate up`，成功后移除一次性 pre-deploy command。正常启动只执行 `blnk --config /etc/secrets/blnk.json start`。引擎升级前备份并核验 SQL 迁移；现有 Moventra 应用逻辑库不用于 Blnk 自身表；两者共享 PostgreSQL 实例，连接池限制为 10。
+初次共享实例初始化只创建 `moventra_blnk` 逻辑数据库及同名受限登录，不修改现有业务库表。PostgreSQL 17 创建新数据库并指定其 owner 前，创建者可能需要临时 `GRANT moventra_blnk TO CURRENT_USER WITH SET TRUE`；建库、配置 schema 后撤销该临时成员关系。Blnk 用户不具备 SUPERUSER、CREATEDB、CREATEROLE 或 REPLICATION 权限，连接上限 15；应用连接池上限 10。
+
+初次新空 Blnk 逻辑库执行 `blnk migrate up`，成功后移除一次性 pre-deploy command。正常启动只执行 `blnk start`。引擎升级前备份并核验 SQL 迁移；现有 Moventra 应用逻辑库不用于 Blnk 自身表。
 
 当前使用同步 `skip_queue=true` 记账适配，未开放异步队列执行；后续启用异步事务需补独立 workers。Typesense、官方托管 Dashboard 不是当前部署依赖。此基础设施上线不自动执行 Moventra 的迁移 006、绑定客户或开放真实记账。
 
