@@ -10,8 +10,8 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 
 | 应用 | 登录地址 | 登录方式 | 业务入口 |
 | --- | --- | --- | --- |
-| 客户端 | https://moventra.me/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
-| 运营后台 | https://admin.moventra.me/login | 批准的运营邮箱密码、MFA；无 Google | `/workbench` 资金运营概览；`/session?security=1` 身份与权限；`0d5158d` 另增正式 `/transactions`、`/cards/:id` 渠道只读页面 |
+| 客户端 | https://moventra.me/portal/login | 邮箱密码、Google | `/portal` 个人查询、`/portal/security` 安全设置 |
+| 运营后台 | https://admin.moventra.me/admin/login | 批准的运营邮箱密码、MFA；无 Google | `/workbench` 资金运营概览；`/session?security=1` 身份与权限；`0d5158d` 另增正式 `/transactions`、`/cards/:id` 渠道只读页面 |
 
 资金概览已随 `a42e2b9` 发布；正常后台 `/session` 在 operator 与当次 MFA 完成后转入 `/workbench`。这是[此前发布证据](../../deploy/2026-09-07-operations-overview.md)，不是本轮文档重验。完整注册、主体开通及生产/DEV 边界见[正式身份与业务开通](../business/identity-and-production.md)。
 
@@ -21,7 +21,7 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 
 ## 认证与授权顺序
 
-1. 后台先按 `VITE_ADMIN_LOGIN_EMAILS` 检查邮箱；去空格并转小写，缺少列表时全部拒绝。不允许的邮箱在 Firebase 密码请求之前被拒绝，不进入 MFA。
+1. 两端使用独立登录 URL，角色由 Go 的 users.role 判定；不再使用 VITE_ADMIN_LOGIN_EMAILS。错误角色完成 Firebase 验证后仍会被拒绝并退出会话。
 2. Firebase 完成密码或客户端 Google 身份验证；已绑定 TOTP 时完成挑战。
 3. `packages/shared/src/auth/liveApi.ts` 获取 ID token，只发送到同域 Go 精确路径；不传给旧接口或 Demo。
 4. Go 校验 Firebase token、撤销状态、邮箱验证、本地 users 状态和主体/资源关系。前端邮箱列表、角色或自报 UID 不能授予权限。
@@ -46,7 +46,7 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 ```bash
 pnpm typecheck
 pnpm build:client
-VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm build:admin
 pnpm test
 bash services/api/scripts/test-postgres.sh
 ```

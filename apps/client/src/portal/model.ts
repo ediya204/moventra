@@ -9,6 +9,7 @@ export type Card = {
   frozen: boolean;
   riskFrozen?: boolean;
   balanceKind?: "internal_budget" | "managed_ledger";
+  unfreezeRequest?: {id:string;reason:string;approval_status:string;execution_status:string;review_note:string|null;freeze_revision:number}|null;
   management?: {reason:string|null;actor:string|null;operatedAt:string|null;providerStatus:string;revision:number;funding:boolean};
   last4?: string;
   slash?: SourceRecord;

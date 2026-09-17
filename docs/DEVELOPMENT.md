@@ -1,5 +1,7 @@
 # Moventra 开发总纲
 
+2026-09-18：开发交付遵循 [业务闭环标准](business/delivery-standard.md)。历史静态调查与最新 main 的差异见 [本次同步说明](releases/2026-09-18-local-sync.md)。
+
 当前源码结构：`apps/client` 为独立客户端，`apps/admin` 为独立运营后台，`services/api` 为 Go 服务，`packages/shared` 为共用认证/UI/类型。统一在 `main` 维护，构建入口见根目录 README。文档全量分类见 [文档索引](./README.md)。
 
 更新日期：2026-09-07。状态：身份、个人查询、授权运营概览及部署基础已落地；`0d5158d` 另加入正式渠道只读投影、卡交易页面与手动导入工具。跨渠道金融目标仍为草案。部署版本及历史验证见发布记录，不将本次文档校对当作新的业务验收。

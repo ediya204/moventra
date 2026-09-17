@@ -6,7 +6,18 @@
 
 ## 开发前阅读
 
+### 项目身份与 ADSFLOW 边界（2026-09-13）
+
+- 本项目是 Moventra，目录 `/Users/edi/Documents/ChatGPT/moventra`；运营后台为 `apps/admin`，客户端为 `apps/client`，API 为 `services/api`。后续 Moventra 开发、预览、测试和发布均以这里为准，无需每轮重新讨论迁移。
+- `/Users/edi/Documents/ChatGPT/adsflow 后台` 是另一个历史工作目录；其 `adsflow-admin-react`、`adsflow-api`、Demo、端口和部署记录不代表本项目当前实现。源码来源关系不等于目录、运行环境或验收结果相同。
+- 用户说本项目的“后台”，默认指 Moventra 的 `apps/admin`；只有明确提到 ADSFLOW 或要求历史比较时，才按需读取旧目录。不要把本项目称为 ADSFLOW 后台。
+- 项目目标优先沿用用户已明确的上下文；无明确上下文时以当前工作目录为依据。上下文与目录实际冲突且影响操作时才简短确认，不自动把所有 ADSFLOW 任务切换到 Moventra。
+- 启动命令、配置、测试和发布依据取自本项目当前文件；旧目录结果只可标为历史参考。跨目录迁入功能须有明确范围并在本项目验证，不整目录覆盖。
+
+### 必读规范
+
 - 所有开发先读 [开发总纲](./docs/DEVELOPMENT.md)。
+- 页面、交互和前后端开发同时遵守 [业务闭环开发与验收标准](./docs/business/delivery-standard.md)：先列完整流程与接口链，再按二三级导航、跨端一致性和异常恢复验收；页面存在或构建通过不代表业务闭环。
 - 交易、订单、账户余额、退款、费用、汇率、同步、对账相关变更，必须再读 [领域规则](./docs/domain/transactions-and-funds.md)、[接口契约草案](./docs/api/contract.md)、[资金场景验收](./docs/testing/financial-scenarios.md)。
 - Slash 相关变更必须读 [渠道接入规范](./docs/integrations/slash.md)，并核验本次涉及的官方文档。
 - 修改子项目时，同时阅读该子项目 README 和对应专题文档。现有实现与目标规范不一致时，说明差异；不得把草案写成已实现能力。

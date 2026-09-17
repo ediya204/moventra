@@ -5,11 +5,11 @@
 从仓库根目录运行：
 
 ```bash
-VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm dev:admin
-VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm dev:admin
+pnpm build:admin
 ```
 
-开发地址 127.0.0.1:8850，产物 `apps/admin/dist`。应用身份固定 admin，不使用 `VITE_SITE_KIND` 切换。邮箱列表来自已批准的配置，逗号分隔；缺失则全部拒绝。列表仅用于 Firebase 密码请求前的登录提示，不承担后端授权。后台关闭 Google 登录，没有自助注册入口。
+开发地址 127.0.0.1:8850，产物 `apps/admin/dist`。应用身份固定 admin，不使用 `VITE_SITE_KIND` 切换。管理员角色由服务端 users.role 确认，不再使用前端邮箱名单。后台关闭 Google 登录，没有自助注册入口。
 
 Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权后才能访问运营数据；拒绝/异常时退出 Firebase 并留在登录页。邮箱验证和 MFA 设置流程不代表已获业务权限。客户端和运营端共享 Firebase 项目，但 SDK 实例、内存会话、路由和网关分别处理。
 

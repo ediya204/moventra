@@ -1,5 +1,7 @@
 # Moventra 文档索引与项目现状
 
+2026-09-18：开发交付遵循 [业务闭环标准](business/delivery-standard.md)。历史静态调查与最新 main 的差异见 [本次同步说明](releases/2026-09-18-local-sync.md)。
+
 更新日期：2026-09-07。以注明版本的源码与验证记录为准；本轮仅静态整理文档，GitHub 同步不等于重新部署或完成真实业务验收。
 
 正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。优先阅读 [全站业务逻辑总览](business/README.md)，快速状态见 [V1 当前功能与接入状态](current-state.md)。旧工作区的私有 Node/Python 服务、数据和凭据不属于本仓库可直接运行的依赖。
@@ -124,3 +126,5 @@
 - [Blnk 集成代码发布与激活边界](releases/2026-09-18-blnk-shadow.md)
 
 - [Blnk 私有服务与共享 PostgreSQL 实例](releases/2026-09-18-blnk-private-service.md)
+- [Slash / Blnk 调查与实施方案](integrations/slash-blnk-plan-2026-09-18.md)
+- [Slash 来源持久化设计](integrations/slash-persistence-design-2026-09-18.md)

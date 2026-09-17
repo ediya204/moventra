@@ -46,7 +46,7 @@ GitHub 已更名为 `ediya204/moventra`，仅保留远程 `main` 分支。目录
 ```bash
 pnpm install --frozen-lockfile
 pnpm build:client
-VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+pnpm build:admin
 pnpm test
 bash services/api/scripts/test-postgres.sh
 npm ci --prefix deploy/cloudflare

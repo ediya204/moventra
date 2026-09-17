@@ -1,0 +1,375 @@
+{
+  "verificationDate": "2026-09-18",
+  "timezone": "Asia/Hong_Kong",
+  "snapshotCapturedAtUTC": "2026-09-17T16:26:32.157229+00:00",
+  "scope": "Public official documents and current local source only; no tenant API, database migration, deployment or real financial write. Source hashes describe the research-time working tree, not committed or deployed code.",
+  "moventraHead": "ce0a88a21b5b6c30a706e601827f45979622e78a",
+  "localFiles": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "4b602eafe6e5ca1459be1783cebad22fde142953285496a5e86e21d3834a963d"
+    },
+    {
+      "path": "docs/DEVELOPMENT.md",
+      "sha256": "aeba7b94f92fd4d9a159724fda02e8807fcad16cb7d4e7b76b33065e416e5445"
+    },
+    {
+      "path": "docs/integrations/slash.md",
+      "sha256": "869b3b340384ae6d5bfcb9139f700f87e1bb4dae623b1fef7ef68787981fbb94"
+    },
+    {
+      "path": "docs/integrations/blnk.md",
+      "sha256": "16325546aa6b24a0e4db837f8ccc790903a6dfa329070d66bc4f1a0ea8fb20bd"
+    },
+    {
+      "path": "docs/domain/transactions-and-funds.md",
+      "sha256": "f351c8dde07514215d71e3d28dc599860fd35d5c5964fdbf17b27cab5e1259be"
+    },
+    {
+      "path": "docs/domain/reconciliation-v1-plan.md",
+      "sha256": "bd54cd4370c6d38d8466aafc635918ceeee3e30a66a07bbf1624f76a8d782a22"
+    },
+    {
+      "path": "docs/api/contract.md",
+      "sha256": "596cecd23952855f9096337b686d97aa4c176602ee1deea6571e1861779cbd35"
+    },
+    {
+      "path": "docs/testing/financial-scenarios.md",
+      "sha256": "1e11558e1edfd29c497873925104e40869812864298a3eda81668c5f1145d2ee"
+    },
+    {
+      "path": "docs/business/delivery-standard.md",
+      "sha256": "d3e5847b1e25c4b965ca568c1ae75247ab94661935b68480ea4e16aae63d8ee8"
+    },
+    {
+      "path": "services/api/internal/database/database.go",
+      "sha256": "438fdee258c15bca4974809384d3de644824836fc754183384dfd3e59ed90445"
+    },
+    {
+      "path": "services/api/internal/database/004_blnk_shadow.sql",
+      "sha256": "8b5e58cbfe91960e9188b0c0e2fd04aa167bb4d371ac9927cf74d89a192ee087"
+    },
+    {
+      "path": "services/api/internal/api/server.go",
+      "sha256": "5437f9bd4237493a88a93647d8a7bb232a0dd35104ddf7192994416f17dc60b2"
+    },
+    {
+      "path": "services/api/internal/api/ledger.go",
+      "sha256": "c32e56dbdc8b81c240b06c9b65713933d0cccfdd24e4bbcab494044250a5e585"
+    },
+    {
+      "path": "packages/shared/src/auth/ledgerContract.ts",
+      "sha256": "16acfb09a2075edd3b7bcade3a64ab12150434039fed1b8b4dba8118a645a748"
+    },
+    {
+      "path": "packages/shared/src/auth/ledgerApi.ts",
+      "sha256": "f54bb0b1c63d9b5fc6d5d96821c77925a433370a193fb4ea642cc1a63736cd89"
+    },
+    {
+      "path": "apps/admin/src/operations/ChannelTransactionsPage.tsx",
+      "sha256": "af47a8b0747e563ec01cd7bbe3e9fe856652298cb83308be1eb94376443b7d94"
+    },
+    {
+      "path": "deploy/blnk/compose.yaml",
+      "sha256": "e31a7db49245d093397688a78369d81f002bb59c983371699b33735dfa9969e4"
+    },
+    {
+      "path": "services/api/internal/blnk/client.go",
+      "sha256": "270dcd1964f288d221850a7a54775dca7401da32ac8d7f5d71555a295e3ca8ee"
+    },
+    {
+      "path": "services/api/internal/blnk/client_test.go",
+      "sha256": "068219b4db92dfe1fba5c433af2bda695dd806fcb5bfddf9b597d7c16741bd88"
+    },
+    {
+      "path": "services/api/internal/ledger/config.go",
+      "sha256": "a191271151708203a4e71be20f2174b9f4de6cbb73c545f2af9054fdb5b4515f"
+    },
+    {
+      "path": "services/api/internal/ledger/service.go",
+      "sha256": "5e7c0b3660e1ae44b82a5bcd5d196faf388e7b852e3339e8a72b47a19a56efb6"
+    },
+    {
+      "path": "services/api/internal/ledger/events_test.go",
+      "sha256": "797b27b3c68486d63cf25f9c73fb1f184730f07120ab9dd99e470f60390baa34"
+    },
+    {
+      "path": "services/api/internal/ledger/events.go",
+      "sha256": "b393cea06e4e99859435529f3a49e135ca861a136c0314c2c8426b330f2b5d9c"
+    },
+    {
+      "path": "services/api/internal/ledger/integration_test.go",
+      "sha256": "7c4accd4985b2d6921f99ed769dd7676f5c7d3a58347ad6f0eefcd0dddd00748"
+    }
+  ],
+  "slash": {
+    "url": "https://api.slash.com/openapi",
+    "openapi": "3.1.0",
+    "infoVersion": "0.0.1",
+    "sha256": "70e3dcd7569ec592e285496f5143d53f274ee67be7799fb5043218a3492d04a4",
+    "schemas": [
+      {
+        "name": "Account",
+        "fields": [
+          "id",
+          "status",
+          "name",
+          "accountNumber",
+          "routingNumber",
+          "createdAt",
+          "type",
+          "balances"
+        ],
+        "sha256CanonicalJSON": "cfc3783c21360a5806a3e88161e0e15865c336979fc1b0d70d396671228715c3"
+      },
+      {
+        "name": "VirtualAccount",
+        "fields": [
+          "virtualAccount",
+          "balance",
+          "spend",
+          "commissionRule"
+        ],
+        "sha256CanonicalJSON": "14cf1a23d3a05fb29a2f1c323fbb01a919147950c8608d1da54a8f6ec84f60a6"
+      },
+      {
+        "name": "VirtualAccountModel",
+        "fields": [
+          "id",
+          "name",
+          "accountNumber",
+          "routingNumber",
+          "accountId",
+          "closedAt",
+          "accountType"
+        ],
+        "sha256CanonicalJSON": "cc3893f984992058289c3d7748ad38b1929d1f63d0c152b0ad66286e9e676b6e"
+      },
+      {
+        "name": "Card",
+        "fields": [
+          "id",
+          "accountId",
+          "virtualAccountId",
+          "last4",
+          "name",
+          "expiryMonth",
+          "expiryYear",
+          "status",
+          "isPhysical",
+          "isSingleUse",
+          "pan",
+          "cvv",
+          "cardGroupId",
+          "cardGroupName",
+          "createdAt",
+          "spendingConstraint",
+          "userData",
+          "cardProductId",
+          "modifiers"
+        ],
+        "sha256CanonicalJSON": "032e7385c5528bd4865307b062ca7d8d5c5f68581c62b36c669b1194f88bb67e"
+      },
+      {
+        "name": "CardStatus",
+        "fields": [],
+        "sha256CanonicalJSON": "54ee39b1f7fc55faf577589989f85b7300e32c0aca3adc4901d21a92f4024e30"
+      },
+      {
+        "name": "SpendingConstraint",
+        "fields": [
+          "merchantCategoryRule",
+          "merchantRule",
+          "spendingRule",
+          "countryRule",
+          "merchantCategoryCodeRule"
+        ],
+        "sha256CanonicalJSON": "666b0d22623cf569a0dabc20b4188d0d802a94667b5a7774f7fc0909f1a60f9b"
+      },
+      {
+        "name": "PartialSpendingConstraint",
+        "fields": [
+          "merchantCategoryRule",
+          "merchantRule",
+          "spendingRule",
+          "countryRule",
+          "merchantCategoryCodeRule"
+        ],
+        "sha256CanonicalJSON": "91e27748afe8161f8009e59b5cd9d33106c68e85fdbb260c58b475296b6c4038"
+      },
+      {
+        "name": "CardGroupUtilization",
+        "fields": [
+          "nextResetDate",
+          "spend",
+          "availableBalance"
+        ],
+        "sha256CanonicalJSON": "a1d1bfe95bff753f87e4b07b8641e530623b2b6791b15384de6e9c6fff63cbac"
+      },
+      {
+        "name": "Transaction",
+        "fields": [
+          "id",
+          "date",
+          "description",
+          "memo",
+          "merchantDescription",
+          "merchantData",
+          "amountCents",
+          "status",
+          "detailedStatus",
+          "accountId",
+          "virtualAccountId",
+          "accountSubtype",
+          "cardId",
+          "cashbackInfo",
+          "fxFeeInfo",
+          "originalCurrency",
+          "orderId",
+          "referenceNumber",
+          "authorizedAt",
+          "declineReason",
+          "approvalReason",
+          "providerAuthorizationId",
+          "wireInfo",
+          "achInfo",
+          "rtpInfo",
+          "sepaInfo",
+          "pixInfo",
+          "speiInfo",
+          "fpsInfo",
+          "feeInfo",
+          "cryptoInfo"
+        ],
+        "sha256CanonicalJSON": "41421e276f5b5817388a3aff663ef853331c79a8155ef812cb0e116d89667688"
+      },
+      {
+        "name": "TransactionStatus",
+        "fields": [],
+        "sha256CanonicalJSON": "b786483ae1d61a4eed3e5f6befccb4f94e8ea571f8ea1e748b9470107ecd7c39"
+      },
+      {
+        "name": "TransactionDetailedStatus",
+        "fields": [],
+        "sha256CanonicalJSON": "67459f5999141d0d9d46985fc5795fae332f2b5216312a18d8dfd26dae4c0872"
+      },
+      {
+        "name": "TransactionFxFeeInfo",
+        "fields": [
+          "amountCents"
+        ],
+        "sha256CanonicalJSON": "6574618efef10057eb0c4cfbe0ce0e748149963d8d3a1cd984eed451a1f07429"
+      },
+      {
+        "name": "TransactionCashbackInfo",
+        "fields": [
+          "amountCents",
+          "rate"
+        ],
+        "sha256CanonicalJSON": "e9f4cca123c3fd149cb9681201ee7ceb0c894f0d599372ce67c1f9f37ed3389d"
+      },
+      {
+        "name": "OriginalCurrency",
+        "fields": [
+          "code",
+          "amountCents",
+          "conversionRate"
+        ],
+        "sha256CanonicalJSON": "b0fb4afd73b848de8cb001184b95702d58ffb9d7e475d3b158a6ed67b2bfcabb"
+      },
+      {
+        "name": "FeeTransaction",
+        "fields": [
+          "id",
+          "dateCharged",
+          "feeAmountCents",
+          "feeType",
+          "accountId",
+          "originalTransaction",
+          "card"
+        ],
+        "sha256CanonicalJSON": "84383eddfa8342b7f4339b1524218a4c5bb8a9de1deb2cdb0976bf6e59066c07"
+      },
+      {
+        "name": "Balance",
+        "fields": [
+          "accountId",
+          "type",
+          "available",
+          "posted",
+          "timestamp"
+        ],
+        "sha256CanonicalJSON": "8239dd7003fec22c7808f73bd281c3d6b325ac46956bd97561de664cf03ae779"
+      },
+      {
+        "name": "Money",
+        "fields": [
+          "amountCents"
+        ],
+        "sha256CanonicalJSON": "7fc118a68690e2ee17281e8503b70ea3cc37e16ea05a0e00db5c1c121fc4882c"
+      },
+      {
+        "name": "WebhookEvent",
+        "fields": [],
+        "sha256CanonicalJSON": "16541e4dc06121029a074799f31c6daa5ea08d4108979d7464bf21b71cebe210"
+      },
+      {
+        "name": "AuthorizationRequestEvent",
+        "fields": [
+          "event",
+          "data"
+        ],
+        "sha256CanonicalJSON": "0fcb4165984ed7d03d14d47c70142c810c19c31ccf7ace518ad10dee9fa0b636"
+      },
+      {
+        "name": "AuthorizationWebhookResponse",
+        "fields": [
+          "approved",
+          "reason"
+        ],
+        "sha256CanonicalJSON": "439aa8f3382797d5e4de6d5742bbe0feb3af2cf885992098cc86a938494202ae"
+      },
+      {
+        "name": "AuthorizationWebhookConfig",
+        "fields": [],
+        "sha256CanonicalJSON": "230c38ebed24150d35393539865c673cd8b642eae818ba8f31116444e25d414a"
+      }
+    ]
+  },
+  "blnk": {
+    "tag": "v0.15.4",
+    "commit": "f3067eb56a573055ce86c3328566145b467f393b",
+    "files": [
+      {
+        "path": "database/transaction_queries.go",
+        "sha256": "30b8157541f376ed5c678489889b298b8776d86d4426e466b3318e126785571d"
+      },
+      {
+        "path": "sql/1770611011.sql",
+        "sha256": "485486be16df28daef6bea164c5f8f5402bb43ea9c6788826b22721628a0481a"
+      },
+      {
+        "path": "api/model/model.go",
+        "sha256": "b94a28fd67a953389c953bb4855fb957b241ec310703087a925a383ef66a7cc8"
+      },
+      {
+        "path": "api/model/transaction.go",
+        "sha256": "fe15ab1045c25e2f214d77ccdc91a48280d6de8f825be98410a242c077aca2f1"
+      },
+      {
+        "path": "api/transactions.go",
+        "sha256": "9a00f1435d9780247a75ceed8f97ffe30c818f9782e214a27997a5636e54e572"
+      },
+      {
+        "path": "transaction_inflight.go",
+        "sha256": "99fe80d77673b6f6ae214e38b6ed2c1a74d23e03e279ed25b512efaee43df02d"
+      }
+    ]
+  },
+  "tests": {
+    "go": "6 top-level unit tests passed; Blnk/PostgreSQL lifecycle test skipped",
+    "node": "3 tests passed",
+    "realChannel": "not run",
+    "realBlnkIntegrationThisRun": "not run"
+  }
+}

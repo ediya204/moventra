@@ -26,14 +26,14 @@ pnpm install --frozen-lockfile
 pnpm dev:client                   # http://127.0.0.1:8853
 pnpm dev:admin                    # http://127.0.0.1:8850
 pnpm build:client
-# 设置已批准的运营邮箱列表后构建（此列表不是后端授权依据）
-VITE_ADMIN_LOGIN_EMAILS="${VITE_ADMIN_LOGIN_EMAILS:?请配置批准的运营邮箱}" pnpm build:admin
+# 角色由 Go 服务判定，无需前端邮箱名单
+pnpm build:admin
 pnpm typecheck
 pnpm test
 bash services/api/scripts/test-postgres.sh
 ```
 
-`apps/client/vite.config.ts` 固定客户端身份，`apps/admin/vite.config.ts` 固定运营身份，不通过同一个 App 切换两端路由。后台未配置运营邮箱时拒绝全部账号。客户端保留 Google 登录，后台使用运营邮箱密码和 MFA。Firebase 身份项目共用，Go 的客户归属、运营资源授权和 MFA 是最终数据访问边界。
+`apps/client/vite.config.ts` 固定客户端身份，`apps/admin/vite.config.ts` 固定运营身份，不通过同一个 App 切换两端路由。后台以 Go 返回的 admin 角色决定准入。客户端保留 Google 登录，后台使用运营邮箱密码和 MFA。Firebase 身份项目共用，Go 的客户归属、运营资源授权和 MFA 是最终数据访问边界。
 
 `pnpm check:boundaries` 禁止两端相互引用源码、共享包反向依赖应用，并检查本地导入路径。共享库变更需验证两端；单端变更可独立发布。开发 Demo 只在开发模式使用，生产构建不打包 Demo 页面。
 

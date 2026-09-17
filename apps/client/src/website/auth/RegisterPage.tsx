@@ -18,7 +18,7 @@ export default function RegisterPage() {
     useEffect(() => {
       if (Object.keys(methods.formState.errors).length) void methods.trigger();
     }, [locale]);
-    return <AuthLayout><Stack spacing={1.5} sx={{ mb: 4 }}><Typography variant="h4" component="h1">{t("注册账户")}</Typography><Typography color="text.secondary" variant="body2">{t("填写以下信息，准备开通 Moventra 服务。")}</Typography><Typography variant="body2">{t("已有账户？")}{' '}<Link component={RouterLink} to="/login" fontWeight={600}>{t("立即登录")}</Link></Typography></Stack>
+    return <AuthLayout><Stack spacing={1.5} sx={{ mb: 4 }}><Typography variant="h4" component="h1">{t("注册账户")}</Typography><Typography color="text.secondary" variant="body2">{t("填写以下信息，准备开通 Moventra 服务。")}</Typography><Typography variant="body2">{t("已有账户？")}{' '}<Link component={RouterLink} to="/portal/login" fontWeight={600}>{t("立即登录")}</Link></Typography></Stack>
     <Alert severity="info" sx={{ mb: 3 }}>{t("注册功能预览：暂未开放自助开户，填写的信息不会上传或保存。")}</Alert>
     <FormProvider methods={methods} onSubmit={methods.handleSubmit(() => { methods.resetField('password'); methods.resetField('confirmPassword'); setChecked(true); })}><Stack spacing={2.5}>
       <RHFTextField name="name" label={t("姓名")} autoComplete="name"/>

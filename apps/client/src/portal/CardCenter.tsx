@@ -1,3 +1,4 @@
+import {UnfreezeRequestDialog} from './UnfreezeRequestDialog';
 import {detailRowProps} from "../../../../packages/shared/src/portal/rowInteraction";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -128,6 +129,7 @@ export function CardCenter({
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [menuId, setMenuId] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [unfreezeId,setUnfreezeId]=useState("");
   const [message, setMessage] = useState("");
   useEffect(() => {
     setSelected([]);
@@ -960,7 +962,7 @@ export function CardCenter({
                   <Button
                     onClick={() =>
                       card.riskFrozen
-                        ? doOperation("ticket", card.id)
+                        ? setUnfreezeId(card.id)
                         : setConfirm(card.id)
                     }
                   >
@@ -973,10 +975,11 @@ export function CardCenter({
                 </Stack>
               </Stack>
               {card.management && <Alert severity="info">{card.balanceKind==='managed_ledger'?'此卡资金由后台独立账本管理，转入和转出需审批，不使用原演示钱包。 ':''}渠道状态：{card.management.providerStatus}；最近原因：{card.management.reason || '—'}；操作人：{card.management.actor || '—'}；时间：{card.management.operatedAt || '—'}</Alert>}
+              {card.unfreezeRequest&&<Alert severity="info">解冻申请：{{pending:'待审核',returned:'待补充资料',approved:'审批通过',rejected:'已拒绝'}[card.unfreezeRequest.approval_status]||card.unfreezeRequest.approval_status}；执行：{{pending:'未执行',not_executed:'未执行',processing:'处理中',succeeded:'已确认',failed:'失败'}[card.unfreezeRequest.execution_status]||card.unfreezeRequest.execution_status}。{card.unfreezeRequest.review_note}</Alert>}
               {card.frozen && (
                 <Alert severity={card.riskFrozen ? "warning" : "info"}>
                   {card.riskFrozen
-                    ? "该卡被风控冻结，充值与转回暂不可用。请提交问题，由运营核实后处理。"
+                    ? "该卡被风控冻结，充值与转回暂不可用。请提交解冻申请，由运营审核后处理。"
                     : "该卡已自助冻结，解冻后可继续充值和转回资金。"}
                 </Alert>
               )}
@@ -1141,7 +1144,7 @@ export function CardCenter({
             key="freeze"
             onClick={() => {
               setAnchor(null);
-              if (menuCard.riskFrozen) doOperation("ticket", menuCard.id);
+              if (menuCard.riskFrozen) setUnfreezeId(menuCard.id);
               else setConfirm(menuCard.id);
             }}
           >
@@ -1153,6 +1156,7 @@ export function CardCenter({
           </MenuItem>,
         ]}
       </Menu>
+      {unfreezeId&&state.cards.find(c=>c.id===unfreezeId)&&<UnfreezeRequestDialog card={state.cards.find(c=>c.id===unfreezeId)!} state={state} onClose={()=>setUnfreezeId('')}/>}
       <Dialog
         open={Boolean(confirmCard)}
         onClose={() => setConfirm("")}
