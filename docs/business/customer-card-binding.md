@@ -52,3 +52,9 @@ GET /client-api/v1/customers/{customerID}/card-projections/{connection}/{cards|t
 用户完成 MFA 后截图显示多个开户面板及顶部状态冲突。定位为 ClientHome 同级 OnboardingPanel 与 CardSnapshots 同用 customer.id 作为 React key，状态更新导致错误组件复用。分别使用 onboarding/cards 命名空间，保留客户切换时卸载旧状态。集成测试以真实 OnboardingPanel 连续刷新三次，同时验证卡片、交易两页面板唯一、顶部状态同步、无重复 key 警告；修复前失败，修复后通过。
 
 该修复提交 `89f155f` 已推送 main，客户端 Worker `e1f22baa-fd4d-4b80-b2b5-f1e497431323` 已发布；本次前端90项测试、客户端 typecheck/build 通过。后端与数据库无需再次发布或变更。
+
+## 审批提示展示规则调整
+
+用户要求未审批登录后显示“开户中”，审批通过的 Portal 不出现开户及功能权限提示。客户端统一使用简洁状态组件：已知未审批显示单一“开户中”；draft/rejected 保留提交或重新提交能力，驳回补充资料处理说明；approved 不显示开户面板、顶部状态文案或刷新开户按钮，包括未激活/暂停状态。实际功能入口资格仍按 approved、active、allFeaturesEnabled 判断，未扩大权限。读取失败显示重试错误，不伪装为开户中；后台轮询与页面刷新数据持续更新状态。后台审批面板保持完整。
+
+本次91项前端测试、两端 typecheck、客户端 build 通过，覆盖审批后七个页面不显示相关提示、未审批提示、错误恢复、刷新后不重现面板及原权限禁用逻辑。仅发布客户端，无数据库或后端改动。

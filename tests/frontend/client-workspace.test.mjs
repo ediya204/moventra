@@ -14,7 +14,7 @@ const source=p=>ts.transpileModule(readFileSync(new URL(p,import.meta.url),'utf8
 const state=globalThis.__clientWorkspaceFixture={requests:[],auth:null};
 const shell=uri(`import React from ${JSON.stringify(resolve('react'))};
 const Pass=({children,...props})=>React.createElement('div',props,children);
-export const TextField=Pass,Alert=Pass,Avatar=Pass,Box=Pass,Container=Pass,Drawer=({open,children})=>open?React.createElement('div',null,children):null,Chip=({label})=>React.createElement('span',null,label),IconButton=Pass,List=Pass,ListItemIcon=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,Typography=Pass;
+export const TextField=Pass,Alert=({children,action})=>React.createElement('div',null,children,action),Avatar=Pass,Box=Pass,Container=Pass,Drawer=({open,children})=>open?React.createElement('div',null,children):null,Chip=({label})=>React.createElement('span',null,label),IconButton=Pass,List=Pass,ListItemIcon=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,Typography=Pass;
 export const Button=({children,...props})=>React.createElement('button',props,children);
 export const ListItemButton=({children,...props})=>React.createElement('a',props,children);
 export const ListItemText=({primary})=>React.createElement('span',null,primary);`);
@@ -63,7 +63,7 @@ test('审批开通后默认开放四项功能入口，暂停后恢复禁用',asy
  const approval={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
  await act(()=>state.setAdmission(approval));
  for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,false);
- assert.ok(text(tree).includes('全部客户端功能权限默认开放'));
+ assert.ok(!text(tree).includes('功能权限'));
  assert.ok(!text(tree).includes('待审批开通'));
  await act(()=>state.setAdmission({...approval,serviceStatus:'suspended',allFeaturesEnabled:false}));
  for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,true);
@@ -91,14 +91,14 @@ test('开户申请提交后重新查询服务端状态，失败显示错误并�
  await act(()=>tree.unmount());
 });
 
-test('各工作台页面按真实审批状态显示，未知、暂停、未激活不冒充待审批',async()=>{
+test('审批通过后各工作台页面不显示开户和权限提示，权限仍按实际状态执行',async()=>{
  for(const route of ['/portal','/portal/funds','/portal/cards','/portal/transactions','/portal/messages','/portal/support','/portal/settings']) {
   reset();const tree=await mount(route);
-  assert.ok(!text(tree).includes('待审批开通'),route);
   const approved={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
-  await act(()=>state.setAdmission(approved));assert.ok(text(tree).includes('已审批开通'),route);assert.ok(!text(tree).includes('待后台审批'),route);
-  await act(()=>state.setAdmission({...approved,serviceStatus:'suspended',allFeaturesEnabled:false}));assert.ok(text(tree).includes('服务已暂停'),route);assert.ok(!text(tree).includes('待后台审批'),route);
-  await act(()=>state.setAdmission({...approved,serviceStatus:'inactive',allFeaturesEnabled:false}));assert.ok(text(tree).includes('审核已通过，等待后台开通服务'),route);assert.ok(!text(tree).includes('待后台审批'),route);
+  for(const serviceStatus of ['active','suspended','inactive']) {
+   await act(()=>state.setAdmission({...approved,serviceStatus,allFeaturesEnabled:serviceStatus==='active'}));
+   for(const phrase of ['已审批','待审批','开户中','功能权限','刷新开户状态','等待后台开通'])assert.ok(!text(tree).includes(phrase),route+phrase);
+  }
   await act(()=>tree.unmount());
  }
 });
@@ -113,7 +113,7 @@ test('开户状态读取失败后成功恢复不保留过期报错',async()=>{
 
 const integratedCode=compiled.replaceAll(panel,uri(panelCode));
 const IntegratedClient=(await import(uri(integratedCode))).default;
-test('卡片及交易页刷新开户状态时面板唯一，顶部与面板保持同步',async()=>{
+test('卡片及交易页刷新数据后不重现审批面板，也不重复组件',async()=>{
  for(const route of ['/portal/cards','/portal/transactions']) {
   reset();let tree;const warnings=[];const previous=console.error;console.error=(...args)=>warnings.push(args.join(' '));
   try {
@@ -121,11 +121,24 @@ test('卡片及交易页刷新开户状态时面板唯一，顶部与面板保�
    for(let revision=1;revision<=3;revision++) {
     const request=state.requests.filter(r=>r.path.endsWith('/onboarding')).at(-1);
     await act(async()=>{request.resolve({customerId:'A',onboardingStatus:'approved',serviceStatus:'active',allFeaturesEnabled:true,revision});await flush()});
-    assert.equal(tree.root.findAllByType('button').filter(b=>b.props.children==='刷新开户状态').length,1);
+    assert.equal(tree.root.findAllByType('button').filter(b=>b.props.children==='刷新开户状态').length,0);
     assert.ok(!text(tree).includes('开户状态暂不可用'));
     assert.ok(!warnings.some(w=>w.includes('same key')),warnings.join('\n'));
-    if(revision<3)await act(async()=>{tree.root.findAllByType('button').find(b=>b.props.children==='刷新开户状态').props.onClick();await flush()});
+    if(revision<3)await act(async()=>{tree.root.findAllByType('button').find(b=>b.props.children==='刷新数据').props.onClick();await flush()});
    }
   } finally {if(tree)await act(()=>tree.unmount());console.error=previous;}
  }
+});
+
+test('简洁开户提示区分未审批、已审批与读取失败，审批通过后仍持续刷新状态',async()=>{
+ reset();let tree;const onState=()=>{};
+ await act(async()=>{tree=Renderer.create(React.createElement(AdmissionPanel,{customerId:'A',compact:true,onState}));await flush()});
+ assert.equal(text(tree),'');
+ const respond=async(status,revision)=>{await act(async()=>{state.requests.at(-1).resolve({customerId:'A',onboardingStatus:status,serviceStatus:status==='approved'?'active':'inactive',allFeaturesEnabled:status==='approved',revision});await flush()})};
+ const refresh=async(key)=>{await act(async()=>{tree.update(React.createElement(AdmissionPanel,{customerId:'A',compact:true,onState,refreshKey:key}));await flush()})};
+ await respond('submitted',1);assert.equal(text(tree),'开户中');
+ await refresh(1);await respond('approved',2);assert.equal(text(tree),'');
+ await refresh(2);await act(async()=>{state.requests.at(-1).reject(new Error('offline'));await flush()});assert.ok(text(tree).includes('读取失败'));assert.ok(!text(tree).includes('开户中'));
+ await act(async()=>{tree.root.findAllByType('button').find(b=>b.props.children==='重试').props.onClick();await flush()});await respond('approved',3);assert.equal(text(tree),'');
+ await act(()=>tree.unmount());
 });

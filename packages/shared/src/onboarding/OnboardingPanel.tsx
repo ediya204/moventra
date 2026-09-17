@@ -2,7 +2,7 @@ import {useEffect,useState,useRef} from 'react';
 import {Alert,Box,Button,Paper,Stack,TextField,Typography} from '@mui/material';
 import {authMessage,liveGet,updateOnboarding} from '../auth/liveApi';
 import {onboardingMessage,type OnboardingState} from '../auth/onboarding';
-export default function OnboardingPanel({customerId,admin=false,onState}:{customerId:string;admin?:boolean;onState?:(value:OnboardingState|null)=>void}){
+export default function OnboardingPanel({customerId,admin=false,onState,compact=false,refreshKey=0}:{customerId:string;admin?:boolean;compact?:boolean;refreshKey?:number;onState?:(value:OnboardingState|null)=>void}){
  const [state,setState]=useState<OnboardingState|null>(null),[error,setError]=useState(''),[revision,setRevision]=useState(0),[reason,setReason]=useState(''),[busy,setBusy]=useState(false),[reading,setReading]=useState(true),[readError,setReadError]=useState('');
  const requestVersion=useRef(0),writing=useRef(false);
  const path=`/${admin?'admin':'client'}-api/v1/customers/${customerId}/onboarding`;
@@ -11,7 +11,7 @@ export default function OnboardingPanel({customerId,admin=false,onState}:{custom
   const read=()=>{if(writing.current)return Promise.resolve();const version=++requestVersion.current;return liveGet<OnboardingState>(path).then(data=>{if(active&&version===requestVersion.current){setState(data);setReadError('');setReading(false);onState?.(data);}}).catch(e=>{if(active&&version===requestVersion.current){setState(null);onState?.(null);setReadError(authMessage(e));setReading(false);}});};
   void read();const timer=setInterval(()=>{if(document.visibilityState==='visible')void read();},15000);
   return()=>{active=false;clearInterval(timer);};
- },[path,revision,onState]);
+ },[path,revision,onState,refreshKey]);
  const current=state?.customerId===customerId?state:null;
  async function update(action:string){
   if(!current||writing.current)return;writing.current=true;requestVersion.current++;setBusy(true);setError('');onState?.(null);
@@ -20,6 +20,16 @@ export default function OnboardingPanel({customerId,admin=false,onState}:{custom
   finally{writing.current=false;setBusy(false);setRevision(n=>n+1);}
  }
  const actions=admin?current?.onboardingStatus==='submitted'?[['approve_activate','审批并开通全部功能'],['reject','驳回']]:current?.onboardingStatus==='approved'?current.serviceStatus==='active'?[['suspend','暂停服务']]:current.serviceStatus==='suspended'?[['resume','恢复全部功能']]:[['activate','开通全部功能']]:[]:current&&['draft','rejected'].includes(current.onboardingStatus)&&current.serviceStatus==='inactive'?[['submit','提交开户申请']]:[];
+ if(compact&&!admin){
+  if(readError||error)return <Alert severity="error" action={<Button onClick={()=>{setError('');setRevision(n=>n+1);}}>重试</Button>}>{error||readError}</Alert>;
+  if(!current||current.onboardingStatus==='approved')return null;
+  return <Alert severity="info">
+   <Stack spacing={1}><Typography>开户中</Typography>
+    {current.onboardingStatus==='rejected'&&<Typography>申请资料需要调整，请联系支持后重新提交。</Typography>}
+    {actions.map(([action,label])=><Button key={action} disabled={busy} onClick={()=>void update(action)}>{label}</Button>)}
+   </Stack>
+  </Alert>;
+ }
  return <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
   <Typography variant="h6">{admin?'开户审批与服务开通':'开户与功能权限'}</Typography>
   <Typography>{reading&&!current?'正在读取开户状态…':onboardingMessage(current)}</Typography>

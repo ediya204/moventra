@@ -1,6 +1,6 @@
 import CardSnapshots from './CardSnapshots';
 import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
-import {clientFeaturesEnabled,onboardingMessage,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
+import {clientFeaturesEnabled,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
 import { workspaceNavigation, workspaceWidth, workspaceGrid, workspaceChartsGrid } from "./workspaceNavigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
@@ -333,7 +333,7 @@ export default function ClientHome() {
             </>
           ) : (
             <Stack spacing={3}>
-              <Alert severity="info">{onboardingMessage(admission)} 账户权限与功能接入状态分别显示，未接入接口的功能暂不能办理。</Alert>
+              {customer && <OnboardingPanel key={`onboarding:${customer.id}`} customerId={customer.id} onState={setOnboarding} compact refreshKey={reload}/> }
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="space-between"
@@ -378,7 +378,7 @@ export default function ClientHome() {
                     {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
                       <Paper key={label} variant="outlined" sx={{ p: 2 }}>
                         <Button component={Link} to={label === "申请新卡" ? "/portal/cards" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
-                        <Typography variant="caption" color="text.secondary">{enabled ? "功能权限已开放 · 查看接入状态" : onboardingMessage(admission)}</Typography>
+                        <Typography variant="caption" color="text.secondary">查看办理详情</Typography>
                       </Paper>
                     ))}
                   </Box>
@@ -398,7 +398,6 @@ export default function ClientHome() {
                   </Box>
                 </>
               )}
-              {customer && <OnboardingPanel key={`onboarding:${customer.id}`} customerId={customer.id} onState={setOnboarding}/> }
               {["/portal", "/portal/accounts", "/portal/funds"].includes(pathname) && accounts}
               {["/portal", "/portal/transactions"].includes(pathname) && transactions}
               {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
@@ -413,7 +412,7 @@ export default function ClientHome() {
               {["funds", "messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>
                   <Typography variant="h6">{page}</Typography>
-                  <Typography color="text.secondary" sx={{ my: 2 }}>{enabled ? `${page}功能权限已开放，办理接口尚未接入。` : onboardingMessage(admission)} 当前可查询已授权的账户与交易。</Typography>
+                  <Typography color="text.secondary" sx={{ my: 2 }}>{page}办理功能暂未提供。当前可查询账户与交易。</Typography>
                   <Button component={Link} to="/portal/transactions" variant="outlined">查看交易与账单</Button>
                 </Paper>
               )}
