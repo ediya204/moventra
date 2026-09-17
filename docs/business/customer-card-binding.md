@@ -50,3 +50,5 @@ GET /client-api/v1/customers/{customerID}/card-projections/{connection}/{cards|t
 ## 登录后发现的渲染回归
 
 用户完成 MFA 后截图显示多个开户面板及顶部状态冲突。定位为 ClientHome 同级 OnboardingPanel 与 CardSnapshots 同用 customer.id 作为 React key，状态更新导致错误组件复用。分别使用 onboarding/cards 命名空间，保留客户切换时卸载旧状态。集成测试以真实 OnboardingPanel 连续刷新三次，同时验证卡片、交易两页面板唯一、顶部状态同步、无重复 key 警告；修复前失败，修复后通过。
+
+该修复提交 `89f155f` 已推送 main，客户端 Worker `e1f22baa-fd4d-4b80-b2b5-f1e497431323` 已发布；本次前端90项测试、客户端 typecheck/build 通过。后端与数据库无需再次发布或变更。
