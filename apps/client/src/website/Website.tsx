@@ -1,3 +1,4 @@
+import { websiteServices, websiteQuestions } from './content';
 import LegalLinks from './legal/LegalLinks';
 import { companyDetails } from './legal/policies';
 import { useLocale, LanguageSwitch } from '../../../../packages/shared/src/website/i18n/index.tsx';
@@ -12,20 +13,12 @@ import { BrandLogo } from '../../../../packages/shared/src/components/BrandLogo'
 function ForwardIcon() { return <Iconify icon="eva:arrow-forward-fill" width={18}/>; }
 export default function Website() {
     const { t, locale } = useLocale();
-    const services = [
-        { title: t("广告营销"), icon: 'solar:chart-2-bold-duotone', description: t("为出海品牌提供广告投放策略、素材优化与效果分析。"), items: [t("投放渠道与预算规划"), t("广告创意与落地页优化"), t("投放数据分析与复盘")] },
-        { title: t("AI 订阅"), icon: 'solar:magic-stick-3-bold-duotone', description: t("根据个人和团队的工作场景，选择合适的 AI 工具与订阅方案。"), items: [t("AI 工具选型"), t("个人与团队订阅方案"), t("订阅周期与使用管理")] },
-        { title: t("云服务"), icon: 'solar:cloud-bold-duotone', description: t("围绕业务规模和技术需求，提供部署与云资源配置服务。"), items: [t("应用与网站部署"), t("云资源配置与扩容规划"), t("运行监测与维护")] },
-    ];
+    const services = websiteServices.map(service => ({ ...service, title: t(service.title), description: t(service.description), items: service.items.map(t) }));
     const solutions = [
         { name: t("出海营销团队"), title: t("广告投放与内容生产"), description: t("适合需要开展海外投放、制作营销内容和部署落地页的团队。"), services: [t("广告营销"), t("AI 订阅"), t("云服务")], tasks: [[t("投放准备"), t("确认目标市场、渠道、预算与转化目标。")], [t("内容与页面"), t("配置内容工具，准备广告素材和落地页。")], [t("上线与复盘"), t("完成上线检查，根据投放反馈持续调整。")]] },
         { name: t("企业办公团队"), title: t("工具订阅与团队配置"), description: t("适合需要统一采购 AI 工具，提升内容、研究与日常协作效率的团队。"), services: [t("AI 订阅")], tasks: [[t("需求梳理"), t("整理岗位、使用人数和常用任务。")], [t("工具选型"), t("比较工具能力、订阅周期和团队权限。")], [t("使用配置"), t("按确认的方案配置服务和使用流程。")]] },
     ];
-    const questions = [
-        [t("可以单独购买一项服务吗？"), t("可以。三类服务均可单独咨询，也可以根据业务需求组合。具体服务内容和交付范围会在合作前确认。")],
-        [t("服务如何收费？"), t("根据服务范围、订阅类型、预计用量和维护需求报价。确认方案时会列明费用与服务周期。")],
-        [t("开始合作需要准备什么？"), t("提供业务需求、预计用量或团队人数、预算和目标时间即可。技术接入类需求还需说明现有系统和技术栈。")],
-    ];
+    const questions = websiteQuestions.map(pair => pair.map(t));
     const nav = [[t("产品与服务"), '#services'], [t("解决方案"), '#solutions'], [t("常见问题"), '#faq']];
     const sectionSx = { py: { xs: 7, md: 11 }, scrollMarginTop: 96 };
     const [mobile, setMobile] = useState(false);
@@ -42,7 +35,6 @@ export default function Website() {
       });
     }, [locale]);
     const solution = solutions[active];
-    useEffect(() => { const previous = document.title; document.title = t("Moventra | 广告营销、AI 与云服务"); return () => { document.title = previous; }; }, [locale]);
     function choose(service: string) { setInterest(services.findIndex(item => item.title === service)); setSaved(false); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }); }
     async function submitInquiry(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();

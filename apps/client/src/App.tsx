@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { useWebsiteSeo } from './website/useWebsiteSeo';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { PageSkeleton } from '../../../packages/shared/src/components/AsyncState';
 import { retiredTeamPath } from '../../../packages/shared/src/portal/personalV1';
@@ -15,6 +16,7 @@ const ForgotPasswordPage = lazy(() => import('../../../packages/shared/src/websi
 const StatusPage = lazy(() => import('../../../packages/shared/src/website/StatusPage'));
 export default function App() {
  const location=useLocation();
+ useWebsiteSeo(location.pathname);
  if(retiredTeamPath(location.pathname)) return <Navigate to="/portal" replace />;
  return <Suspense fallback={<PageSkeleton />}><Routes>
   <Route path="/" element={<Website/>}/>
