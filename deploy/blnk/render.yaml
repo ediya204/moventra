@@ -1,5 +1,5 @@
 # Standalone private Blnk infrastructure; managed independently of the app.
-# The existing Moventra application database is not a Blnk database.
+# Share the existing PostgreSQL instance, but use a separate logical database.
 services:
   - type: pserv
     name: moventra-blnk
@@ -20,12 +20,6 @@ services:
     plan: starter
     maxmemoryPolicy: noeviction
     ipAllowList: []
-databases:
-  - name: moventra-blnk-postgres
-    databaseName: moventra_blnk
-    user: moventra_blnk
-    region: singapore
-    plan: basic_256mb
-    postgresMajorVersion: '17'
-    diskSizeGB: 5
-    ipAllowList: []
+# Reuse existing moventra-postgres (dpg-daepg09t0dsc73b7q55g-a).
+# Provision logical database moventra_blnk and restricted login moventra_blnk
+# inside that instance. Do not create another billed Postgres instance.
