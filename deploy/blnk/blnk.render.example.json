@@ -1,0 +1,19 @@
+{
+  "project_name": "Moventra private ledger",
+  "data_source": {
+    "dns": "REPLACE_WITH_DEDICATED_RENDER_INTERNAL_POSTGRES_URL",
+    "max_open_conns": 10,
+    "max_idle_conns": 5
+  },
+  "redis": {
+    "dns": "REPLACE_WITH_DEDICATED_RENDER_INTERNAL_REDIS_URL",
+    "pool_size": 10,
+    "min_idle_conns": 2
+  },
+  "server": {
+    "port": "5001",
+    "secure": true,
+    "secret_key": "REPLACE_WITH_RANDOM_64_HEX_CHARACTERS",
+    "metrics_bearer_token": "REPLACE_WITH_ANOTHER_RANDOM_64_HEX_CHARACTERS"
+  }
+}

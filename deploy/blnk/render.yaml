@@ -1,0 +1,31 @@
+# Standalone private Blnk infrastructure; managed independently of the app.
+# The existing Moventra application database is not a Blnk database.
+services:
+  - type: pserv
+    name: moventra-blnk
+    runtime: image
+    image:
+      url: docker.io/jerryenebeli/blnk:0.15.4@sha256:741665b0d7d5a1c6dc0a989aacf249c05637c52dcf96163c67f9d7a7010ec22d
+    region: singapore
+    plan: starter
+    autoDeployTrigger: off
+    numInstances: 1
+    dockerCommand: blnk --config /etc/secrets/blnk.json start
+    # Supply blnk.json as a Render Secret File. It contains dedicated DB/Redis
+    # credentials plus independently generated API and metrics keys.
+    # Initial migration is a one-time pre-deploy command, cleared after success.
+  - type: keyvalue
+    name: moventra-blnk-redis
+    region: singapore
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+databases:
+  - name: moventra-blnk-postgres
+    databaseName: moventra_blnk
+    user: moventra_blnk
+    region: singapore
+    plan: basic_256mb
+    postgresMajorVersion: '17'
+    diskSizeGB: 5
+    ipAllowList: []

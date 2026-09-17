@@ -40,3 +40,15 @@ Blnk 客户端强制同步 `skip_queue=true`；`QUEUED` 永远不算成功。本
 相同 namespace 必须仅属于同一 Moventra 数据库/环境。Blnk 的 General Ledger 下，确定性的 `@mv_<hash>` indicator 对应本地账户，可恢复创建过程中丢失的响应；实际转账使用明确的 `bln_*` ID，不能把 `@` 自动创建余额当作业务账户授权。业务金额及尺度以本地 USD=2、USDT=6 的固定契约为准，每笔交易使用精确最小单位和显式 precision。
 
 普通 API 默认不启用 Blnk。`LEDGER_MODE=shadow` 仅允许本地且命名为 `moventra_shadow_*`/`moventra_test_*` 的应用库及回环地址 Blnk；不支持 `live` 模式。关闭影子读接口仅需去掉该变量；不要删除已记账证据或在未排查未知结果前重新提交新的 effectKey。
+
+## Render 私有服务
+
+`render.yaml` 描述独立的 Blnk Core、PostgreSQL 和 Redis 资源，位于 Moventra 相同的 Singapore 内网。Blnk 无公网 URL；两个数据服务关闭公网 IP allow-list。镜像与本地验收固定到同一 digest。
+
+将 `blnk.render.example.json` 中占位符替换为专属内部连接串，以及分别独立生成的 API/metrics 密钥，然后作为 Render Secret File `blnk.json` 上传。真实文件仅保存在密钥设施，不能提交仓库或放进 CLI 参数/日志。API 必须保持 secure=true。
+
+初次新空 Blnk 数据库执行 `blnk --config /etc/secrets/blnk.json migrate up`，成功后移除一次性 pre-deploy command。正常启动只执行 `blnk --config /etc/secrets/blnk.json start`。引擎升级前备份并核验 SQL 迁移；现有 Moventra 应用库不用于 Blnk 自身数据库。
+
+当前使用同步 `skip_queue=true` 记账适配，未开放异步队列执行；后续启用异步事务需补独立 workers。Typesense、官方托管 Dashboard 不是当前部署依赖。此基础设施上线不自动执行 Moventra 的迁移 006、绑定客户或开放真实记账。
+
+Blnk 私有 HTTP 入口仅供同区域服务调用，仍要求密钥；现有 Moventra 适配对非本地连接要求 HTTPS。正式接入须提供受信 TLS 或显式受限的私网传输方案，不能为了连通而删除全局 TLS 校验。
