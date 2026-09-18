@@ -18,7 +18,7 @@ const channelOwnershipJoin = ` LEFT JOIN LATERAL (
    AND NOT EXISTS(SELECT 1 FROM project_wallet_customers p WHERE p.customer_id=b.customer_id)
    AND NOT EXISTS(SELECT 1 FROM project_wallet_cards p WHERE p.connection_id=b.connection_id AND p.external_card_id=b.external_card_id)
  ) assignment ON true
- LEFT JOIN customers owner_customer ON owner_customer.id=assignment.customer_id AND assignment.scope_matches AND EXISTS(SELECT 1 FROM staff_grants g WHERE g.user_id=$12 AND g.customer_id=assignment.customer_id AND g.permission='accounts:read')
+ LEFT JOIN customers owner_customer ON owner_customer.id=assignment.customer_id AND assignment.scope_matches AND EXISTS(SELECT 1 FROM effective_staff_grants g WHERE g.user_id=$12 AND g.customer_id=assignment.customer_id AND g.permission='accounts:read')
  LEFT JOIN users owner_user ON owner_user.id=owner_customer.personal_owner_id `
 
 const channelOwnershipSelection = `r.data || jsonb_build_object(

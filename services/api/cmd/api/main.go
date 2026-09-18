@@ -46,6 +46,12 @@ func run() error {
 	if err = pool.Ping(ctx); err != nil {
 		return errors.New("database unavailable")
 	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-global-admin" {
+		return database.MigrateGlobalAdmin(ctx, pool)
+	}
+	if len(os.Args) >= 2 && (os.Args[1] == "global-admin-plan" || os.Args[1] == "global-admin-grant" || os.Args[1] == "global-admin-revoke") {
+		return globalAdminCommand(ctx, pool)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-card-controls" {
 		return database.MigrateCardControls(ctx, pool)
 	}

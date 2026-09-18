@@ -66,7 +66,7 @@ func (s *Service) Audit(ctx context.Context, tx pgx.Tx, c, id, actor, action str
 }
 func Allowed(ctx context.Context, tx pgx.Tx, actor, customer, permission string) (bool, error) {
 	var ok bool
-	e := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM manual_funds_grants WHERE user_id=$1 AND (scope='*' OR scope=$2) AND permission=$3)`, actor, customer, permission).Scan(&ok)
+	e := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM effective_manual_funds_grants WHERE user_id=$1 AND (scope='*' OR scope=$2) AND permission=$3)`, actor, customer, permission).Scan(&ok)
 	return ok, e
 }
 func (s *Service) Authorize(ctx context.Context, tx pgx.Tx, actor, customer, permission string, active bool) error {

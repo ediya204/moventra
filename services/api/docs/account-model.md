@@ -73,3 +73,7 @@
 ## 2026-09-13 开户默认功能权限
 
 用户确认：后台审批并开通后，全部客户端功能默认获得权限。审批与服务状态继续分开保存，由明确的组合操作原子更新；不自动执行资金、生成余额或开卡。暂停收回办理资格，恢复默认开放。新增接口、003迁移、权限及本次隔离验收见[开户功能权限](../../../docs/frontend/onboarding-feature-access.md)；本次用户另行确认沿用现有后台账号和客户范围后，已通过受控命令授予现有范围审批权限，保留MFA与审计。见[发布记录](../../../docs/releases/2026-09-13-onboarding-default-features.md)。
+
+## 全局管理身份（2026-09-19）
+
+新增019及受信global-admin-plan/grant/revoke命令；全局管理属于admin上的独立授权，不改变customer/admin枚举。保留MFA、审计、自审拒绝和资金能力开关。具体范围及发布状态见[流程](../../../docs/business/global-administrator.md)。

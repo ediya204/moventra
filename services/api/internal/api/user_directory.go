@@ -255,7 +255,7 @@ func (s *Server) userDirectory(w http.ResponseWriter, r *http.Request) {
 		if linked {
 			u.CustomerLinkState = "linked_restricted"
 		}
-		rows, e := tx.Query(ctx, `SELECT c.id::text,c.name,bool_or(g.permission='accounts:read'),bool_or(g.permission='onboarding:review') FROM customers c JOIN staff_grants g ON g.customer_id=c.id AND g.user_id=$2 WHERE `+ownership+` GROUP BY c.id,c.name ORDER BY c.id`, u.ID, p.ID)
+		rows, e := tx.Query(ctx, `SELECT c.id::text,c.name,bool_or(g.permission='accounts:read'),bool_or(g.permission='onboarding:review') FROM customers c JOIN effective_staff_grants g ON g.customer_id=c.id AND g.user_id=$2 WHERE `+ownership+` GROUP BY c.id,c.name ORDER BY c.id`, u.ID, p.ID)
 		if e != nil {
 			fail(w, 503, "temporarily_unavailable")
 			return

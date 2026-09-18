@@ -61,8 +61,16 @@ func (s *Server) onboarding(admin bool) http.Handler {
 		}
 		allowed := owner == p.ID
 		if admin {
+			var global bool
+			err = tx.QueryRow(r.Context(), `SELECT is_global_admin($1)`, p.ID).Scan(&global)
+			if err != nil {
+				fail(w, 503, "temporarily_unavailable")
+				return
+			}
 			var grant string
-			err = tx.QueryRow(r.Context(), `SELECT permission FROM staff_grants WHERE user_id=$1 AND customer_id=$2 AND permission='onboarding:review' FOR SHARE`, p.ID, id).Scan(&grant)
+			if !global {
+				err = tx.QueryRow(r.Context(), `SELECT permission FROM staff_grants WHERE user_id=$1 AND customer_id=$2 AND permission='onboarding:review' FOR SHARE`, p.ID, id).Scan(&grant)
+			}
 			allowed = err == nil && owner != p.ID
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				fail(w, 503, "temporarily_unavailable")

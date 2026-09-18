@@ -50,7 +50,7 @@ func (s *Server) queueCardControl(w http.ResponseWriter, r *http.Request, tx pgx
 	}
 	if customer == "" {
 		var allowed bool
-		if err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM staff_grants WHERE user_id=$1 AND customer_id=$2 AND permission='accounts:read')`, p.ID, owner).Scan(&allowed); err != nil {
+		if err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM effective_staff_grants WHERE user_id=$1 AND customer_id=$2 AND permission='accounts:read')`, p.ID, owner).Scan(&allowed); err != nil {
 			fail(w, 503, "temporarily_unavailable")
 			return
 		}

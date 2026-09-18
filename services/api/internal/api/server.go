@@ -181,7 +181,7 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 	// Scope discovery is gated by MFA too; it does not grant access. Every data
 	// request rechecks staff_grants and the verified token independently.
 	if operator && p.Identity.MFA {
-		grants, err := s.DB.Query(r.Context(), `SELECT g.customer_id::text,c.name,g.permission FROM staff_grants g JOIN customers c ON c.id=g.customer_id WHERE g.user_id=$1 ORDER BY g.customer_id,g.permission`, p.ID)
+		grants, err := s.DB.Query(r.Context(), `SELECT g.customer_id::text,c.name,g.permission FROM effective_staff_grants g JOIN customers c ON c.id=g.customer_id WHERE g.user_id=$1 ORDER BY g.customer_id,g.permission`, p.ID)
 		if err != nil {
 			fail(w, 503, "temporarily_unavailable")
 			return
@@ -200,7 +200,14 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	respond(w, 200, map[string]any{"data": map[string]any{"id": p.ID, "role": p.Role, "customers": customers, "operator": operator, "mfaVerified": p.Identity.MFA, "requiresMfa": operator && !p.Identity.MFA, "staffScopes": scopes}})
+	global := false
+	if operator && p.Identity.MFA {
+		if err := s.DB.QueryRow(r.Context(), `SELECT is_global_admin($1)`, p.ID).Scan(&global); err != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+	}
+	respond(w, 200, map[string]any{"data": map[string]any{"id": p.ID, "role": p.Role, "globalAdmin": global, "customers": customers, "operator": operator, "mfaVerified": p.Identity.MFA, "requiresMfa": operator && !p.Identity.MFA, "staffScopes": scopes}})
 }
 
 func (s *Server) query(surface, resource string) http.Handler {
@@ -245,7 +252,7 @@ func (s *Server) query(surface, resource string) http.Handler {
 		defer tx.Rollback(r.Context())
 		var allowed bool
 		if surface == "admin" {
-			err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM staff_grants WHERE user_id=$1 AND customer_id=$2 AND permission=$3)`, p.ID, customerID, resource+":read").Scan(&allowed)
+			err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM effective_staff_grants WHERE user_id=$1 AND customer_id=$2 AND permission=$3)`, p.ID, customerID, resource+":read").Scan(&allowed)
 		} else {
 			err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM customers c WHERE c.id=$2 AND (c.personal_owner_id=$1 OR EXISTS(SELECT 1 FROM memberships m WHERE m.customer_id=c.id AND m.user_id=$1 AND m.status='active')))`, p.ID, customerID).Scan(&allowed)
 		}

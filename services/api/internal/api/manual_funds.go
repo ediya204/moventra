@@ -281,7 +281,7 @@ func (s *Server) balancesAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	var anyGrant bool
-	e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM manual_funds_grants WHERE user_id=$1 AND permission='read')`, p.ID).Scan(&anyGrant)
+	e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM effective_manual_funds_grants WHERE user_id=$1 AND permission='read')`, p.ID).Scan(&anyGrant)
 	if e != nil {
 		manualFail(w, e)
 		return
@@ -310,7 +310,7 @@ func (s *Server) balancesAPI(w http.ResponseWriter, r *http.Request) {
 	base := `WITH scoped AS (SELECT u.id user_id,u.firebase_uid,u.display_name,u.status,c.id customer_id,COALESCE(c.onboarding_status,'') onboarding,COALESCE(c.service_status,'') service
  FROM users u LEFT JOIN customers c ON c.personal_owner_id=u.id AND c.kind='personal'
  WHERE u.role='customer' AND ($2='' OR c.id::text=$2) AND ($3='' OR position(lower($3) in lower(u.display_name))>0 OR c.id::text=$3) AND ($4='' OR u.firebase_uid=$4) AND ($5='' OR u.status=$5)
- AND EXISTS(SELECT 1 FROM manual_funds_grants g WHERE g.user_id=$1 AND g.permission='read' AND (g.scope='*' OR g.scope=c.id::text)))`
+ AND EXISTS(SELECT 1 FROM effective_manual_funds_grants g WHERE g.user_id=$1 AND g.permission='read' AND (g.scope='*' OR g.scope=c.id::text)))`
 	args := []any{p.ID, c, q, uid, status}
 	var total int
 	if e = tx.QueryRow(r.Context(), base+` SELECT count(*) FROM scoped`, args...).Scan(&total); e != nil {

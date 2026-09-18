@@ -174,3 +174,7 @@ TRC20限额充值使用`api prepare-deposit-pilot`核验零期初，再开启`DE
 ## 正式资金分能力接入（2026-09-18）
 
 FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终入账订单、FUNDS_PRODUCTION_DEPOSIT_FEE_MINOR=0；关闭DEPOSIT_PILOT_MODE，复用原TLS账本配置。configure-production-funds只设置一次初始政策；migrate-manual-funds仅016，不授予权限。profile不持有出金/卡片writer。
+
+## 全局管理员
+
+019新增动态全局范围，readyz要求其checksum；受控global-admin-plan/grant/revoke通过Firebase核验指定身份，不接受HTTP自报身份。详见[流程与发布顺序](../../docs/business/global-administrator.md)。

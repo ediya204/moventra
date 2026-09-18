@@ -17,7 +17,9 @@ import (
 	"time"
 )
 
-func TestManualFundsLifecycle(t *testing.T) {
+func TestManualFundsLifecycle(t *testing.T)            { testManualFundsLifecycle(t, false) }
+func TestGlobalAdminManualFundsLifecycle(t *testing.T) { testManualFundsLifecycle(t, true) }
+func testManualFundsLifecycle(t *testing.T, global bool) {
 	raw := os.Getenv("TEST_DATABASE_URL")
 	if raw == "" {
 		t.Skip("isolated PostgreSQL required")
@@ -58,6 +60,12 @@ func TestManualFundsLifecycle(t *testing.T) {
 	staff := "00000000-0000-0000-0000-000000000003"
 	reviewer := "00000000-0000-0000-0000-000000000005"
 	exec(`INSERT INTO manual_funds_grants SELECT u,'*',p FROM unnest(ARRAY[$1::uuid,$2::uuid]) u CROSS JOIN unnest(ARRAY['read','create','review','execute']) p`, staff, reviewer)
+	if global {
+		exec(`DELETE FROM manual_funds_grants WHERE user_id=$1`, staff)
+		if err := database.SetGlobalAdmin(ctx, db, "staff", "isolated-self-review-regression", true); err != nil {
+			t.Fatal(err)
+		}
+	}
 	l, e := ledger.New(db, cryptoBlnk(t), "shadow_"+schema, "general_ledger_id")
 	if e != nil {
 		t.Fatal(e)

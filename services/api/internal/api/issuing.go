@@ -131,7 +131,7 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 		if scope == "" {
 			scope = "catalog"
 		}
-		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_grants WHERE user_id=$1 AND scope_id=$2 AND permission=$3)`, p.ID, scope, permission).Scan(&allowed)
+		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM effective_issuing_grants WHERE user_id=$1 AND scope_id=$2 AND permission=$3)`, p.ID, scope, permission).Scan(&allowed)
 	} else if customer != "" {
 		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM customers WHERE id=$1 AND personal_owner_id=$2 AND kind='personal')`, customer, p.ID).Scan(&allowed)
 	}
@@ -202,7 +202,7 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 					e = issuing.ErrInvalid
 				} else {
 					var pricing bool
-					e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_grants WHERE user_id=$1 AND scope_id='catalog' AND permission='pricing:write')`, p.ID).Scan(&pricing)
+					e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM effective_issuing_grants WHERE user_id=$1 AND scope_id='catalog' AND permission='pricing:write')`, p.ID).Scan(&pricing)
 					if e == nil && !pricing {
 						var unchanged bool
 						if id != "" {

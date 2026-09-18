@@ -58,7 +58,7 @@ func (s *Service) controlStep(ctx context.Context, db *pgxpool.Conn) (bool, erro
  JOIN users u ON u.id=$4 AND u.status='active'
  WHERE l.connection_id=$1 AND l.enabled AND l.controls_enabled AND (
  (u.role='customer' AND EXISTS(SELECT 1 FROM customers x WHERE x.id=b.customer_id AND x.personal_owner_id=u.id AND x.kind='personal')) OR
- (u.role='admin' AND EXISTS(SELECT 1 FROM channel_read_grants g WHERE g.connection_id=l.connection_id AND g.user_id=u.id) AND EXISTS(SELECT 1 FROM staff_grants g WHERE g.user_id=u.id AND g.customer_id=b.customer_id AND g.permission='accounts:read')))
+ (u.role='admin' AND EXISTS(SELECT 1 FROM effective_channel_read_grants g WHERE g.connection_id=l.connection_id AND g.user_id=u.id) AND EXISTS(SELECT 1 FROM effective_staff_grants g WHERE g.user_id=u.id AND g.customer_id=b.customer_id AND g.permission='accounts:read')))
  `, c.connection, c.card, c.customer, c.actor).Scan(&c.hook, &c.account, &c.wallet)
 	if errors.Is(err, pgx.ErrNoRows) {
 		state := "failed"

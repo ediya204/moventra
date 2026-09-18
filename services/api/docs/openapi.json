@@ -184,6 +184,10 @@
                             "customer",
                             "admin"
                           ]
+                        },
+                        "globalAdmin": {
+                          "type": "boolean",
+                          "description": "Active global administrator; true only after verified operator MFA. Resource authorization and execution gates still apply."
                         }
                       },
                       "required": [
@@ -2209,6 +2213,10 @@
                             "customer",
                             "admin"
                           ]
+                        },
+                        "globalAdmin": {
+                          "type": "boolean",
+                          "description": "Active global administrator; true only after verified operator MFA. Resource authorization and execution gates still apply."
                         }
                       },
                       "required": [
@@ -2364,6 +2372,10 @@
                             "customer",
                             "admin"
                           ]
+                        },
+                        "globalAdmin": {
+                          "type": "boolean",
+                          "description": "Active global administrator; true only after verified operator MFA. Resource authorization and execution gates still apply."
                         }
                       },
                       "required": [

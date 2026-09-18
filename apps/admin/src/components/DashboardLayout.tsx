@@ -285,7 +285,7 @@ export function DashboardLayout({ production = false, children }: { production?:
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, session, signOut } = useAuth();
 
   const initials = useMemo(
     () =>
@@ -410,7 +410,7 @@ export function DashboardLayout({ production = false, children }: { production?:
                   {profile?.nickname || profile?.username || user?.email}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  后台访问会话
+                  {production && session?.globalAdmin === true ? "超级管理员" : "后台访问会话"}
                 </Typography>
               </Box>
               <Tooltip title="退出当前会话">

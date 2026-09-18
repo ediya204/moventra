@@ -294,3 +294,7 @@ GET 卡片列表/详情在正式项目钱包及运营授权下使用共同当前
 ## 正式资金分能力接入（2026-09-18）
 
 crypto快照capabilities新增otcEnabled/cardTransfersEnabled；前端同时检查客户资格与业务/网络能力。地址mode=production没有试点限额，postingEnabled取worker健康状态。正式余额查询不等于manual enabled=true。
+
+## 全局管理身份
+
+身份GET新增兼容布尔字段globalAdmin，只有active admin且完成MFA时可为true；字段仅用于界面标记，所有资源仍由服务端动态授权。既有customer/admin枚举不变，见[权限流程](../business/global-administrator.md)。

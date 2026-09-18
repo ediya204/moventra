@@ -30,7 +30,7 @@ func (s *Server) ledgerSnapshot(surface string) http.HandlerFunc {
 		defer tx.Rollback(r.Context())
 		var allowed bool
 		if surface == "admin" {
-			err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM ledger_read_grants WHERE user_id=$1 AND customer_id=$2)`, p.ID, customer).Scan(&allowed)
+			err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM effective_ledger_read_grants WHERE user_id=$1 AND customer_id=$2)`, p.ID, customer).Scan(&allowed)
 		} else {
 			err = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM customers WHERE id=$1 AND kind='personal' AND personal_owner_id=$2)`, customer, p.ID).Scan(&allowed)
 		}

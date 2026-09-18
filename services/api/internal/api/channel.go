@@ -85,7 +85,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Existing staff role and a separate explicit channel grant are both required.
-	const scope = `g.user_id=$1 AND EXISTS(SELECT 1 FROM staff_grants s WHERE s.user_id=g.user_id)`
+	const scope = `g.user_id=$1 AND (is_global_admin(g.user_id) OR EXISTS(SELECT 1 FROM effective_staff_grants s WHERE s.user_id=g.user_id))`
 	walletScoped := false
 	if client {
 		if e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM project_wallet_customers WHERE customer_id=$1)`, customer).Scan(&walletScoped); e != nil {
@@ -94,7 +94,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if connection == "" {
-		query := `SELECT c.id,c.label,c.revision,c.source_at::text,c.imported_at::text FROM channel_connections c JOIN channel_read_grants g ON g.connection_id=c.id WHERE ` + scope + ` ORDER BY c.id`
+		query := `SELECT c.id,c.label,c.revision,c.source_at::text,c.imported_at::text FROM channel_connections c JOIN effective_channel_read_grants g ON g.connection_id=c.id WHERE ` + scope + ` ORDER BY c.id`
 		arg := p.ID
 		if client {
 			query = `SELECT c.id,c.label,b.revision,i.source_at::text,i.imported_at::text FROM customer_card_snapshots b JOIN channel_connections c ON c.id=b.connection_id JOIN channel_imports i ON i.connection_id=b.connection_id AND i.revision=b.revision WHERE b.customer_id=$1 ORDER BY c.id`
@@ -130,7 +130,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		if client {
 			_, e = tx.Exec(r.Context(), `INSERT INTO audit_events(actor_id,customer_id,action) VALUES($1,$2,'card-snapshot:connections:read')`, p.ID, customer)
 		} else {
-			_, e = tx.Exec(r.Context(), `INSERT INTO channel_read_audit(connection_id,actor_id,action,revision) SELECT c.id,$1,'projection:connections:read',c.revision FROM channel_connections c JOIN channel_read_grants g ON g.connection_id=c.id WHERE `+scope, p.ID)
+			_, e = tx.Exec(r.Context(), `INSERT INTO channel_read_audit(connection_id,actor_id,action,revision) SELECT c.id,$1,'projection:connections:read',c.revision FROM channel_connections c JOIN effective_channel_read_grants g ON g.connection_id=c.id WHERE `+scope, p.ID)
 		}
 		if e != nil || tx.Commit(r.Context()) != nil {
 			fail(w, 503, "temporarily_unavailable")
@@ -146,7 +146,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	} else if client {
 		e = tx.QueryRow(r.Context(), `SELECT b.revision,i.source_at,i.imported_at FROM customer_card_snapshots b JOIN channel_imports i ON i.connection_id=b.connection_id AND i.revision=b.revision WHERE b.customer_id=$1 AND b.connection_id=$2`, customer, connection).Scan(&revision, &sourceAt, &importedAt)
 	} else {
-		e = tx.QueryRow(r.Context(), `SELECT c.revision,c.source_at,c.imported_at FROM channel_connections c JOIN channel_read_grants g ON g.connection_id=c.id WHERE `+scope+` AND c.id=$2`, p.ID, connection).Scan(&revision, &sourceAt, &importedAt)
+		e = tx.QueryRow(r.Context(), `SELECT c.revision,c.source_at,c.imported_at FROM channel_connections c JOIN effective_channel_read_grants g ON g.connection_id=c.id WHERE `+scope+` AND c.id=$2`, p.ID, connection).Scan(&revision, &sourceAt, &importedAt)
 	}
 	if e == pgx.ErrNoRows {
 		fail(w, 404, "not_found")

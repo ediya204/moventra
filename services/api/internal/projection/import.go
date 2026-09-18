@@ -171,7 +171,7 @@ func Import(ctx context.Context, db *pgxpool.Pool, b Bundle, operatorUID string)
 		return "", e
 	}
 	var actor string
-	e = tx.QueryRow(ctx, `SELECT id::text FROM users u WHERE firebase_uid=$1 AND status='active' AND EXISTS(SELECT 1 FROM staff_grants g WHERE g.user_id=u.id)`, operatorUID).Scan(&actor)
+	e = tx.QueryRow(ctx, `SELECT id::text FROM users u WHERE firebase_uid=$1 AND status='active' AND (is_global_admin(u.id) OR EXISTS(SELECT 1 FROM staff_grants g WHERE g.user_id=u.id))`, operatorUID).Scan(&actor)
 	if e != nil {
 		return "", fmt.Errorf("existing active operator required")
 	}

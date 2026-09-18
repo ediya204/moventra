@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"moventra.local/api/internal/database"
 )
 
 func testCardControls(t *testing.T, ctx context.Context, db *pgxpool.Pool, s *Service) {
@@ -143,6 +144,39 @@ func testCardControls(t *testing.T, ctx context.Context, db *pgxpool.Pool, s *Se
 	check(id, "failed")
 	if patches.Load() != beforePatch {
 		t.Fatal("revoked write")
+	}
+	// The dispatch worker must recognize global scope, and recheck revocation.
+	admin := uuid.NewString()
+	if _, err := db.Exec(ctx, `INSERT INTO users(id,firebase_uid,display_name,role) VALUES($1,'global-control','Global operator','admin')`, admin); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.SetGlobalAdmin(ctx, db, "global-control", "isolated-control", true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(ctx, `UPDATE card_sync_links SET controls_enabled=true WHERE connection_id='source'`); err != nil {
+		t.Fatal(err)
+	}
+	status.Store("paused")
+	id = enqueue("paused", "active", "queued")
+	if _, err := db.Exec(ctx, `UPDATE card_control_commands SET actor_id=$1 WHERE id=$2`, admin, id); err != nil {
+		t.Fatal(err)
+	}
+	step()
+	check(id, "confirming")
+	step()
+	check(id, "confirmed")
+	id = enqueue("active", "paused", "queued")
+	if _, err := db.Exec(ctx, `UPDATE card_control_commands SET actor_id=$1 WHERE id=$2`, admin, id); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.SetGlobalAdmin(ctx, db, "global-control", "isolated-revoke", false); err != nil {
+		t.Fatal(err)
+	}
+	beforePatch = patches.Load()
+	step()
+	check(id, "failed")
+	if patches.Load() != beforePatch {
+		t.Fatal("global revocation bypassed at dispatch")
 	}
 	var observations int
 	if err := db.QueryRow(ctx, `SELECT count(*) FROM card_control_observations`).Scan(&observations); err != nil || observations < 8 {

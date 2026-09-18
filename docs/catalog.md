@@ -81,6 +81,7 @@
 - [已有后台功能恢复记录](business/existing-modules-restoration-2026-09-13.md) — `docs/business/existing-modules-restoration-2026-09-13.md`
 - [资金、定价与运营业务说明](business/funds-and-operations.md) — `docs/business/funds-and-operations.md`
 - [资金中心四流程与正式接入准备](business/funds-center.md) — `docs/business/funds-center.md`
+- [生产全局管理员](business/global-administrator.md) — `docs/business/global-administrator.md`
 - [正式身份、客户主体与业务开通](business/identity-and-production.md) — `docs/business/identity-and-production.md`
 - [FLOW-TEST-FUNDS-01 正式登录后的测试资金流程](business/online-test-funds.md) — `docs/business/online-test-funds.md`
 - [FLOW-TEST-WALLET-01 线上测试余额](business/online-test-wallet.md) — `docs/business/online-test-wallet.md`

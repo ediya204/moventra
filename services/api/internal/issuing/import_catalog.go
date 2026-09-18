@@ -47,7 +47,7 @@ func ImportCatalog(ctx context.Context, db *pgxpool.Pool, v CatalogImport) (int,
 		return 0, e
 	}
 	var allowed bool
-	e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM users u JOIN issuing_grants g ON g.user_id=u.id WHERE u.id=$1 AND u.role='admin' AND u.status='active' AND g.scope_id='catalog' AND g.permission='catalog:write')`, v.ActorID).Scan(&allowed)
+	e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM users u JOIN effective_issuing_grants g ON g.user_id=u.id WHERE u.id=$1 AND u.role='admin' AND u.status='active' AND g.scope_id='catalog' AND g.permission='catalog:write')`, v.ActorID).Scan(&allowed)
 	if e != nil {
 		return 0, e
 	}

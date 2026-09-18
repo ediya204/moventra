@@ -70,7 +70,7 @@ func (s *Server) cryptoScopes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback(r.Context())
-	rows, e := tx.Query(r.Context(), `SELECT c.id::text,c.name,array_agg(g.permission ORDER BY g.permission) FROM crypto_grants g JOIN customers c ON c.id=g.customer_id WHERE namespace=$1 AND user_id=$2 GROUP BY c.id,c.name ORDER BY c.id LIMIT 201`, svc.NS(), p.ID)
+	rows, e := tx.Query(r.Context(), `SELECT c.id::text,c.name,array_agg(g.permission ORDER BY g.permission) FROM effective_crypto_grants($1) g JOIN customers c ON c.id=g.customer_id WHERE namespace=$1 AND user_id=$2 GROUP BY c.id,c.name ORDER BY c.id LIMIT 201`, svc.NS(), p.ID)
 	if e != nil {
 		cryptoFail(w, e)
 		return

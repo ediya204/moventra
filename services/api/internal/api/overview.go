@@ -180,7 +180,7 @@ func (s *Server) opsOverview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback(r.Context())
-	grants, err := tx.Query(r.Context(), `SELECT customer_id::text FROM staff_grants WHERE user_id=$1 AND permission='transactions:read' ORDER BY customer_id`, p.ID)
+	grants, err := tx.Query(r.Context(), `SELECT customer_id::text FROM effective_staff_grants WHERE user_id=$1 AND permission='transactions:read' ORDER BY customer_id`, p.ID)
 	if err != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return
@@ -214,7 +214,7 @@ SELECT to_char(t.occurred_at AT TIME ZONE 'Asia/Hong_Kong','YYYY-MM-DD'),
        count(*) FILTER (WHERE t.status='failed'), count(*)
 FROM transactions t
 WHERE t.currency='USD' AND t.occurred_at >= $2 AND t.occurred_at < $3
-  AND EXISTS (SELECT 1 FROM staff_grants g WHERE g.user_id=$1 AND g.customer_id=t.customer_id AND g.permission='transactions:read')
+  AND EXISTS (SELECT 1 FROM effective_staff_grants g WHERE g.user_id=$1 AND g.customer_id=t.customer_id AND g.permission='transactions:read')
 GROUP BY 1 ORDER BY 1`, p.ID, from, to)
 	if err != nil {
 		fail(w, 503, "temporarily_unavailable")
@@ -246,7 +246,7 @@ GROUP BY 1 ORDER BY 1`, p.ID, from, to)
 	version, _ := json.Marshal([]any{"ops-overview-v1", p.ID, scopes, result.Range.From, result.Daily})
 	hash := sha256.Sum256(version)
 	result.Revision = hex.EncodeToString(hash[:])
-	_, err = tx.Exec(r.Context(), `INSERT INTO audit_events(actor_id,customer_id,action) SELECT user_id,customer_id,'transactions:overview:read' FROM staff_grants WHERE user_id=$1 AND permission='transactions:read'`, p.ID)
+	_, err = tx.Exec(r.Context(), `INSERT INTO audit_events(actor_id,customer_id,action) SELECT user_id,customer_id,'transactions:overview:read' FROM effective_staff_grants WHERE user_id=$1 AND permission='transactions:read'`, p.ID)
 	if err != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return

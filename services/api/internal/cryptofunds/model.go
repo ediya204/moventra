@@ -211,7 +211,7 @@ func (s *Service) Authorize(ctx context.Context, tx pgx.Tx, customer, actor, per
 	}
 	if admin {
 		var allowed bool
-		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM crypto_grants WHERE namespace=$1 AND customer_id=$2 AND user_id=$3 AND permission=$4)`, s.NS(), customer, actor, permission).Scan(&allowed)
+		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM effective_crypto_grants($1) WHERE namespace=$1 AND customer_id=$2 AND user_id=$3 AND permission=$4)`, s.NS(), customer, actor, permission).Scan(&allowed)
 		if e != nil {
 			return e
 		}

@@ -6,7 +6,7 @@ import { getFirebaseAuth } from '../firebase';
 
 export type CustomerScope = { id: string; kind: 'personal' | 'business'; name: string };
 export type LiveSession = {
-  id: string; role: 'customer' | 'admin'; customers: CustomerScope[]; operator: boolean; mfaVerified: boolean;
+  id: string; role: 'customer' | 'admin'; globalAdmin?: boolean; customers: CustomerScope[]; operator: boolean; mfaVerified: boolean;
   requiresMfa: boolean; staffScopes: { customerId: string; name: string; permission: string }[];
 };
 export class SessionError extends Error {

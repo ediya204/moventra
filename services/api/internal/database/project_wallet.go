@@ -58,7 +58,7 @@ func AssignProjectWalletCards(ctx context.Context, pool *pgxpool.Pool, operatorU
 		return p, e
 	}
 	var actor string
-	e = tx.QueryRow(ctx, `SELECT u.id::text FROM users u JOIN channel_read_grants g ON g.user_id=u.id WHERE u.firebase_uid=$1 AND u.status='active' AND u.role='admin' AND g.connection_id=$2 AND EXISTS(SELECT 1 FROM staff_grants s WHERE s.user_id=u.id)`, operatorUID, input.ConnectionID).Scan(&actor)
+	e = tx.QueryRow(ctx, `SELECT u.id::text FROM users u JOIN effective_channel_read_grants g ON g.user_id=u.id WHERE u.firebase_uid=$1 AND u.status='active' AND u.role='admin' AND g.connection_id=$2 AND EXISTS(SELECT 1 FROM effective_staff_grants s WHERE s.user_id=u.id)`, operatorUID, input.ConnectionID).Scan(&actor)
 	if e != nil {
 		return p, errors.New("active operator with source grant required")
 	}
