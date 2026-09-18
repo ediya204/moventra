@@ -16,7 +16,7 @@ const contract=uri(source('../../packages/shared/src/auth/cryptoContract.ts'));
 const {cryptoRoute,cryptoUnits,cryptoMoney}=await import(contract);
 const id='10000000-0000-0000-0000-000000000001',path=`/client-api/v1/customers/${id}/crypto`;
 test('crypto exact amounts and gateway/transport methods stay in parity',async()=>{
- assert.equal(cryptoUnits('9007199254.740993','USDT'),'9007199254740993');assert.equal(cryptoMoney('9007199254740993','USDT'),'9007199254.740993 USDT');
+ assert.equal(cryptoUnits('9007199254.740993','USDT'),'9007199254740993');assert.equal(cryptoMoney('9007199254740993','USDT'),'9007199254.74 USDT');
  for(const s of ['0','-1','1e3','01','1.001'])assert.throws(()=>cryptoUnits(s,'USD'));
  for(const suffix of ['', '/otc/quotes','/otc/orders','/orders/'+id,'/approve','/addresses','/settings','/withdrawals/orders','?page=1&kind=otc','?page=0&page=1'])for(const method of ['GET','POST','DELETE'])assert.equal(cryptoRoute(method,path+suffix),gatewayRoute(method,path+suffix));
  assert.ok(cryptoRoute('POST',path+'/otc/orders'));assert.ok(!cryptoRoute('POST',path+'/approve'));assert.ok(!cryptoRoute('GET',path+'/otc/quotes'));assert.ok(!cryptoRoute('POST','https://evil.invalid'+path+'/otc/orders'));
@@ -38,7 +38,7 @@ const fixture={mode:'shadow',executionEligible:false,customerId:id,settings:{rev
 const flush=()=>new Promise(r=>setImmediate(r)),content=n=>typeof n==='string'?n:Array.isArray(n)?n.map(content).join(''):n?.children?content(n.children):'',button=(t,s)=>t.root.findAllByType('button').find(b=>content(b.props.children)===s);
 async function mount(){let tree;await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:['/portal/crypto?tab=exchange']},React.createElement(Funds,{customerId:id,basePath:'/portal/crypto'})));await flush()});return tree;}
 test('OTC UI uses exact quote then retains the same request after an uncertain submission and reload',async()=>{
- state.reads=[];state.writes=[];memory.clear();let tree=await mount();await act(async()=>{state.reads[0].resolve(fixture);await flush()});assert.match(content(tree.toJSON()),/100.000000 USDT/);
+ state.reads=[];state.writes=[];memory.clear();let tree=await mount();await act(async()=>{state.reads[0].resolve(fixture);await flush()});assert.match(content(tree.toJSON()),/100.00 USDT/);
  await act(()=>tree.root.findAllByType('input').find(n=>n.props.label==='卖出 / 提现金额').props.onChange({target:{value:'12.123456'}}));
  await act(async()=>{button(tree,'获取报价').props.onClick();await flush()});assert.deepEqual(state.writes[0].body,{currency:'USDT',amountMinor:'12123456'});
  await act(async()=>{state.writes[0].resolve({id,kind:'otc',customerId:id,currency:'USDT',toCurrency:'USD',amountMinor:'12123456',receiveMinor:'1188',feeMinor:'0',rate:'0.98',policyRevision:1,expiresAt:new Date(Date.now()+300000).toISOString()});await flush()});

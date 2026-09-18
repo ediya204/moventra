@@ -19,6 +19,7 @@ export function numberValue(value: unknown) {
 
 export function formatAmount(value: unknown, currency = 'USD') {
   const amount = numberValue(value);
+  if (currency === 'USDT') return `${new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2, ...{ roundingMode: 'trunc' } }).format(amount)} USDT`;
   try {
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',

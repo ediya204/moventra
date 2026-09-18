@@ -70,6 +70,10 @@ func (s *Service) SyncCard(ctx context.Context, id string) error {
 	if e = json.Unmarshal(raw, &snapshot); e != nil {
 		return e
 	}
+	s, e = s.forSnapshot(snapshot)
+	if e != nil {
+		return e
+	}
 	var blocked bool
 	if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_supplier_blocks WHERE supplier_id=$1)`, supplierID).Scan(&blocked); e != nil {
 		return e
@@ -174,6 +178,9 @@ func (s *Service) SyncCard(ctx context.Context, id string) error {
 	return tx.Commit(ctx)
 }
 func (s *Service) Reconciliation(ctx context.Context, tx pgx.Tx, customer string) (any, error) {
+	if s.Funds != nil {
+		return s.Funds.SnapshotTx(ctx, tx, customer)
+	}
 	rows, e := tx.Query(ctx, `SELECT account_key,blnk_id FROM issuing_balances WHERE customer_id=$1 ORDER BY account_key LIMIT 501`, customer)
 	if e != nil {
 		return nil, e

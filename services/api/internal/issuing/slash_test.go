@@ -14,9 +14,9 @@ func TestSlashBoundary(t *testing.T) {
 	var posts atomic.Int32
 	limit := "0"
 	reject := false
-	v := Snapshot{Product: Product{UpstreamID: "prod"}, Supplier: Supplier{Adapter: "slash", AccountRef: "acct", EntityRef: "entity"}, CardName: "James Anderson"}
+	v := Snapshot{Product: Product{UpstreamID: "prod"}, Supplier: Supplier{Adapter: "slash", AccountRef: "acct", EntityRef: "entity"}, CardName: "James Anderson", VirtualAccountID: "va"}
 	card := func() map[string]any {
-		return map[string]any{"id": "card", "accountId": "acct", "cardProductId": "prod", "last4": "1234", "status": "active", "userData": map[string]string{"moventraOrderId": "order"}, "spendingConstraint": constraint(limit), "pan": "DO_NOT_PERSIST", "cvv": "DO_NOT_PERSIST"}
+		return map[string]any{"id": "card", "accountId": "acct", "virtualAccountId": "va", "cardProductId": "prod", "last4": "1234", "status": "active", "userData": map[string]string{"moventraOrderId": "order"}, "spendingConstraint": constraint(limit), "pan": "DO_NOT_PERSIST", "cvv": "DO_NOT_PERSIST"}
 	}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-API-Key") != "test" || r.Header.Get("x-legal-entity") != "entity" {
@@ -34,10 +34,11 @@ func TestSlashBoundary(t *testing.T) {
 				Holder     *string         `json:"cardholderId"`
 				Product    string          `json:"cardProductId"`
 				Account    string          `json:"accountId"`
+				Wallet     string          `json:"virtualAccountId"`
 				Constraint slashConstraint `json:"spendingConstraint"`
 			}
 			json.NewDecoder(r.Body).Decode(&body)
-			if body.Name != v.CardName || body.Holder != nil {
+			if body.Name != v.CardName || body.Holder != nil || body.Wallet != "va" {
 				t.Error("display name or default holder mismatch")
 			}
 			if body.Product != "prod" || body.Account != "acct" || body.Constraint.SpendingRule.UtilizationLimit.LimitAmount.Amount.String() != "0" {
@@ -84,6 +85,11 @@ func TestSlashBoundary(t *testing.T) {
 	if e = s.Enable(ctx, c, v, "1000"); e != ErrRejected {
 		t.Fatal(e)
 	}
+	v.VirtualAccountID = "other"
+	if _, e = s.Find(ctx, "order", v); e != ErrUnknown {
+		t.Fatal("wrong project wallet accepted", e)
+	}
+	v.VirtualAccountID = "va"
 	v.Supplier.AccountRef = "other"
 	if _, e = s.Create(ctx, "order", v); e != ErrRejected || posts.Load() != 1 {
 		t.Fatal("cross account write")

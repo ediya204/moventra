@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
+	"strings"
 )
 
 var ErrConsent = errors.New("consent_required")
@@ -20,6 +21,16 @@ type Terms struct {
 func CurrentTerms() Terms {
 	text := "我承诺仅将卡片用于合法用途，不用于诈骗、洗钱或其他违法活动。开卡费与首充从独立 USD 开卡钱包支付。发卡失败退回全部预占金额；发卡成功后开卡费不退，首充失败仅退回首充金额，可对原卡补充首充且不重复收取开卡费。结果未知时需等待核查，不代表失败或退款。首充属于内部卡分户记账，卡片是否可用以启用核验结果为准。"
 	return Terms{Version: "issuing-2026-09-18-v1", Text: text, Digest: hash(text)}
+}
+
+func (s *Service) Terms() Terms {
+	t := CurrentTerms()
+	if s.Funds != nil {
+		t.Version = "issuing-funds-2026-09-19-v1"
+		t.Text = strings.Replace(t.Text, "独立 USD 开卡钱包", "资金中心 USD 钱包", 1)
+		t.Digest = hash(t.Text)
+	}
+	return t
 }
 
 type Checkout struct {
@@ -53,7 +64,7 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, customer, actor, key 
 	if e != pgx.ErrNoRows {
 		return nil, e
 	}
-	terms := CurrentTerms()
+	terms := s.Terms()
 	var version string
 	e = tx.QueryRow(ctx, `SELECT terms_version FROM issuing_quotes WHERE id=$1 AND customer_id=$2`, v.QuoteID, customer).Scan(&version)
 	if e != nil {
@@ -114,6 +125,46 @@ func (s *Service) Cards(ctx context.Context, tx pgx.Tx, customer, id string, off
 		return nil, e
 	}
 	result := map[string]any{"order": order, "currency": "USD", "balanceMinor": nil, "balanceStatus": "unavailable", "balanceKind": "internal_card_subaccount"}
+	// Only an explicit same-customer, same-account mapping can link the channel view.
+	var projectionConnection, projectionCard string
+	mappingErr := tx.QueryRow(ctx, `SELECT p.connection_id,p.external_card_id FROM issuing_orders o JOIN issuing_suppliers s ON s.id=o.supplier_id JOIN project_wallet_cards p ON p.customer_id=o.customer_id AND p.external_card_id=o.external_card_id JOIN project_wallets w ON w.connection_id=p.connection_id AND w.virtual_account_ref=p.virtual_account_ref AND w.account_ref=s.account_ref WHERE o.id=$1 AND o.customer_id=$2 AND EXISTS(SELECT 1 FROM channel_current_records r WHERE r.connection_id=p.connection_id AND r.kind='card' AND r.external_id=p.external_card_id AND r.data->>'accountId'=w.account_ref AND r.data->>'virtualAccountId'=w.virtual_account_ref) AND (SELECT count(*) FROM project_wallet_cards x JOIN project_wallets y ON y.connection_id=x.connection_id AND y.virtual_account_ref=x.virtual_account_ref WHERE x.customer_id=o.customer_id AND x.external_card_id=o.external_card_id AND y.account_ref=s.account_ref)=1`, id, customer).Scan(&projectionConnection, &projectionCard)
+	if mappingErr == nil {
+		result["projection"] = map[string]string{"connection": projectionConnection, "cardId": projectionCard}
+	} else if mappingErr != pgx.ErrNoRows {
+		return nil, mappingErr
+	}
+	var snapshotRaw []byte
+	if e = tx.QueryRow(ctx, `SELECT snapshot FROM issuing_orders WHERE id=$1 AND customer_id=$2`, id, customer).Scan(&snapshotRaw); e != nil {
+		return nil, e
+	}
+	var snap Snapshot
+	if e = json.Unmarshal(snapshotRaw, &snap); e != nil {
+		return nil, e
+	}
+	accounting, routeErr := s.forSnapshot(snap)
+	if routeErr != nil {
+		return result, nil
+	}
+	s = accounting
+	if s.Funds != nil {
+		var key string
+		if e = tx.QueryRow(ctx, `SELECT external_card_id FROM issuing_orders WHERE id=$1 AND customer_id=$2`, id, customer).Scan(&key); e != nil {
+			return nil, e
+		}
+		view, err := s.Funds.SnapshotTx(ctx, tx, customer)
+		if err != nil {
+			return result, nil
+		}
+		for _, a := range view.Accounts {
+			if a.Key == "funds-card:"+snap.ConnectionID+":"+key {
+				result["balanceMinor"] = a.PostedMinor
+				result["balanceStatus"] = "known"
+				return result, nil
+			}
+		}
+		result["balanceStatus"] = "not_funded"
+		return result, nil
+	}
 	if s.Blnk == nil {
 		return result, nil
 	}

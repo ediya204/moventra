@@ -392,7 +392,8 @@ export function units(value: string, currency: Currency): number {
   return Number(amount);
 }
 export function asset(value: number, currency: Currency = "USD"): string {
-  return `${new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: currency === "USD" ? 2 : 6 }).format(value / (currency === "USD" ? 100 : 1000000))} ${currency}`;
+  const n = BigInt(value) / (currency === "USDT" ? 10000n : 1n), a = n < 0n ? -n : n;
+  return `${n < 0n ? "-" : ""}${(a / 100n).toLocaleString("en-US")}.${String(a % 100n).padStart(2, "0")} ${currency}`;
 }
 export function financeTransition(
   state: State,

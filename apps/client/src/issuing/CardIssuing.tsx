@@ -1,3 +1,4 @@
+import SectionNavigation from '../../../../packages/shared/src/components/SectionNavigation';
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -15,6 +16,7 @@ import {
   Link,
   useLocation,
   useNavigate,
+  Navigate,
   useSearchParams,
 } from "react-router-dom";
 import {
@@ -56,7 +58,7 @@ function Pager({
   go: (n: number) => void;
 }) {
   return (
-    <Stack direction="row" spacing={2} alignItems="center">
+    <Stack direction="row" gap={1} flexWrap="wrap" justifyContent="space-between" alignItems="center">
       <Button disabled={page <= 1} onClick={() => go(page - 1)}>
         上一页
       </Button>
@@ -83,17 +85,11 @@ export default function CardIssuing({
   const id = pathname.split("/").at(-1)!;
   return (
     <Stack spacing={3}>
-      <Stack direction="row" gap={1} flexWrap="wrap">
-        <Button component={Link} to="/portal/cards/new" variant="contained">
-          开卡
-        </Button>
-        <Button component={Link} to="/portal/card-orders">
-          开卡订单
-        </Button>
-        <Button component={Link} to="/portal/cards">
-          卡片中心
-        </Button>
-      </Stack>
+      {pathname !== "/portal/cards" && <SectionNavigation label="卡片分区" active={pathname.startsWith('/portal/card-orders')?'orders':pathname==='/portal/cards/new'?'new':'cards'} items={[
+        {value:'cards',label:'我的卡片',to:'/portal/cards'},
+        {value:'new',label:'申请新卡',to:'/portal/cards/new'},
+        {value:'orders',label:'开卡订单',to:'/portal/card-orders'},
+      ]}/>}
       {pathname === "/portal/cards/new" ? (
         <Checkout
           key={customerId}
@@ -268,9 +264,12 @@ function Checkout({
   }
   return (
     <Stack spacing={2}>
-      <Typography variant="h4">申请新卡</Typography>
+      <Typography variant="h6">选择卡片产品</Typography>
       {wallet.data?.mode === "isolated" && (
         <Alert severity="info">隔离验收环境 · 合成资金与模拟发卡</Alert>
+      )}
+      {wallet.data?.executionEnabled === false && (
+        <Alert severity="info">开卡服务尚未开放，当前可查看产品与历史订单。</Alert>
       )}
       {pending && (
         <Alert
@@ -290,7 +289,7 @@ function Checkout({
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
-            md: "minmax(0,1.4fr) minmax(320px,1fr)",
+            md: "minmax(0,1.2fr) minmax(300px,1fr)",
           },
           gap: 3,
         }}
@@ -365,12 +364,12 @@ function Checkout({
             go={(n) => update("page", String(n))}
           />
         </Stack>
-        <Paper variant="outlined" sx={{ p: 3, alignSelf: "start" }}>
+        <Paper variant="outlined" sx={{ p: {xs:2,md:3}, alignSelf: "start", minWidth:0 }}>
           <Stack spacing={2}>
             <Typography variant="h6">确认费用与首充</Typography>
             <LoadError message={wallet.error} retry={wallet.refresh} />
             <Typography>
-              USD 开卡钱包可用余额：
+              {wallet.data?.fundingSource === "funds_wallet" ? "资金中心 USD 可用余额：" : "USD 开卡钱包可用余额："}
               {wallet.error
                 ? "暂不可查询"
                 : wallet.data
@@ -378,8 +377,9 @@ function Checkout({
                   : "查询中"}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              余额不足请联系运营核对并补足到账资金。
+              {wallet.data?.fundingSource === "funds_wallet" ? "开卡费和首充将从资金中心 USD 钱包扣除。" : "余额不足请联系运营核对并补足到账资金。"}
             </Typography>
+            {wallet.data?.fundingSource === "funds_wallet" && <Button component={Link} to="/portal/funds/exchange">前往资金中心兑换 USD</Button>}
             {product ? (
               <>
                 <Typography>
@@ -507,13 +507,12 @@ function RecordList({ base, cards }: { base: string; cards: boolean }) {
     setParams(next);
   };
   return (
-    <Stack spacing={2}>
-      <Typography variant="h5">{cards ? "本次开卡" : "开卡订单"}</Typography>
+    <Paper variant="outlined" sx={{p:{xs:2,md:3},minWidth:0}}><Stack spacing={2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}><Typography variant="h6">{cards ? "新开卡片" : "开卡订单"}</Typography><Button onClick={rows.refresh}>刷新记录</Button></Stack>
       <LoadError message={rows.error} retry={rows.refresh} />
-      <Button onClick={rows.refresh}>刷新记录</Button>
       {!rows.data && !rows.error && <CircularProgress />}
       {rows.data?.length === 0 && (
-        <Typography color="text.secondary">暂无记录</Typography>
+        <Stack alignItems="center" spacing={1} sx={{py:4}}><Typography variant="subtitle2">{cards?"暂无新开卡片":"暂无开卡订单"}</Typography><Typography variant="body2" color="text.secondary">申请新卡后，可在这里查询办理结果。</Typography><Button component={Link} to="/portal/cards/new">浏览卡片产品</Button></Stack>
       )}
       {rows.data?.slice(0, 50).map((o) => (
         <Paper key={o.id} variant="outlined" sx={{ p: 2 }}>
@@ -536,7 +535,7 @@ function RecordList({ base, cards }: { base: string; cards: boolean }) {
         </Paper>
       ))}
       <Pager page={page} next={(rows.data?.length || 0) > 50} go={go} />
-    </Stack>
+    </Stack></Paper>
   );
 }
 function OrderDetail({
@@ -553,7 +552,7 @@ function OrderDetail({
   const result = useIssuing<Order>(base + "/orders/" + id, 0, orderPending);
   return (
     <Stack spacing={2}>
-      <Typography variant="h4">开卡订单详情</Typography>
+      <Typography variant="h6">订单信息</Typography>
       <LoadError message={result.error} retry={result.refresh} />
       <Button onClick={result.refresh}>刷新处理结果</Button>
       {!result.data && !result.error && <CircularProgress />}
@@ -660,7 +659,7 @@ function RetryFunding({
     }
   }
   return (
-    <Paper variant="outlined" sx={{ p: 3 }}>
+    <Paper variant="outlined" sx={{ p: {xs:2,md:3},minWidth:0 }}>
       <Stack spacing={2}>
         <Typography variant="h6">原卡补充首充 · 开卡费 USD 0.00</Typography>
         <LoadError message={product.error} retry={product.refresh} />
@@ -687,7 +686,7 @@ function RetryFunding({
               disabled={busy || !!pending}
             />
           }
-          label="确认从 USD 开卡钱包支付以上金额，补充至原卡"
+          label={wallet.data?.fundingSource === "funds_wallet" ? "确认从资金中心 USD 钱包支付以上金额，补充至原卡" : "确认从 USD 开卡钱包支付以上金额，补充至原卡"}
         />
         <Button
           onClick={submit}
@@ -709,9 +708,10 @@ function RetryFunding({
 }
 function CardDetail({ base, id }: { base: string; id: string }) {
   const card = useIssuing<IssuedCard>(base + "/cards/" + id);
+  if(card.data?.projection)return <Navigate replace to={`/portal/cards/${card.data.projection.cardId}?${new URLSearchParams({connection:card.data.projection.connection,back:"/portal/cards"})}`}/>;
   return (
     <Stack spacing={2}>
-      <Typography variant="h4">新开卡片详情</Typography>
+      <Typography variant="h6">新开卡片信息</Typography>
       <LoadError message={card.error} retry={card.refresh} />
       <Button onClick={card.refresh}>刷新</Button>
       {card.data && (
@@ -728,6 +728,7 @@ function CardDetail({ base, id }: { base: string; id: string }) {
           <Typography color="text.secondary">
             内部记账余额不等于渠道实时可用余额。
           </Typography>
+          <Typography color="text.secondary">此卡尚未关联渠道详情，卡片操作和 CVV 查询暂不可用。</Typography>
           <OrderSummary order={card.data.order} />
           <Button component={Link} to={"/portal/card-orders/" + id}>
             查看开卡订单

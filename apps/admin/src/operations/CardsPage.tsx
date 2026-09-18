@@ -1,4 +1,5 @@
-import { cardSyncLabel, type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
+import ChannelCardStatus from '../../../../packages/shared/src/components/ChannelCardStatus';
+import { type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
 import {channelOwnerLabel,type ChannelOwnership} from '../components/channelOwnership';
 import {useEffect,useState} from 'react';
 import {Link,Navigate,useSearchParams} from 'react-router-dom';
@@ -37,8 +38,7 @@ function CardsContent({channels}:{channels:boolean}){
  const columns:GridColDef<Card>[]=[
   {field:'cardName',headerName:'卡片名称',flex:1,minWidth:220,renderCell:p=><Button component={Link} to={detail(p.row.id)}>{p.row.cardName||p.row.name||'名称未采集'}</Button>},
   {field:'last4',headerName:'卡片尾号',width:140,valueFormatter:(v?:string)=>v?`•••• ${v}`:'未采集'},
-  {field:'cardStatus',headerName:'渠道状态',width:130,valueFormatter:(v?:string)=>v||'未知'},
-  {field:'syncState',headerName:'同步状态 / 最近核验',width:280,renderCell:p=>cardSyncLabel(p.row)},
+  {field:'cardStatus',headerName:'渠道状态',width:150,renderCell:p=><ChannelCardStatus status={p.row.cardStatus}/>},
   {field:'createdAtUTC',headerName:'创建时间 · UTC',width:200,valueFormatter:utcTime},
   {field:'owner',headerName:'内部用户',minWidth:180,flex:1,renderCell:p=>channelOwnerLabel(p.row)},
   {field:'actions',headerName:'操作',width:120,sortable:false,renderCell:p=><Button component={Link} to={detail(p.row.id)}>查看详情</Button>},

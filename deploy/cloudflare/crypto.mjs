@@ -10,7 +10,7 @@ export function cryptoRoute(method,path){
   if(pathname==='/admin-api/v1/crypto-scopes'||pathname==='/admin-api/v1/crypto-sources')return !query;
   if(/^\/admin-api\/v1\/crypto-sources\/[A-Za-z0-9_-]+\/events$/.test(pathname))return [...params].every(([k,v])=>k==='page'&&params.getAll(k).length===1&&/^\d+$/.test(v));
   const base=new RegExp(`^/(client|admin)-api/v1/customers/${id}/crypto$`);
-  if(base.test(pathname))return [...params].every(([k])=>['page','kind','status','limit','cardId'].includes(k)&&params.getAll(k).length===1);
+  if(base.test(pathname))return [...params].every(([k])=>['page','kind','status','limit','cardId','from','to','direction'].includes(k)&&params.getAll(k).length===1);
   return new RegExp(`^/(client|admin)-api/v1/customers/${id}/crypto/orders/${id}$`).test(pathname)&&!query;
  }
  if(method!=='POST')return false;

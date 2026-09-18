@@ -19,6 +19,7 @@ type Card struct {
 	ID         string
 	Last4      string
 	Restricted bool
+	Projection map[string]any
 }
 type Provider interface {
 	Create(context.Context, string, Snapshot) (Card, error)
@@ -27,6 +28,9 @@ type Provider interface {
 }
 
 func (s *Service) Wallet(ctx context.Context, tx pgx.Tx, customer string) (string, error) {
+	if s.Funds != nil {
+		return s.fundsWallet(ctx, tx, customer)
+	}
 	if s.Blnk == nil {
 		return "", ErrBlocked
 	}
@@ -66,6 +70,9 @@ func (s *Service) balance(ctx context.Context, tx pgx.Tx, customer, key string) 
 func (s *Service) transfer(ctx context.Context, tx pgx.Tx, customer, ref, source, dest, amount string, overdraft bool) error {
 	if amount == "0" {
 		return nil
+	}
+	if s.Funds != nil {
+		return s.fundsTransfer(ctx, tx, customer, ref, source, dest, amount)
 	}
 	a, e := s.balance(ctx, tx, customer, source)
 	if e != nil {
@@ -111,7 +118,7 @@ func (s *Service) Process(ctx context.Context, id string) error {
 			_ = conn.Conn().Close(c)
 		}
 	}()
-	tx, e := s.DB.Begin(ctx)
+	tx, e := conn.Begin(ctx)
 	if e != nil {
 		return e
 	}
@@ -124,6 +131,10 @@ func (s *Service) Process(ctx context.Context, id string) error {
 		return e
 	}
 	if e = json.Unmarshal(raw, &o.Snapshot); e != nil {
+		return e
+	}
+	s, e = s.forSnapshot(o.Snapshot)
+	if e != nil {
 		return e
 	}
 	if e = Lock(ctx, tx, o.CustomerID); e != nil {
@@ -152,9 +163,8 @@ func (s *Service) Process(ctx context.Context, id string) error {
 	case "queued":
 		// A prior reserve may have applied before the SQL transaction rolled back.
 		// Recover it before honoring a newly paused product or revoked customer.
-		_, lookupErr := s.Blnk.Lookup(ctx, "mvl_"+hash(id+":reserve"))
-		alreadyReserved := lookupErr == nil
-		if lookupErr != nil && !errors.Is(lookupErr, blnk.ErrNotFound) {
+		alreadyReserved, lookupErr := s.reserveExists(ctx, tx, o.CustomerID, id)
+		if lookupErr != nil {
 			return lookupErr
 		}
 		if !alreadyReserved && (provider == nil || !vAllowed(ctx, tx, o.CustomerID)) {
@@ -227,6 +237,11 @@ func (s *Service) Process(ctx context.Context, id string) error {
 		if e != nil {
 			return e
 		}
+		if s.Funds != nil {
+			if e = s.linkFundsCard(ctx, tx, o, cardKey); e != nil {
+				return e
+			}
+		}
 		return next("funded", "")
 	case "funded", "enabling":
 		if provider == nil || !vAllowed(ctx, tx, o.CustomerID) {
@@ -236,7 +251,7 @@ func (s *Service) Process(ctx context.Context, id string) error {
 			return e
 		}
 		err := provider.Enable(ctx, Card{ID: o.CardID, Last4: o.Last4}, o.Snapshot, o.FundingMinor)
-		tx, e = s.DB.Begin(ctx)
+		tx, e = conn.Begin(ctx)
 		if e != nil {
 			return e
 		}
@@ -309,12 +324,20 @@ func (s *Service) recordCard(ctx context.Context, o Order, c Card, providerErr e
 			return e
 		}
 	}
+	if providerErr == nil && c.Restricted && o.Snapshot.FundsNamespace != "" {
+		if e = s.linkCard(ctx, tx, o, c); e != nil {
+			return e
+		}
+	}
 	if e = s.state(ctx, tx, o, state, code); e != nil {
 		return e
 	}
 	return tx.Commit(ctx)
 }
 func (s *Service) ProcessDeposit(ctx context.Context, id string) error {
+	if s.Funds != nil {
+		return ErrBlocked
+	} // Unified wallets use the existing funds deposit/review workflow.
 	if !s.Enabled || s.Blnk == nil {
 		return ErrBlocked
 	}

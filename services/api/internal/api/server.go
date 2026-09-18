@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"moventra.local/api/internal/cryptofunds"
+	"moventra.local/api/internal/messages"
 	"net/http"
 	"os"
 	"strconv"
@@ -22,6 +23,8 @@ import (
 )
 
 type Server struct {
+	Messages        *messages.Service
+	CardSecrets     CardSecrets
 	ProductionFunds *cryptofunds.Service
 	DepositPilot    *cryptofunds.Service
 	Deposits        *depositaddress.Service
@@ -49,6 +52,9 @@ func fail(w http.ResponseWriter, status int, code string) {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/cvv/reveal", s.authenticate(http.HandlerFunc(s.channelRead)))
+	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/details/reveal", s.authenticate(http.HandlerFunc(s.channelRead)))
+	s.messageRoutes(mux)
 	s.issuingRoutes(mux)
 	s.cryptoRoutes(mux)
 	s.manualRoutes(mux)
@@ -64,6 +70,12 @@ func (s *Server) Handler() http.Handler {
 		if err := database.Ready(ctx, s.DB, s.Ledger != nil || s.Deposits != nil); err != nil {
 			fail(w, 503, "not_ready")
 			return
+		}
+		if s.Issuing != nil && s.Issuing.Funds != nil {
+			if err := database.ReadyIssuingUnified(ctx, s.DB); err != nil {
+				fail(w, 503, "not_ready")
+				return
+			}
 		}
 		respond(w, 200, map[string]string{"status": "ready"})
 	})

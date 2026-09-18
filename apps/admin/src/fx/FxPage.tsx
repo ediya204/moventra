@@ -66,7 +66,8 @@ export function formatMoney(m?: Money | null) {
     a = v < 0n ? -v : v,
     f = 10n ** BigInt(m.scale),
     whole = String(a / f).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${m.currency} ${v < 0n ? "-" : ""}${whole}${m.scale ? "." + String(a % f).padStart(m.scale, "0") : ""}`;
+  const fraction = String(a % f).padStart(m.scale, "0");
+  return `${m.currency} ${v < 0n ? "-" : ""}${whole}${m.currency === "USDT" ? "." + (m.scale ? fraction : "").slice(0, 2).padEnd(2, "0") : m.scale ? "." + fraction : ""}`;
 }
 const valueMoney = (minor: string | undefined, currency = "USD", scale = 2) =>
   minor == null ? "—" : formatMoney({ minor, currency, scale });

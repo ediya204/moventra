@@ -298,3 +298,28 @@ crypto快照capabilities新增otcEnabled/cardTransfersEnabled；前端同时检�
 ## 全局管理身份
 
 身份GET新增兼容布尔字段globalAdmin，只有active admin且完成MFA时可为true；字段仅用于界面标记，所有资源仍由服务端动态授权。既有customer/admin枚举不变，见[权限流程](../business/global-administrator.md)。
+
+## 2026-09-19 卡片详情扩展（本地，未部署）
+
+客户单卡详情新增`fundingCardId`（精确映射或null）与`cvvAvailable`，均由服务端授权判定。资金卡读取新增`heldMinor`（未近期核验为null）与`inTransitMinor`（核对未知为null），在途关联完整账本escrow及原卡片订单，不取最近页求和。crypto列表新增`from`、`to`（UTC订单创建时间，左闭右开）和`direction`（wallet_to_card/card_to_wallet）筛选，计数与分页使用相同条件。新开卡详情可返回唯一已验证`projection`链接，不按尾号猜测。
+
+CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应独立、禁止缓存和持久化，不加入普通卡片DTO。详见[CVV合同](../frontend/client-cvv.md)及[卡片流程](../business/customer-card-binding.md#flow-card-detail-001卡片详情与充提2026-09-19)。
+
+
+### 2026-09-19 客户卡交易筛选与导出（本地前端）
+
+复用现有 card-projections 查询参数：keyword、detailedStatus（单值）、from（含）与 to（不含）、page、revision。界面日期为 UTC 日历日期，结束日期转换为次日零点；列表与导出共用参数生成器。导出从第 0 页顺序查询、固定 revision，每页 20 条，上限 5,000 条，不新增导出 API 或权限，不跨连接聚合；错误不下载部分数据。见[流程](../frontend/client-workspace-layout.md)。
+
+2026-09-19 USDT展示约定（本地）：页面金额显示固定两位并向零截断；API的USDT最小单位仍为10^-6，整数金额和报价有效性、费用、状态及余额校验不变，不在服务端截断。金额输入和配置编辑仍提交完整值。
+
+
+2026-09-19：新增本人卡片 POST `.../card-projections/:connection/cards/:id/details/reveal`；临时返回pan/cvv/name/expiryMonth/expiryYear及原source/cardId/expiresAt。普通详情仅增加detailsAvailable，不包含敏感值；原CVV-only兼容，认证、限流、归属复核与no-store见[协议](../frontend/client-cvv.md)。本地未部署。
+
+## 消息API本地实现（2026-09-19，未部署）
+
+独立消息契约见[机器OpenAPI](../../services/api/docs/messages.openapi.json)及[FLOW](../business/message-center.md)。客户作用域收件箱、签名游标/已读快照与后台草稿/发布/恢复不修改本页资金接口。OTC通知从原订单已保存事实生成，不作为成交或入账的新权威。
+
+
+## 统一 USD 开卡增量（2026-09-19，本地）
+
+开卡 wallet 增加 fundingSource/executionEnabled，order 增加 fundingSource/fundingAccountId；统一钱包条款版本 issuing-funds-2026-09-19-v1。普通卡详情可附 issuingOrderId 链接原单。021新增新卡来源归属；历史无 namespace 订单保留原账本与退款路径。统一模式拒绝旧开卡入金新申请/复核。完整闭环与验收边界见 [开卡流程](../business/client-card-issuing.md)。

@@ -161,7 +161,7 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 					result, e = svc.ClientProducts(ctx, tx, customer, r.URL.Query().Get("q"), offset)
 				}
 			case "terms":
-				result = issuing.CurrentTerms()
+				result = svc.Terms()
 			case "cards":
 				result, e = svc.Cards(ctx, tx, customer, id, offset)
 			case "reconciliation":
@@ -169,7 +169,7 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 			case "wallet":
 				var balance string
 				balance, e = svc.Wallet(ctx, tx, customer)
-				result = map[string]any{"currency": "USD", "availableMinor": balance, "mode": svc.Mode}
+				result = map[string]any{"currency": "USD", "availableMinor": balance, "mode": svc.Mode, "fundingSource": svc.FundingSource(), "executionEnabled": svc.Enabled}
 			case "orders":
 				result, e = issuing.CustomerRead(ctx, tx, customer, resource, id, offset)
 			default:
@@ -280,6 +280,10 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 				result, e = svc.Topup(ctx, tx, customer, v.OrderID, r.Header.Get("Idempotency-Key"), v.FundingMinor)
 			}
 		case "deposits":
+			if svc.Funds != nil {
+				e = issuing.ErrBlocked
+				break
+			}
 			var v struct {
 				AmountMinor string `json:"amountMinor"`
 				EvidenceRef string `json:"evidenceRef"`
@@ -290,6 +294,10 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 				result, e = issuing.Deposit(ctx, tx, customer, p.ID, v.AmountMinor, v.EvidenceRef)
 			}
 		case "deposit-reviews":
+			if svc.Funds != nil {
+				e = issuing.ErrBlocked
+				break
+			}
 			var v struct {
 				Revision int64 `json:"revision"`
 				Approve  bool  `json:"approve"`

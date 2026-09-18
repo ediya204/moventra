@@ -26,7 +26,9 @@ const session=uri(`import React from ${JSON.stringify(resolve('react'))};export 
 const admission=uri(source('../../packages/shared/src/auth/onboarding.ts'));
 const panel=uri(`import React from ${JSON.stringify(resolve('react'))};export default function Panel({onState}) {globalThis.__clientWorkspaceFixture.setAdmission=onState;return null;}`);
 const navigation=uri(source('../../apps/client/src/portal/workspaceNavigation.ts'));
-const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:(name==='../issuing/CardIssuing'||name==='./CardSnapshots'||name==='./TestWallet'||name==='./ProductionWallet'||name.endsWith('/finance/OnlineFunds')||name.endsWith('/finance/CryptoFunds')||name.endsWith('/finance/CustomerFunds')||name.endsWith('/finance/ManualFunds'))?uri('export default ()=>null;'):name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
+const sectionNav=uri(source('../../packages/shared/src/components/SectionNavigation.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:resolve(n))));
+const fundsNav=uri(source('../../packages/shared/src/finance/FundsNavigation.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:n.endsWith('/SectionNavigation')?sectionNav:resolve(n))));
+const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name.endsWith('/messages/MessageCenter')?uri('export default ()=>null;export const MessageBell=()=>null;'):name.endsWith('/SectionNavigation')?sectionNav:name.endsWith('/FundsNavigation')?fundsNav:name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:(name==='../issuing/CardIssuing'||name==='./CardOverview'||name==='./CardSnapshots'||name==='./TestWallet'||name==='./ProductionWallet'||name.endsWith('/finance/OnlineFunds')||name.endsWith('/finance/CryptoFunds')||name.endsWith('/finance/CustomerFunds')||name.endsWith('/finance/ManualFunds'))?uri('export default ()=>null;'):name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
 const ClientHome=(await import(uri(compiled))).default;
 const flush=()=>new Promise(r=>setImmediate(r));
 function reset(customer='A'){state.requests=[];state.auth={ready:true,user:{email:'fixture@example.invalid'},session:{customers:customer?[{id:customer,kind:'personal'}]:[],mfaVerified:true},signOut(){}};}
@@ -35,10 +37,10 @@ const text=tree=>content(tree.toJSON());
 async function mount(path='/portal'){let tree;await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(ClientHome)));await flush();});return tree;}
 test('正式工作台使用产品导航，未知资金不冒充零，金融快捷操作禁用',async()=>{
  reset();const tree=await mount();
- for(const label of ['工作台','资金中心','卡片中心','交易与账单','消息中心','帮助与工单','设置与开户','消费与退款趋势','卡片状态分布'])assert.ok(text(tree).includes(label),label);
- for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(tree.root.findAllByType('button').find(b=>b.props.children===label)?.props.disabled,true);
- assert.equal(state.requests.length,2);assert.ok(state.requests.every(r=>r.path.startsWith('/client-api/v1/customers/A/')));
- await act(async()=>{state.requests.forEach(r=>r.resolve([]));await flush();});assert.ok(text(tree).includes('暂无业务账户'));assert.ok(!text(tree).includes('28,350'));await act(()=>tree.unmount());
+ for(const label of ['工作台','资金中心','卡片中心','交易与账单','消息中心','帮助与工单','设置与开户'])assert.ok(text(tree).includes(label),label);
+ for(const label of ['充值 USDT','兑换 USD','申请新卡'])assert.equal(tree.root.findAllByType('button').find(b=>b.props.children===label)?.props.disabled,true);
+ assert.equal(state.requests.length,0); // 首页资金与卡片由各自正式组件查询，不再读取旧基础账户。
+ await act(async()=>{state.requests.forEach(r=>r.resolve([]));await flush();});assert.ok(!text(tree).includes('暂无业务账户'));assert.ok(!text(tree).includes('28,350'));await act(()=>tree.unmount());
 });
 test('七项导航和原账户安全深链可直接打开，不回退到首页',async()=>{
  for(const path of ['funds','cards','cards/new','transactions','messages','support','settings','accounts','security']){
@@ -47,10 +49,10 @@ test('七项导航和原账户安全深链可直接打开，不回退到首页',
 });
 test('未关联和读取失败分别显示，不伪装成空账户',async()=>{
  reset(null);let tree=await mount();assert.equal(state.requests.length,0);assert.ok(text(tree).includes('当前登录身份尚未关联个人客户主体'));await act(()=>tree.unmount());
- reset();tree=await mount();await act(async()=>{state.requests.forEach(r=>r.reject(new Error('failed')));await flush();});assert.ok(text(tree).includes('读取失败'));assert.ok(!text(tree).includes('暂无业务账户'));await act(()=>tree.unmount());
+ reset();tree=await mount('/portal/accounts');await act(async()=>{state.requests.forEach(r=>r.reject(new Error('failed')));await flush();});assert.ok(text(tree).includes('读取失败'));assert.ok(!text(tree).includes('暂无业务账户'));await act(()=>tree.unmount());
 });
 test('切换客户后拒绝旧请求结果，保留当前主体数据',async()=>{
- reset();const tree=await mount();const old=[...state.requests];state.auth={...state.auth,session:{customers:[{id:'B',kind:'personal'}]}};
+ reset();const tree=await mount('/portal/accounts');const old=[...state.requests];state.auth={...state.auth,session:{customers:[{id:'B',kind:'personal'}]}};
  await act(async()=>{tree.update(React.createElement(MemoryRouter,{},React.createElement(ClientHome)));await flush();});
  await act(async()=>{state.requests.slice(2).forEach(r=>r.resolve([]));old.forEach(r=>r.resolve([{id:'old',name:'OTHER_CUSTOMER_SECRET',status:'active'}]));await flush();});
  assert.ok(!text(tree).includes('OTHER_CUSTOMER_SECRET'));assert.ok(text(tree).includes('暂无业务账户'));await act(()=>tree.unmount());
@@ -62,15 +64,15 @@ test('审批开通后默认开放四项功能入口，暂停后恢复禁用',asy
  const button=label=>tree.root.findAllByType('button').find(b=>b.props.children===label);
  const approval={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
  await act(()=>state.setAdmission(approval));
- for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,false);
+ for(const label of ['充值 USDT','兑换 USD','申请新卡'])assert.equal(button(label).props.disabled,false);
  assert.ok(!text(tree).includes('功能权限'));
  assert.ok(!text(tree).includes('待审批开通'));
  await act(()=>state.setAdmission({...approval,serviceStatus:'suspended',allFeaturesEnabled:false}));
- for(const label of ['充值 USDT','兑换 USD','充值到卡','申请新卡'])assert.equal(button(label).props.disabled,true);
+ for(const label of ['充值 USDT','兑换 USD','申请新卡'])assert.equal(button(label).props.disabled,true);
  await act(()=>tree.unmount());
 });
 
-const panelCode=source('../../packages/shared/src/onboarding/OnboardingPanel.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name.endsWith('/liveApi')?api:name.endsWith('/onboarding')?admission:resolve(name)));
+const panelCode=source('../../packages/shared/src/onboarding/OnboardingPanel.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name.endsWith('/messages/MessageCenter')?uri('export default ()=>null;export const MessageBell=()=>null;'):name.endsWith('/SectionNavigation')?sectionNav:name.endsWith('/FundsNavigation')?fundsNav:name==='@mui/material'?shell:name.endsWith('/liveApi')?api:name.endsWith('/onboarding')?admission:resolve(name)));
 const AdmissionPanel=(await import(uri(panelCode))).default;
 test('开户申请提交后重新查询服务端状态，失败显示错误并可重试',async()=>{
  reset();state.writes=[];let tree,lastState;
@@ -113,8 +115,8 @@ test('开户状态读取失败后成功恢复不保留过期报错',async()=>{
 
 const integratedCode=compiled.replaceAll(panel,uri(panelCode));
 const IntegratedClient=(await import(uri(integratedCode))).default;
-test('卡片及交易页刷新数据后不重现审批面板，也不重复组件',async()=>{
- for(const route of ['/portal/cards','/portal/transactions']) {
+test('首页及账户页刷新数据后不重现审批面板，也不重复组件',async()=>{
+ for(const route of ['/portal','/portal/accounts']) {
   reset();let tree;const warnings=[];const previous=console.error;console.error=(...args)=>warnings.push(args.join(' '));
   try {
    await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:[route]},React.createElement(IntegratedClient)));await flush()});
@@ -141,4 +143,14 @@ test('简洁开户提示区分未审批、已审批与读取失败，审批通�
  await refresh(2);await act(async()=>{state.requests.at(-1).reject(new Error('offline'));await flush()});assert.ok(text(tree).includes('读取失败'));assert.ok(!text(tree).includes('开户中'));
  await act(async()=>{tree.root.findAllByType('button').find(b=>b.props.children==='重试').props.onClick();await flush()});await respond('approved',3);assert.equal(text(tree),'');
  await act(()=>tree.unmount());
+});
+
+
+test('页面分区覆盖详情路由，资金与卡片使用模块刷新，设置没有重复占位',async()=>{
+ const {workspacePage}=await import(navigation);
+ for(const [path,section] of [['/portal/card-orders/order','/portal/cards'],['/portal/issued-cards/card','/portal/cards'],['/portal/crypto/deposit','/portal/funds'],['/portal/security','/portal/settings'],['/portal/card-transactions/tx','/portal/transactions']])assert.equal(workspacePage(path).section,section);
+ for(const path of ['/portal/cards','/portal/funds','/portal/transactions']){
+  reset();const tree=await mount(path);assert.equal(tree.root.findAllByType('button').filter(b=>b.props.children==='刷新数据').length,0);await act(()=>tree.unmount());
+ }
+ reset();const tree=await mount('/portal/settings');assert.doesNotMatch(text(tree),/办理功能暂未提供/);assert.match(text(tree),/个人账户/);assert.ok(tree.root.findAllByType('button').some(b=>b.props.to==='/portal/security'));await act(()=>tree.unmount());
 });

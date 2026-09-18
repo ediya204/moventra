@@ -20,11 +20,11 @@ const content=n=>typeof n==='string'?n:Array.isArray(n)?n.map(content).join(''):
 const text=t=>content(t.toJSON());
 const fixture=id=>({customerId:id,mode:'online_test',enabled:true,executionEligible:false,withdrawalEligible:false,balances:[{currency:'USD',scale:2,amountMinor:'10000000'},{currency:'USDT',scale:6,amountMinor:'20009000000'}],grants:[{requestId:'fixture-grant',usdMinor:'10000000',usdtMinor:'20009000000',createdAt:'2026-09-18T00:00:00Z',reason:'用户授权线上测试'}],hasMore:false});
 test('测试余额精确显示、加载失败重试、跨客户旧响应隔离',async()=>{
- assert.equal(testMoney('9007199254740993',6),'9,007,199,254.740993');
+ assert.equal(testMoney('9007199254740993',6),'9,007,199,254.74');
  let tree;await act(async()=>{tree=Renderer.create(React.createElement(Wallet,{customerId:'A'}));await flush();});
  assert.ok(text(tree).includes('正在读取'));assert.ok(!text(tree).includes('0.00'));
  await act(async()=>{state.requests[0].resolve(fixture('A'));await flush();});
- for(const s of ['100,000.00','20,009.000000','测试资金','不可提现'])assert.ok(text(tree).includes(s),s);
+ for(const s of ['100,000.00','20,009.00','测试资金','不可提现'])assert.ok(text(tree).includes(s),s);
  await act(async()=>{tree.update(React.createElement(Wallet,{customerId:'B'}));await flush();});assert.ok(!text(tree).includes('100,000.00'));
  const old=state.requests[1];await act(async()=>{tree.update(React.createElement(Wallet,{customerId:'C'}));await flush();old.resolve(fixture('B'));state.requests[2].reject(new Error('down'));await flush();});
  assert.ok(text(tree).includes('读取失败'));assert.ok(!text(tree).includes('100,000.00'));

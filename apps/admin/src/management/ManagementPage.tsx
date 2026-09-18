@@ -650,12 +650,12 @@ function OwnerDetail({
                           可用{" "}
                           {decimal(
                             a.available_minor,
-                            a.currency === "USDT" ? 6 : 2,
+                            a.currency === "USDT" ? 6 : 2, 2,
                           )}{" "}
                           · 已入账{" "}
                           {decimal(
                             a.posted_minor,
-                            a.currency === "USDT" ? 6 : 2,
+                            a.currency === "USDT" ? 6 : 2, 2,
                           )}
                         </Typography>
                       </Stack>
@@ -1122,7 +1122,7 @@ function FeeEditor({
           </Stack>
           {preview && (
             <Alert severity="info" sx={{ mt: 2 }}>
-              预计手续费 {decimal(preview.feeMinor, preview.precision)}{" "}
+              预计手续费 {decimal(preview.feeMinor, preview.precision, Math.min(preview.precision, 2))}{" "}
               {preview.currency} · 来源：
               {preview.source === "user"
                 ? "用户专属"

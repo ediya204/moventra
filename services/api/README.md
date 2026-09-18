@@ -178,3 +178,17 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 ## 全局管理员
 
 019新增动态全局范围，readyz要求其checksum；受控global-admin-plan/grant/revoke通过Firebase核验指定身份，不接受HTTP自报身份。详见[流程与发布顺序](../../docs/business/global-administrator.md)。
+
+2026-09-19卡片详情本地扩展：精确返回fundingCardId与cvvAvailable，资金卡增加已知授权预占及订单归属在途查询；crypto列表支持UTC from/to及direction筛选。CVV独立客户POST默认关闭，服务端`CARD_CVV_ENABLED=true`配合既有`SLASH_API_KEY`才开放；无二次验证，但每次检查登录/归属并在渠道查询后再次核验。禁止请求/响应正文采集，审计无敏感值，配置与真实渠道未在本批生产启用。见[CVV合同](../../docs/frontend/client-cvv.md)。
+
+
+2026-09-19：本人卡片新增 details/reveal 临时查询，返回完整卡号、名称、有效期与CVV，复用原归属复核、限流和审计；CVV-only接口兼容。未部署，见[协议](../../docs/frontend/client-cvv.md)。
+
+## 消息服务（2026-09-19，本地未部署）
+
+`internal/messages` 提供消息持久化、草稿发布、逐接收人投递、权限/已读及恢复。增量020包含按namespace默认关闭的OTC同事务outbox触发器，既有资金流程不改成消息驱动执行。显式 `go run ./cmd/api migrate-messages` 验证001–019后安装；`go run ./cmd/message-admin < request.json` 管理配置/权限/状态/失败自动通知恢复，要求有效全局运营身份与证据。API使用 `MESSAGES_ENABLED`、`MESSAGES_NAMESPACE`、`MESSAGES_TOKEN_KEY`，发送/Worker另由 `MESSAGES_SEND_ENABLED`、`MESSAGES_WORKER_ENABLED` 控制；生产namespace须等于 `DEPOSIT_ADDRESS_NAMESPACE`。没有自动迁移/生产激活，详见[运行与回退](../../docs/business/message-center.md)及[机器契约](docs/messages.openapi.json)。
+
+
+## 统一 USD 开卡增量（2026-09-19，本地）
+
+统一开卡配置与资金路径见 [流程说明](../../docs/business/client-card-issuing.md)。`ISSUING_FUNDING_SOURCE=funds_wallet` 复用资金中心 Blnk；API/Worker要求021校验通过。`api migrate-issuing-unified` 只执行021，保留旧单账本。测试本地 loopback 模式不授权生产执行。

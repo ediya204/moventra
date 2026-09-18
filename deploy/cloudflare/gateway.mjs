@@ -1,3 +1,4 @@
+import { messageRoute } from './messages.mjs';
 import { manualFundsRoute } from './manual-funds.mjs';
 import { cryptoRoute } from './crypto.mjs';
 import { issuingRoute } from './issuing.mjs';
@@ -35,6 +36,10 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (overview && env.SITE_KIND !== 'admin') return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
   const identity = /^\/(api|client-api|admin-api)\/v1\/me$/.test(url.pathname);
+  const cardCvv = new RegExp(`^/client-api/v1/customers/${id}/card-projections/[A-Za-z0-9_-]+/cards/[A-Za-z0-9_-]+/(?:cvv|details)/reveal$`).test(url.pathname);
+  if (cardCvv && env.SITE_KIND !== 'client') return error(404,'api_not_available');
+  if (cardCvv && (request.method !== 'POST' || url.search)) return error(405,'method_not_allowed');
+  if (cardCvv && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403,'cross_origin_forbidden');
   const cardSync = new RegExp(`^/(?:client-api/v1/customers/${id}/card-projections|admin-api/v1/channel-projections)/[A-Za-z0-9_-]+/cards/[A-Za-z0-9_-]+/(?:sync|actions)$`).test(url.pathname);
   if (cardSync && (request.method !== 'POST' || url.search)) return error(405,'method_not_allowed');
   if (cardSync && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403,'cross_origin_forbidden');
@@ -49,9 +54,11 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (manual && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
   const crypto = cryptoRoute(request.method, url.pathname+url.search);
   if (crypto && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
-  const readable = cardSync || manual || crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const messages = messageRoute(request.method, url.pathname+url.search);
+  if (messages && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
+  const readable = messages || cardCvv || cardSync || manual || crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
-  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (cardSync || manual || crypto || issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
+  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (messages || cardCvv || cardSync || manual || crypto || issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 
   let origin;
   try { origin = new URL(env.API_ORIGIN); } catch { return error(503, 'api_not_configured'); }
@@ -73,6 +80,11 @@ export async function handle(request, env, upstreamFetch = fetch) {
     });
     // Never forward a token to a redirect target or return HTML upstream errors.
     if (response.status >= 300 && response.status < 400 || !response.headers.get('Content-Type')?.includes('application/json')) return error(502, 'invalid_api_response');
+    if (cardCvv) {
+      if (!response.ok) return error([401,403,404,409,429].includes(response.status)?response.status:503,'card_secret_unavailable');
+      if (!response.headers.get('Cache-Control')?.split(',').some(v=>v.trim()==='no-store')) return error(502,'invalid_api_response');
+      return new Response(response.body,{status:200,headers:{'Content-Type':'application/json','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+    }
     // Identity discovery uses only verified Go authorization data.
     if (identity && response.ok && env.SITE_KIND) {
       const payload = await response.json();

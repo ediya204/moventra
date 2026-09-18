@@ -26,13 +26,13 @@ func (s *Service) Quote(ctx context.Context, tx pgx.Tx, customer, productID, fun
 	if number(funding).Cmp(number(v.Product.MinimumMinor)) < 0 {
 		return q, ErrInvalid
 	}
-	q = Quote{TermsVersion: CurrentTerms().Version, ID: uuid.NewString(), ProductID: productID, FeeMinor: v.FeeMinor, FundingMinor: funding, TotalMinor: add(v.FeeMinor, funding), PriceSource: v.PriceSource, ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Format(time.RFC3339)}
+	q = Quote{TermsVersion: s.Terms().Version, ID: uuid.NewString(), ProductID: productID, FeeMinor: v.FeeMinor, FundingMinor: funding, TotalMinor: add(v.FeeMinor, funding), PriceSource: v.PriceSource, ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Format(time.RFC3339)}
 	raw, _ := json.Marshal(v)
 	_, e = tx.Exec(ctx, `INSERT INTO issuing_quotes(id,customer_id,product_id,fingerprint,snapshot,fee_minor,funding_minor,expires_at,terms_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, q.ID, customer, productID, hash(v), raw, q.FeeMinor, funding, q.ExpiresAt, q.TermsVersion)
 	return q, e
 }
 
-const orderJSON = `jsonb_build_object('id',id,'customerId',customer_id,'productId',product_id,'state',state,'feeMinor',fee_minor::text,'fundingMinor',funding_minor::text,'last4',last4,'errorCode',error_code,'createdAt',created_at,'cardId',CASE WHEN external_card_id<>'' THEN COALESCE(parent_id,id)::text ELSE '' END,'parentId',COALESCE(parent_id::text,''),'cardName',COALESCE(snapshot->>'cardName',''),'productName',snapshot->'product'->>'name','bin',snapshot->'product'->>'bin')`
+const orderJSON = `jsonb_build_object('fundingSource',CASE WHEN COALESCE(snapshot->>'fundsNamespace','')='' THEN 'issuing_wallet' ELSE 'funds_wallet' END,'fundingAccountId',NULLIF(snapshot->>'fundsWalletId',''),'id',id,'customerId',customer_id,'productId',product_id,'state',state,'feeMinor',fee_minor::text,'fundingMinor',funding_minor::text,'last4',last4,'errorCode',error_code,'createdAt',created_at,'cardId',CASE WHEN external_card_id<>'' THEN COALESCE(parent_id,id)::text ELSE '' END,'parentId',COALESCE(parent_id::text,''),'cardName',COALESCE(snapshot->>'cardName',''),'productName',snapshot->'product'->>'name','bin',snapshot->'product'->>'bin')`
 
 func OrderRead(ctx context.Context, tx pgx.Tx, customer, id string) (any, error) {
 	if !ValidID(id) {
@@ -185,6 +185,9 @@ func (s *Service) Topup(ctx context.Context, tx pgx.Tx, customer, parent, key, f
 	var old Snapshot
 	if e = json.Unmarshal(raw, &old); e != nil {
 		return nil, e
+	}
+	if old.FundsNamespace != v.FundsNamespace {
+		return nil, ErrBlocked
 	}
 	old.FeeMinor = "0"
 	raw, _ = json.Marshal(old)

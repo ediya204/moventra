@@ -58,7 +58,7 @@ export function minorText(value?: string | null, scale=2): string {
 export function originalText(value?: {code?:string|null;amountCents?:string|null} | null): string {
  if (!value || value.amountCents == null) return '—';
  // Only the validated two-decimal source currencies are formatted as major units.
- if (!value.code || !['USD','CNY','AED'].includes(value.code)) return `${value.code || '币种未知'} ${value.amountCents}（来源最小单位）`;
+ if (!value.code || !['USD','CNY','AED'].includes(value.code)) return `${value.code || '币种未知'} ${value.amountCents}`;
  return `${value.code} ${minorText(value.amountCents)}`;
 }
 

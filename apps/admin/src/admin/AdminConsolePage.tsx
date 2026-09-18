@@ -131,7 +131,7 @@ const time = (value?: string | null) =>
   value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "—";
 function money(amount: number | undefined, currency: string) {
   if (amount === undefined) return "—";
-  return `${amount < 0 ? "−" : ""}${decimal(Math.abs(amount), currency === "USDT" ? 6 : 2)} ${currency}`;
+  return `${decimal(amount, currency === "USDT" ? 6 : 2, 2).replace("-", "−")} ${currency}`;
 }
 function logHref(row: Log) {
  if(row.targetType==="channels")return `/card-bins/channels/${encodeURIComponent(row.targetId)}`;

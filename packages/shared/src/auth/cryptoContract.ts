@@ -13,11 +13,19 @@ export function cryptoRoute(method:string,path:string):boolean{
   if(pathname==='/admin-api/v1/crypto-scopes'||pathname==='/admin-api/v1/crypto-sources')return !query;
   if(/^\/admin-api\/v1\/crypto-sources\/[A-Za-z0-9_-]+\/events$/.test(pathname))return [...params].every(([k,v])=>k==='page'&&params.getAll(k).length===1&&/^\d+$/.test(v));
   const base=new RegExp(`^/(client|admin)-api/v1/customers/${id}/crypto$`);
-  if(base.test(pathname))return [...params].every(([k])=>['page','kind','status','limit','cardId'].includes(k)&&params.getAll(k).length===1);
+  if(base.test(pathname))return [...params].every(([k])=>['page','kind','status','limit','cardId','from','to','direction'].includes(k)&&params.getAll(k).length===1);
   return new RegExp(`^/(client|admin)-api/v1/customers/${id}/crypto/orders/${id}$`).test(pathname)&&!query;
  }
  if(method!=='POST')return false;
  return new RegExp(`^/client-api/v1/customers/${id}/crypto/(addresses|otc/(quotes|orders)|withdrawals/(quotes|orders)|cards/(quotes|orders)|cancel)$`).test(pathname)||new RegExp(`^/admin-api/v1/customers/${id}/crypto/(settings|approve|reject|recover)$`).test(pathname)||/^\/admin-api\/v1\/crypto-sources\/[A-Za-z0-9_-]+\/sync$/.test(pathname);
 }
 export function cryptoUnits(value:string,currency:string):string{const scale=currency==='USDT'?6:2;if(!new RegExp(`^(0|[1-9][0-9]*)(\\.[0-9]{1,${scale}})?$`).test(value))throw new Error('请输入有效金额');const [w,d='']=value.split('.');const n=BigInt(w)*10n**BigInt(scale)+BigInt(d.padEnd(scale,'0'));if(n<=0n||n.toString().length>38)throw new Error('金额超出范围');return n.toString();}
-export function cryptoMoney(value:string,currency:string):string{const scale=currency==='USDT'?6:2;const n=BigInt(value),a=n<0n?-n:n,p=10n**BigInt(scale);return `${n<0n?'-':''}${a/p}.${(a%p).toString().padStart(scale,'0')} ${currency}`;}
+export function cryptoMoney(value:string,currency:string):string{const scale=currency==='USDT'?6:2;const n=BigInt(value)/10n**BigInt(scale-2),a=n<0n?-n:n;return `${n<0n?'-':''}${a/100n}.${(a%100n).toString().padStart(2,'0')} ${currency}`;}
+
+// Display only: truncate a provider's major-unit USDT decimal without Number rounding.
+export function usdtDecimal(value: string): string {
+ const match = /^(-?)([0-9]+)(?:\.([0-9]+))?$/.exec(value);
+ if (!match) return '—';
+ const cents = BigInt(match[2]) * 100n + BigInt((match[3] || '').slice(0, 2).padEnd(2, '0'));
+ return `${match[1] && cents !== 0n ? '-' : ''}${cents / 100n}.${String(cents % 100n).padStart(2, '0')}`;
+}

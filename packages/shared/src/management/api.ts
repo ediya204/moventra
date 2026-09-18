@@ -70,10 +70,10 @@ export function exactUnits(text: string, precision: number) {
   if (v > 1000000000000n) throw new Error("数值超过演示上限");
   return Number(v);
 }
-export function decimal(value: number, precision: number) {
-  const n = BigInt(value),
-    factor = 10n ** BigInt(precision);
-  return `${n / factor}.${String(n % factor).padStart(precision, "0")}`;
+export function decimal(value: number, precision: number, displayPrecision = precision) {
+  const n = BigInt(value) / 10n ** BigInt(precision - displayPrecision),
+    a = n < 0n ? -n : n, factor = 10n ** BigInt(displayPrecision);
+  return `${n < 0n ? '-' : ''}${a / factor}.${String(a % factor).padStart(displayPrecision, "0")}`;
 }
 export const labels: Record<string, string> = {
   active: "启用",

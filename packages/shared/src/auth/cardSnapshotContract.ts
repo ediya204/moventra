@@ -12,7 +12,7 @@ export function isCardSnapshotPath(path: string): boolean {
 }
 export function snapshotAmount(value?:string|null, currency='USD'):string {
  if(value==null || !/^(0|-?[1-9][0-9]*)$/.test(value))return '未知';
- if(!['USD','CNY','AED'].includes(currency))return `${currency} ${value}（来源最小单位）`;
+ if(!['USD','CNY','AED'].includes(currency))return `${currency} ${value}`;
  const negative=value.startsWith('-'), digits=(negative?value.slice(1):value).padStart(3,'0');
  return `${currency} ${negative?'−':''}${digits.slice(0,-2)}.${digits.slice(-2)}`;
 }

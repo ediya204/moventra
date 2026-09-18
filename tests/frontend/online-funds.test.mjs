@@ -15,7 +15,7 @@ const contract=uri(source('../../packages/shared/src/auth/fundsContract.ts'));
 const {isFundsPath,parseFundsAmount,fundsAmount}=await import(contract);
 const id='10000000-0000-0000-0000-000000000001',path=`/client-api/v1/customers/${id}/test-funds`;
 test('金额精度、币种小数限制与资金路由边界',()=>{
- assert.equal(parseFundsAmount('20009.123456','USDT'),'20009123456');assert.equal(parseFundsAmount('100000.01','USD'),'10000001');assert.equal(fundsAmount('9007199254740993','USDT'),'9,007,199,254.740993 USDT');
+ assert.equal(parseFundsAmount('20009.123456','USDT'),'20009123456');assert.equal(parseFundsAmount('100000.01','USD'),'10000001');assert.equal(fundsAmount('9007199254740993','USDT'),'9,007,199,254.74 USDT');
  for(const s of ['-1','1e3','0','01','1.001','1000001'])assert.throws(()=>parseFundsAmount(s,'USD'));
  assert.ok(isFundsPath(path+'?kind=deposit&page=0'));assert.ok(isFundsPath(path+'/commands',true));assert.ok(!isFundsPath(path+'/commands'));assert.ok(!isFundsPath(path,true));assert.ok(!isFundsPath(path+'?page=0&page=1'));assert.ok(!isFundsPath('https://evil.invalid'+path,true));
 });
@@ -40,7 +40,7 @@ async function mount(path){let tree;await act(async()=>{tree=Renderer.create(Rea
 const button=(t,s)=>t.root.findAllByType('button').find(b=>content(b.props.children)===s);
 test('充值页面挂载真实服务契约；超时重载保留幂等键并重试，成功跳转服务端详情',async()=>{
  state.reads=[];state.writes=[];memory.clear();let tree=await mount('/portal/funds/deposit');
- await act(async()=>{state.reads[0].resolve(fixture);await flush();});assert.ok(text(tree).includes('20,009.000000 USDT'));
+ await act(async()=>{state.reads[0].resolve(fixture);await flush();});assert.ok(text(tree).includes('20,009.00 USDT'));
  await act(()=>tree.root.findAllByType('input').find(x=>x.props.label==='金额').props.onChange({target:{value:'12.123456'}}));
  await act(async()=>{button(tree,'提交测试充值').props.onClick();await flush();});const first=state.writes[0];assert.deepEqual(first.input,{action:'deposit',currency:'USDT',amountMinor:'12123456',note:''});
  await act(async()=>{first.reject(new Error('timeout'));await flush();});assert.ok(text(tree).includes('核对并重试原请求'));assert.equal(button(tree,'提交测试充值').props.disabled,true);

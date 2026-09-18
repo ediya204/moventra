@@ -32,6 +32,17 @@ func run() error {
 	if e != nil {
 		return e
 	}
+	if svc.Funds != nil {
+		check, done := context.WithTimeout(ctx, 5*time.Second)
+		err := database.ReadyIssuingUnified(check, db)
+		done()
+		if err != nil {
+			return err
+		}
+		if db.Config().MaxConns < 2 {
+			return errors.New("unified_issuing_requires_two_connections")
+		}
+	}
 	if !svc.Enabled && svc.Mode != "prepare" {
 		return errors.New("issuing_execution_disabled")
 	}

@@ -95,6 +95,7 @@ export function OrderSummary({ order }: { order: Order }) {
           开卡费 USD {money(order.feeMinor)} · 首充 USD{" "}
           {money(order.fundingMinor)}
         </Typography>
+        {order.fundingSource && <Typography variant="body2" color="text.secondary">付款及退款账户：{order.fundingSource === "funds_wallet" ? "资金中心 USD 主钱包" : "原独立开卡钱包"}</Typography>}
         <Alert severity={order.state === "active" ? "success" : "info"}>
           {explanation[order.state] || "状态待核查"}
         </Alert>

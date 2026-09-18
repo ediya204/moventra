@@ -1,16 +1,22 @@
+import {getFirebaseAuth} from '../../../../packages/shared/src/firebase';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { createCvvSession, type CvvStatus } from "./remoteCvv";
 
 /** Only pass a remote identity obtained from authenticated customer API data. */
-export type RemoteCardIdentity = { source: "customer-api"; id: string };
+export type RemoteCardIdentity = { source: "customer-api"; id: string; customerId?: string; connection?: string };
 export function RemoteCardCvv({
   remoteIdentity,
+  fullDetails = false,
 }: {
   remoteIdentity?: RemoteCardIdentity;
+  fullDetails?: boolean;
 }) {
+  const panNode = useRef<HTMLSpanElement>(null);
+  const nameNode = useRef<HTMLSpanElement>(null);
+  const expiryNode = useRef<HTMLSpanElement>(null);
   const secretNode = useRef<HTMLSpanElement>(null);
   const session = useRef<ReturnType<typeof createCvvSession>>();
   const [status, setStatus] = useState<CvvStatus>({ phase: "idle" });
@@ -22,16 +28,25 @@ export function RemoteCardCvv({
     setStatus({ phase: "idle" });
     const node = secretNode.current;
     if (!node || !remoteId) return;
+    const owner = getFirebaseAuth().currentUser;
     const current = createCvvSession({
       remoteCardId: remoteId,
+      endpoint: remoteIdentity?.customerId && remoteIdentity.connection ? `/client-api/v1/customers/${remoteIdentity.customerId}/card-projections/${encodeURIComponent(remoteIdentity.connection)}/cards/${encodeURIComponent(remoteId)}/${fullDetails?'details':'cvv'}/reveal` : undefined,
+      authorization: async()=>{const user=getFirebaseAuth().currentUser;if(!user)throw new Error('登录已失效或无此卡查看权限，请重新登录后重试。');const token=await user.getIdToken();if(getFirebaseAuth().currentUser!==user)throw new Error('登录已失效或无此卡查看权限，请重新登录后重试。');return `Bearer ${token}`},
       write: (value) => {
         node.textContent = value;
       },
+      writeDetails: fullDetails ? value => {
+        if(panNode.current)panNode.current.textContent=value?.pan.replace(/(.{4})(?=.)/g,'$1 ')||'';
+        if(nameNode.current)nameNode.current.textContent=value?.name||'';
+        if(expiryNode.current)expiryNode.current.textContent=value?`${value.expiryMonth}/${value.expiryYear}`:'';
+      } : undefined,
       status: setStatus,
       isActive: () =>
-        document.visibilityState === "visible" && document.hasFocus(),
+        document.visibilityState === "visible" && document.hasFocus() && getFirebaseAuth().currentUser===owner,
     });
     session.current = current;
+    if(fullDetails)void current.show();
     const clear = () => current.hide();
     window.addEventListener("blur", clear);
     window.addEventListener("pagehide", clear);
@@ -43,7 +58,7 @@ export function RemoteCardCvv({
       window.removeEventListener("pagehide", clear);
       document.removeEventListener("visibilitychange", clear);
     };
-  }, [remoteId, location.key]);
+  }, [remoteId, remoteIdentity?.customerId, remoteIdentity?.connection, location.key, fullDetails]);
   useEffect(() => {
     if (status.phase !== "visible" || !status.expiresAt) return;
     const refresh = () =>
@@ -56,6 +71,7 @@ export function RemoteCardCvv({
   }, [status]);
   return (
     <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: "divider" }}>
+      {fullDetails&&<Stack spacing={2} mb={3}>{[['完整卡号',panNode],['卡片名称',nameNode],['到期日',expiryNode]].map(([label,ref])=><Box key={label as string}><Typography variant="body2" color="text.secondary">{label as string}</Typography><Typography component="div" sx={{mt:.5,fontVariantNumeric:'tabular-nums',overflowWrap:'anywhere'}}>{status.phase!=='visible'&&<span>{status.phase==='loading'?'正在获取…':'••••'}</span>}<span ref={ref as React.RefObject<HTMLSpanElement>} hidden={status.phase!=='visible'} data-private="true" data-sensitive="true" data-hj-suppress className="fs-exclude ph-no-capture"/></Typography></Box>)}</Stack>}
       <Stack
         direction="row"
         alignItems="center"
@@ -99,7 +115,7 @@ export function RemoteCardCvv({
             onClick={() => void session.current?.show()}
             startIcon={<Icon icon="solar:eye-linear" />}
           >
-            {status.phase === "loading" ? "远程获取中…" : "查看 CVV"}
+            {status.phase === "loading" ? "远程获取中…" : fullDetails ? "查看完整卡号与 CVV" : "查看 CVV"}
           </Button>
         )}
       </Stack>
@@ -110,13 +126,13 @@ export function RemoteCardCvv({
         mt={1}
       >
         {!remoteId
-          ? "演示卡未关联真实上游，暂不可查看安全码。"
+          ? fullDetails ? "此卡尚未开放完整卡片信息查询。" : "此卡尚未开放安全码查询。"
           : status.phase === "visible"
             ? `${remaining} 秒后自动隐藏；离开或切换窗口立即清除。`
             : "点击后向远端实时获取，仅在当前页面临时显示。"}
       </Typography>
       {status.phase === "error" && (
-        <Alert severity="error" sx={{ mt: 1.5 }}>
+        <Alert severity="error" sx={{ mt: 1.5 }} action={status.message?.includes("登录")?<Button component={Link} to={`/portal/login?${new URLSearchParams({returnTo:location.pathname+location.search})}`} onClick={()=>session.current?.hide()}>重新登录</Button>:undefined}>
           {status.message}
         </Alert>
       )}

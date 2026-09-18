@@ -38,22 +38,45 @@ type slashConstraint struct {
 	} `json:"spendingRule"`
 }
 type slashCard struct {
-	ID        string `json:"id"`
-	AccountID string `json:"accountId"`
-	ProductID string `json:"cardProductId"`
-	Last4     string `json:"last4"`
-	Status    string `json:"status"`
-	UserData  struct {
+	ID               string `json:"id"`
+	AccountID        string `json:"accountId"`
+	VirtualAccountID string `json:"virtualAccountId"`
+	ProductID        string `json:"cardProductId"`
+	Last4            string `json:"last4"`
+	Status           string `json:"status"`
+	UserData         struct {
 		OrderID string `json:"moventraOrderId"`
 	} `json:"userData"`
-	Constraint slashConstraint `json:"spendingConstraint"`
+	Name        string          `json:"name"`
+	CreatedAt   string          `json:"createdAt"`
+	ExpiryMonth string          `json:"expiryMonth"`
+	ExpiryYear  string          `json:"expiryYear"`
+	Constraint  slashConstraint `json:"spendingConstraint"`
+}
+
+func (c slashCard) card() Card {
+	data := map[string]any{"id": c.ID, "accountId": c.AccountID, "virtualAccountId": c.VirtualAccountID, "last4": c.Last4, "cardStatus": c.Status}
+	if c.Name != "" {
+		data["name"] = c.Name
+		data["cardName"] = c.Name
+	}
+	if c.CreatedAt != "" {
+		data["createdAtUTC"] = c.CreatedAt
+	}
+	if c.ExpiryMonth != "" {
+		data["expiryMonth"] = c.ExpiryMonth
+	}
+	if c.ExpiryYear != "" {
+		data["expiryYear"] = c.ExpiryYear
+	}
+	return Card{ID: c.ID, Last4: c.Last4, Restricted: c.limit("0"), Projection: data}
 }
 
 func constraint(amount string) map[string]any {
 	return map[string]any{"spendingRule": map[string]any{"utilizationLimit": map[string]any{"limitAmount": map[string]any{"amountCents": json.Number(amount)}, "preset": "collective"}, "transactionSizeLimit": map[string]any{"maximum": map[string]any{"amountCents": json.Number(amount)}}}}
 }
 func (c slashCard) matches(v Snapshot, order string) bool {
-	return sourceID.MatchString(c.ID) && c.AccountID == v.Supplier.AccountRef && c.ProductID == v.Product.UpstreamID && last4RE.MatchString(c.Last4) && (order == "" || c.UserData.OrderID == order)
+	return sourceID.MatchString(c.ID) && c.AccountID == v.Supplier.AccountRef && c.ProductID == v.Product.UpstreamID && (v.VirtualAccountID == "" || c.VirtualAccountID == v.VirtualAccountID) && last4RE.MatchString(c.Last4) && (order == "" || c.UserData.OrderID == order)
 }
 func (c slashCard) limit(amount string) bool {
 	r := c.Constraint.SpendingRule
@@ -99,7 +122,7 @@ func (s *Slash) call(ctx context.Context, method, path string, in, out any) erro
 	return nil
 }
 func (s *Slash) scoped(v Snapshot) bool {
-	return v.Supplier.Adapter == "slash" && v.Supplier.AccountRef == s.account && v.Supplier.EntityRef == s.entity && sourceID.MatchString(v.Product.UpstreamID) && (v.CardholderRef == "" || sourceID.MatchString(v.CardholderRef))
+	return v.Supplier.Adapter == "slash" && v.Supplier.AccountRef == s.account && v.Supplier.EntityRef == s.entity && sourceID.MatchString(v.Product.UpstreamID) && (v.CardholderRef == "" || sourceID.MatchString(v.CardholderRef)) && (v.VirtualAccountID == "" || sourceID.MatchString(v.VirtualAccountID))
 }
 func (s *Slash) Create(ctx context.Context, order string, v Snapshot) (Card, error) {
 	if !s.scoped(v) {
@@ -111,6 +134,9 @@ func (s *Slash) Create(ctx context.Context, order string, v Snapshot) (Card, err
 		name = "Moventra " + order
 	} // Preserve historical order behavior.
 	body := map[string]any{"type": "virtual", "name": name, "accountId": s.account, "cardProductId": v.Product.UpstreamID, "spendingConstraint": constraint("0"), "userData": map[string]string{"moventraOrderId": order}}
+	if v.VirtualAccountID != "" {
+		body["virtualAccountId"] = v.VirtualAccountID
+	}
 	// New snapshots omit the holder and use Slash defaults; historical orders retain their frozen assignment.
 	if v.CardholderRef != "" {
 		body["cardholderId"] = v.CardholderRef
@@ -122,7 +148,7 @@ func (s *Slash) Create(ctx context.Context, order string, v Snapshot) (Card, err
 	if !c.matches(v, order) {
 		return Card{}, ErrUnknown
 	}
-	return Card{c.ID, c.Last4, c.limit("0")}, nil
+	return c.card(), nil
 }
 func (s *Slash) Find(ctx context.Context, order string, v Snapshot) (Card, error) {
 	if !s.scoped(v) {
@@ -157,7 +183,7 @@ func (s *Slash) Find(ctx context.Context, order string, v Snapshot) (Card, error
 			if found == nil {
 				return Card{}, ErrUnknown
 			}
-			return Card{found.ID, found.Last4, found.limit("0")}, nil
+			return found.card(), nil
 		}
 		if cursor == list.Metadata.NextCursor {
 			return Card{}, ErrUnknown

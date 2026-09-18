@@ -14,9 +14,9 @@ type Row = { id: string; name?: string; status: string; currency?: string; amoun
 function exactAmount(row: Row): string {
   const digits = row.amountMinor || '0', scale = row.scale || 0;
   const value = digits.padStart(scale + 1, '0');
-  return (row.direction === 'debit' ? '−' : '+') + (scale ? `${value.slice(0, -scale)}.${value.slice(-scale)}` : value) + ` ${row.currency}`;
+  return (row.direction === 'debit' ? '−' : '+') + (scale ? `${value.slice(0, -scale)}.${(row.currency === 'USDT' ? value.slice(-scale).slice(0, 2).padEnd(2, '0') : value.slice(-scale))}` : value) + ` ${row.currency}`;
 }
-export default function SessionPage() {
+export default function SessionPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { user, ready, session, sessionError, refreshSession, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,18 +40,18 @@ export default function SessionPage() {
     ...(!isAdminSite ? session?.customers.filter(c => c.kind === "personal") || [] : []).flatMap(c => ['accounts','transactions'].map(resource => ({ value: `/client-api/v1/customers/${c.id}/${resource}`, label: `${c.name} · ${c.kind === 'personal' ? '个人' : '企业'} · ${resource === 'accounts' ? '账户' : '交易'}` }))),
     ...(isAdminSite ? session?.staffScopes || [] : []).map(g => { const resource = g.permission.split(':')[0]; return { value: `/admin-api/v1/customers/${g.customerId}/${resource}`, label: `${g.name} · 运营 · ${resource === 'accounts' ? '账户' : '交易'}` }; }),
   ];
-  return <Container maxWidth="md" sx={{ py: 5 }}><Stack spacing={3}>
-    <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">{isAdminSite && (!user.emailVerified || !session?.mfaVerified) ? '完成后台安全验证' : siteTitle}</Typography><Button onClick={signOut}>退出登录</Button></Stack>
-    <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
-      <Typography>{user.email}</Typography>
-      <Stack direction="row" spacing={1}><Chip label={user.emailVerified ? '邮箱已验证' : '邮箱待验证'} /><Chip label={session?.mfaVerified ? '本次登录已完成双重验证' : '本次登录未完成双重验证'} /></Stack>
+  return <Container maxWidth={embedded?false:"md"} disableGutters={embedded} sx={{ py: embedded?0:5 }}><Stack spacing={3}>
+    {!embedded&&<Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">{isAdminSite && (!user.emailVerified || !session?.mfaVerified) ? '完成后台安全验证' : siteTitle}</Typography><Button onClick={signOut}>退出登录</Button></Stack>}
+    <Paper variant="outlined" sx={{p:{xs:2,md:3},maxWidth:840}}><Stack spacing={2}>
+      <Typography variant="h6">登录身份</Typography><Typography sx={{overflowWrap:"anywhere"}}>{user.email}</Typography>
+      <Stack direction="row" gap={1} flexWrap="wrap"><Chip label={user.emailVerified ? '邮箱已验证' : '邮箱待验证'} /><Chip label={session?.mfaVerified ? '本次登录已完成双重验证' : '本次登录未完成双重验证'} /></Stack>
       {sessionError != null && <Alert severity="warning">{authMessage(sessionError)}</Alert>}
       {session?.requiresMfa && <Alert severity="warning">运营访问需要双重验证。请先设置验证器，再退出并重新登录。</Alert>}
       {error && <Alert severity="error">{error}</Alert>}{notice && <Alert severity="info">{notice}</Alert>}
       {!user.emailVerified && <Button disabled={busy} onClick={() => void run(async () => { await sendEmailVerification(user, { url: window.location.origin + loginPath }); setNotice('验证邮件已发送，请检查收件箱。'); })}>发送邮箱验证邮件</Button>}
       <Button disabled={busy} onClick={() => void run(refreshSession)}>刷新身份和权限</Button>
     </Stack></Paper>
-    {user.emailVerified && session && <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
+    {user.emailVerified && session && <Paper variant="outlined" sx={{p:{xs:2,md:3},maxWidth:840}}><Stack spacing={2}>
       <Typography variant="h6">验证器双重验证</Typography>
       <Typography variant="body2" color="text.secondary">使用 Google Authenticator 等验证器保护登录。请自行保管验证器密钥，不要发送给他人。</Typography>
       {multiFactor(user).enrolledFactors.length > 0 ? <Typography>已绑定验证器。需要更新时请联系账户管理员；此页面不提供绕过验证器的重置入口。</Typography> : !secret ? <Button disabled={busy} onClick={() => void run(async () => { setSecret(await TotpMultiFactorGenerator.generateSecret(await multiFactor(user).getSession())); })}>设置验证器</Button> : <>
@@ -64,7 +64,7 @@ export default function SessionPage() {
         })}>确认绑定并重新登录</Button><Button onClick={() => { setSecret(null); setCode(''); }}>取消设置</Button>
       </>}
     </Stack></Paper>}
-    {session && <Paper variant="outlined" sx={{p:3}}><Stack spacing={2}>
+    {session && !embedded && <Paper variant="outlined" sx={{p:{xs:2,md:3},maxWidth:840}}><Stack spacing={2}>
       <Typography variant="h6">已授权的数据范围</Typography>
       {!options.length ? <Alert severity="info">当前没有可访问的客户数据。身份登录不会自动开通业务或授予运营权限。</Alert> : <>
         <TextField select label={isAdminSite ? "客户与资源" : "个人账户业务"} value={scope} onChange={e => { generation.current++; setScope(e.target.value); setRows(null); setError(''); }}>{options.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}</TextField>
@@ -77,7 +77,7 @@ export default function SessionPage() {
         <Typography variant="caption" color="text.secondary">当前显示前 50 条记录；每次请求都会重新检查客户范围与运营权限。</Typography>
       </>}
     </Stack></Paper>}
-    <Typography variant="body2" color="text.secondary">卡片、资金操作和其他业务模块仍在接入中。此工作台展示当前已接入的身份、权限与只读查询。</Typography>
-    <Link href="/">返回官网</Link>
+    {!embedded&&<Typography variant="body2" color="text.secondary">卡片、资金操作和其他业务模块仍在接入中。此工作台展示当前已接入的身份、权限与只读查询。</Typography>}
+    {!embedded&&<Link href="/">返回官网</Link>}
   </Stack></Container>;
 }

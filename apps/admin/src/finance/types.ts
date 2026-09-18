@@ -55,11 +55,11 @@ export function money(v: string | null | undefined, asset: string) {
     a = n < 0n ? -n : n,
     p = asset === 'USDT' || asset === 'USD' ? 2 : scale(asset),
     divisor = 10n ** BigInt(scale(asset) - p),
-    rounded = (a + divisor / 2n) / divisor,
+    truncated = a / divisor,
     f = 10n ** BigInt(p);
-  return `${asset} ${n < 0n && rounded !== 0n ? "-" : ""}${(rounded / f).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${String(rounded % f).padStart(p, "0")}`;
+  return `${asset} ${n < 0n && truncated !== 0n ? "-" : ""}${(truncated / f).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${String(truncated % f).padStart(p, "0")}`;
 }
-// Editing must retain source precision instead of parsing rounded display text.
+// Editing must retain source precision instead of parsing truncated display text.
 export function amountInput(v: string, asset: string) {
   const n = BigInt(v), a = n < 0n ? -n : n, p = scale(asset), f = 10n ** BigInt(p);
   return `${n < 0n ? '-' : ''}${a / f}.${String(a % f).padStart(p, '0')}`;

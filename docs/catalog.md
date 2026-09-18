@@ -35,6 +35,7 @@
 - [生产资金展示发布（2026-09-18）](../deploy/2026-09-18-production-funds-view.md) — `deploy/2026-09-18-production-funds-view.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
 - [Moventra completed-session release — 2026-09-18](../deploy/2026-09-18-session-consolidation.md) — `deploy/2026-09-18-session-consolidation.md`
+- [卡片详情与CVV发布（2026-09-19）](../deploy/2026-09-19-card-detail-cvv-release.md) — `deploy/2026-09-19-card-detail-cvv-release.md`
 - [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
 
@@ -83,6 +84,7 @@
 - [资金中心四流程与正式接入准备](business/funds-center.md) — `docs/business/funds-center.md`
 - [生产全局管理员](business/global-administrator.md) — `docs/business/global-administrator.md`
 - [正式身份、客户主体与业务开通](business/identity-and-production.md) — `docs/business/identity-and-production.md`
+- [统一消息中心](business/message-center.md) — `docs/business/message-center.md`
 - [FLOW-TEST-FUNDS-01 正式登录后的测试资金流程](business/online-test-funds.md) — `docs/business/online-test-funds.md`
 - [FLOW-TEST-WALLET-01 线上测试余额](business/online-test-wallet.md) — `docs/business/online-test-wallet.md`
 - [FLOW-PLATFORM-ADVANCE-001：余额查询与人工出入金](business/platform-advance.md) — `docs/business/platform-advance.md`
@@ -122,10 +124,11 @@
 - [卡片管理工作台：实施记录与后续接入边界](frontend/card-management-workspace.md) — `docs/frontend/card-management-workspace.md`
 - [卡片与交易 Tab / 列表字段规范](frontend/card-transaction-fields.md) — `docs/frontend/card-transaction-fields.md`
 - [客户卡片中心：列表与三级详情](frontend/client-cards.md) — `docs/frontend/client-cards.md`
-- [客户卡片 CVV：远程获取、临时展示](frontend/client-cvv.md) — `docs/frontend/client-cvv.md`
+- [客户卡片敏感信息：远程获取、临时展示](frontend/client-cvv.md) — `docs/frontend/client-cvv.md`
 - [客户资金中心：USDT 充值、兑换与提现](frontend/client-finance.md) — `docs/frontend/client-finance.md`
 - [客户端首期实现](frontend/client-portal.md) — `docs/frontend/client-portal.md`
 - [FLOW-CLIENT-TX-DRAWER：客户端交易详情抽屉](frontend/client-transaction-drawer.md) — `docs/frontend/client-transaction-drawer.md`
+- [客户端页面布局与导航](frontend/client-workspace-layout.md) — `docs/frontend/client-workspace-layout.md`
 - [FLOW-004 客户工作台布局一致性](frontend/client-workspace-parity.md) — `docs/frontend/client-workspace-parity.md`
 - [卡交易流水：双币种消费交付与验收](frontend/cross-currency-delivery.md) — `docs/frontend/cross-currency-delivery.md`
 - [跨币种卡消费字段差异与实施顺序](frontend/cross-currency-field-gap.md) — `docs/frontend/cross-currency-field-gap.md`

@@ -6,9 +6,9 @@ type Balance={currency:'USD'|'USDT';amountMinor:string;scale:number};
 type Grant={requestId:string;usdMinor:string;usdtMinor:string;reason:string;createdAt:string};
 export type TestWalletData={customerId:string;mode:'online_test';enabled:boolean;executionEligible:false;withdrawalEligible:false;balances:Balance[];grants:Grant[];hasMore:boolean};
 export function testMoney(minor:string,scale:number){
- const digits=minor.padStart(scale+1,'0');
- const whole=digits.slice(0,-scale).replace(/\B(?=(\d{3})+(?!\d))/g,',');
- return whole+'.'+digits.slice(-scale);
+ const digits=(BigInt(minor)/10n**BigInt(scale-2)).toString().padStart(3,'0');
+ const whole=digits.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+ return whole+'.'+digits.slice(-2);
 }
 export default function TestWallet({customerId,reload=0}:{customerId:string;reload?:number}){
  const [data,setData]=useState<TestWalletData|null>(null);

@@ -26,10 +26,13 @@ export function MerchantLogo({ name, size = 32 }: { name?: string | null; size?:
   </Box>;
 }
 
-export function MerchantCell({ name }: { name?: string | null }) {
+export function MerchantCell({ name, subtitle }: { name?: string | null; subtitle?: string }) {
   return <Stack direction="row" alignItems="center" gap={1.25} sx={{ height: '100%', minWidth: 0, width: '100%' }}>
     <MerchantLogo name={name}/>
-    <Typography variant="body2" noWrap title={name || undefined} sx={{ minWidth: 0, flex: 1, color: 'inherit' }}>{name || '—'}</Typography>
+    <Box sx={{ minWidth: 0, flex: 1 }}>
+      <Typography variant="body2" noWrap title={name || undefined} sx={{ color: 'inherit', lineHeight: '20px' }}>{name || '—'}</Typography>
+      {subtitle && <Typography data-merchant-subtitle variant="body2" noWrap sx={{ color: 'text.secondary', lineHeight: '20px', fontSize: 13 }}>{subtitle}</Typography>}
+    </Box>
   </Stack>;
 }
 

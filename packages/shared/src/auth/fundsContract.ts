@@ -15,4 +15,4 @@ export function parseFundsAmount(value:string,currency:string){
  const [whole,fraction='']=value.split('.');const n=BigInt(whole+fraction.padEnd(scale,'0'));
  if(n<=0n||n>1000000n*10n**BigInt(scale))throw new Error('单笔金额必须大于 0，且不超过 1,000,000。');return n.toString();
 }
-export function fundsAmount(value:string,currency:string){const scale=currency==='USD'?2:6;const n=BigInt(value);const digits=(n<0n?-n:n).toString().padStart(scale+1,'0');return `${n<0n?'−':''}${digits.slice(0,-scale).replace(/\B(?=(\d{3})+(?!\d))/g,',')}.${digits.slice(-scale)} ${currency}`;}
+export function fundsAmount(value:string,currency:string){const scale=currency==='USD'?2:6;const n=BigInt(value)/10n**BigInt(scale-2);const digits=(n<0n?-n:n).toString().padStart(3,'0');return `${n<0n?'−':''}${digits.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}.${digits.slice(-2)} ${currency}`;}

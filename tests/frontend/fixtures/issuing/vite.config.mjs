@@ -12,8 +12,8 @@ export default defineConfig({root:fileURLToPath(new URL('.',import.meta.url)),pl
  resolveId(source,importer){
   if(!importer)return;
   if(source.endsWith('/AuthContext'))return '\0fixture-auth';
-  if(importer.includes('/issuing/api.ts')&&source==='../firebase')return '\0fixture-firebase';
-  if(importer.includes('/issuing/api.ts')&&source==='../auth/site')return '\0fixture-site';
+  if((importer.includes('/issuing/api.ts')||importer.includes('/auth/'))&&source==='../firebase')return '\0fixture-firebase';
+  if((importer.includes('/issuing/api.ts')&&source==='../auth/site')||(importer.includes('/auth/')&&source==='./site'))return '\0fixture-site';
  },
  load(id){
   if(id==='\0fixture-site')return `export const isAdminSite=location.pathname.startsWith('/card-bins');`;

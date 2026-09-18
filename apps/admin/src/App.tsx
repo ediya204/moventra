@@ -1,3 +1,4 @@
+const MessagesPage=lazy(()=>import('./operations/MessagesPage'));
 const BalancesPage=lazy(()=>import('./operations/BalancesPage'));
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
@@ -28,6 +29,7 @@ export default function App(){
   <Route path="/session" element={<SessionEntry/>}/>
   <Route path="/transactions" element={<ChannelTransactionsPage/>}/>
   {['/finance/balances','/finance/balances/:customerId','/finance/balances/:customerId/orders/:orderId'].map(path=><Route key={path} path={path} element={<BalancesPage/>}/>)}
+  <Route path="/operations/messages/*" element={<MessagesPage/>}/>
   <Route path="/customers" element={<CustomerDirectoryPage/>}/>
   <Route path="/user-groups/users" element={<RegisteredUsersPage/>}/>
   <Route path="/user-groups/users/detail" element={<UserDetailsPage/>}/>

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"moventra.local/api/internal/blnk"
+	"moventra.local/api/internal/ledger"
 	"net/url"
 	"os"
 	"strings"
@@ -36,6 +37,19 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 		return nil, e
 	}
 	s.Blnk = c
+	if source := os.Getenv("ISSUING_FUNDING_SOURCE"); source != "" && source != "issuing_wallet" {
+		if source != "funds_wallet" || os.Getenv("FUNDS_PRODUCTION_MODE") != "enabled" || os.Getenv("FUNDS_PRODUCTION_EVIDENCE") == "" {
+			return nil, errors.New("issuing_funds_configuration_required")
+		}
+		shared, err := blnk.NewWithCA(os.Getenv("DEPOSIT_PILOT_BLNK_URL"), os.Getenv("DEPOSIT_PILOT_BLNK_KEY"), os.Getenv("DEPOSIT_PILOT_BLNK_CA_PEM"), mode == "prepare")
+		if err != nil {
+			return nil, err
+		}
+		s.Funds, err = ledger.NewLive(db, shared, os.Getenv("DEPOSIT_ADDRESS_NAMESPACE"), "general_ledger_id")
+		if err != nil {
+			return nil, err
+		}
+	}
 	if mode == "prepare" {
 		s.Mode = "prepare"
 		return s, nil // No provider, execution flag, certification claim or posting.
@@ -47,6 +61,8 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	}
 	var cfg struct {
 		EvidenceRef        string `json:"evidenceRef"`
+		FundingSource      string `json:"fundingSource"`
+		FundsNamespace     string `json:"fundsNamespace"`
 		AccountingAccepted bool   `json:"accountingAccepted"`
 		Suppliers          []struct {
 			ID                      string `json:"id"`
@@ -61,6 +77,9 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	}
 	if json.Unmarshal(raw, &cfg) != nil || !textOK(cfg.EvidenceRef, 300) || !cfg.AccountingAccepted {
 		return nil, errors.New("issuing_certification_invalid")
+	}
+	if s.Funds != nil && (cfg.FundingSource != "funds_wallet" || cfg.FundsNamespace != s.Funds.Namespace) {
+		return nil, errors.New("unified_accounting_certification_required")
 	}
 	for _, v := range cfg.Suppliers {
 		if !ValidID(v.ID) || !sourceID.MatchString(v.Entity) || !sourceID.MatchString(v.Account) || !v.ZeroLimitVerified || !v.CollectiveLimitVerified || !v.RecoveryVerified || !v.ReconciliationVerified || !strings.HasPrefix(v.KeyEnv, "ISSUING_SLASH_KEY_") || os.Getenv(v.KeyEnv) == "" {
@@ -103,5 +122,21 @@ func localService(s *Service) (*Service, error) {
 	s.Providers[id] = p
 	s.Enabled = true
 	s.Mode = "isolated"
+	if source := os.Getenv("ISSUING_FUNDING_SOURCE"); source != "" && source != "issuing_wallet" {
+		if source != "funds_wallet" {
+			return nil, errors.New("invalid_issuing_funding_source")
+		}
+		namespace := os.Getenv("ISSUING_LOCAL_FUNDS_NAMESPACE")
+		if strings.HasPrefix(namespace, "live_issuing_test_") {
+			// Production-schema acceptance is confined to this already-validated
+			// loopback database/provider/ledger fixture. Never accepts a real namespace.
+			s.Funds, e = ledger.NewLive(s.DB, b, namespace, "general_ledger_id")
+		} else {
+			s.Funds, e = ledger.New(s.DB, b, namespace, "general_ledger_id")
+		}
+		if e != nil {
+			return nil, e
+		}
+	}
 	return s, nil
 }

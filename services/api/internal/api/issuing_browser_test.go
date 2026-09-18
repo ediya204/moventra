@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"moventra.local/api/internal/cryptofunds"
 	"moventra.local/api/internal/database"
 	"moventra.local/api/internal/issuing"
+	"moventra.local/api/internal/ledger"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -101,6 +103,14 @@ func TestIssuingBrowserHarness(t *testing.T) {
 		w.WriteHeader(404)
 	}))
 	defer slash.Close()
+	if os.Getenv("ISSUING_BROWSER_FAKE_BLNK") == "1" && os.Getenv("BLNK_TEST_URL") == "" {
+		issuingBlnk(t)
+	}
+	unified := os.Getenv("ISSUING_BROWSER_UNIFIED") == "1"
+	if unified {
+		t.Setenv("ISSUING_FUNDING_SOURCE", "funds_wallet")
+		t.Setenv("ISSUING_LOCAL_FUNDS_NAMESPACE", "live_issuing_test_browser")
+	}
 	sid := uuid.NewString()
 	t.Setenv("ISSUING_MODE", "local")
 	t.Setenv("ISSUING_FIXTURE_SUPPLIER_ID", sid)
@@ -135,10 +145,36 @@ func TestIssuingBrowserHarness(t *testing.T) {
 	if e = tx.Commit(ctx); e != nil {
 		t.Fatal(e)
 	}
-	if e = svc.ProcessDeposit(ctx, dep); e != nil {
+	if unified {
+		if _, e = db.Exec(ctx, `DELETE FROM issuing_deposits WHERE id=$1`, dep); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec(ctx, `INSERT INTO channel_connections(id,account_ref,label) VALUES('issuing-browser','fixture_account','Isolated cards'); INSERT INTO project_wallets(project_key,connection_id,account_ref,virtual_account_ref,label,evidence_ref,actor_id) VALUES('moventra','issuing-browser','fixture_account','fixture_wallet','Isolated cards','fixture','00000000-0000-0000-0000-000000000003')`); e != nil {
+			t.Fatal(e)
+		}
+		a, err := svc.Funds.Provision(ctx, ledger.AccountSpec{CustomerID: personal, Key: "clearing-USD", Kind: "clearing", Currency: "USD"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := svc.Funds.Provision(ctx, ledger.AccountSpec{CustomerID: personal, Key: "wallet-USD", Kind: "wallet", Currency: "USD"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		op, err := svc.Funds.Submit(ctx, ledger.Command{CustomerID: personal, EffectKey: "fixture-opening", Kind: "wallet_credit", SourceID: a.ID, DestinationID: b.ID, AmountMinor: "100000", EvidenceRef: "isolated-browser"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = svc.Funds.Process(ctx, personal, op.ID); err != nil {
+			t.Fatal(err)
+		}
+	} else if e = svc.ProcessDeposit(ctx, dep); e != nil {
 		t.Fatal(e)
 	}
-	server := httptest.NewServer((&Server{DB: db, Verifier: issuingVerifier{}, Issuing: svc}).Handler())
+	var isolatedFunds *cryptofunds.Service
+	if unified {
+		isolatedFunds = &cryptofunds.Service{Ledger: svc.Funds, Live: &cryptofunds.LiveRuntime{Networks: map[string]cryptofunds.NetworkConfig{}}}
+	}
+	server := httptest.NewServer((&Server{DB: db, Verifier: issuingVerifier{}, Issuing: svc, Ledger: svc.Funds, ProductionFunds: isolatedFunds}).Handler())
 	defer server.Close()
 	workerPath := os.Getenv("ISSUING_WORKER_BINARY")
 	if workerPath == "" {

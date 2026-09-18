@@ -26,6 +26,7 @@ import (
 	"moventra.local/api/internal/depositaddress"
 	"moventra.local/api/internal/issuing"
 	"moventra.local/api/internal/ledger"
+	"moventra.local/api/internal/messages"
 )
 
 func run() error {
@@ -45,6 +46,12 @@ func run() error {
 	defer pool.Close()
 	if err = pool.Ping(ctx); err != nil {
 		return errors.New("database unavailable")
+	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-issuing-unified" {
+		return database.MigrateIssuingUnified(ctx, pool)
+	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-messages" {
+		return database.MigrateMessages(ctx, pool)
 	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-global-admin" {
 		return database.MigrateGlobalAdmin(ctx, pool)
@@ -265,6 +272,11 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	if issuingService.Funds != nil {
+		if err = database.ReadyIssuingUnified(ctx, pool); err != nil {
+			return err
+		}
+	}
 	deposits, err := depositaddress.FromEnv(pool)
 	if err != nil {
 		return err
@@ -277,8 +289,17 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	messageService, err := messages.FromEnv(pool)
+	if err != nil {
+		return err
+	}
+	if messageService != nil {
+		if err = messageService.Check(ctx); err != nil {
+			return errors.New("messages_storage_not_ready")
+		}
+	}
 	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
-	handler := hook.Handler((&api.Server{ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
+	handler := hook.Handler((&api.Server{Messages: messageService, CardSecrets: api.CardSecretsFromEnv(), ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
 	if os.Getenv("CREGIS_SOURCE_ENABLED") == "true" {
 		funding, e := cryptofunds.New(shadowLedger)
 		if e != nil {
@@ -294,6 +315,9 @@ func run() error {
 	server := http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()
+	if messageService != nil && os.Getenv("MESSAGES_WORKER_ENABLED") == "true" {
+		go messageService.Run(stop)
+	}
 	if production != nil && os.Getenv("FUNDS_PRODUCTION_MODE") == "enabled" {
 		go production.RunProduction(stop)
 	}

@@ -24,7 +24,7 @@ test('card actions require confirmation, preserve retry identity and do not infe
  fixture.fail=false;await act(()=>button(v,'确认停用卡片').props.onClick());
  assert.equal(refresh,1);assert.deepEqual(fixture.calls[0],[path,{action:'pause',expectedStatus:'active',confirmClose:false},fixture.calls[1][2]]);
  assert.ok(button(v,'停用卡片'),'no optimistic change to provider status');
- await act(()=>button(v,'注销卡片').props.onClick());await act(()=>button(v,'确认注销卡片').props.onClick());
+ await act(()=>button(v,'更多操作').props.onClick());await act(()=>button(v,'注销卡片').props.onClick());await act(()=>button(v,'确认注销卡片').props.onClick());
  assert.equal(fixture.calls[2][1].confirmClose,true);assert.equal(fixture.calls[2][1].action,'close');
  await act(()=>v.unmount());
 });
@@ -43,4 +43,11 @@ test('gateway allows only scoped same-origin POST actions',async()=>{
  assert.equal((await handle(request('GET'),env,upstream)).status,405);
  assert.equal((await handle(request('POST','https://evil.test'),env,upstream)).status,403);
  assert.equal((await handle(request(),{...env,SITE_KIND:'admin'},upstream)).status,404);assert.equal(calls,1);
+});
+
+test('client freeze label retains the existing confirmed pause command',async()=>{
+ fixture.calls=[];fixture.fail=false;let v;
+ await act(()=>{v=Renderer.create(React.createElement(Controls,{path,pauseLabel:'冻结卡片',row:{controlsEnabled:true,cardStatus:'active'},onRefresh:()=>{}}))});
+ await act(()=>button(v,'冻结卡片').props.onClick());assert.equal(fixture.calls.length,0);
+ await act(()=>button(v,'确认冻结卡片').props.onClick());assert.equal(fixture.calls[0][1].action,'pause');await act(()=>v.unmount());
 });

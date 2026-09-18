@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"math/big"
 	"moventra.local/api/internal/blnk"
+	"moventra.local/api/internal/ledger"
 	"regexp"
 	"strings"
 )
@@ -40,11 +41,13 @@ func hash(v any) string {
 }
 
 type Service struct {
-	DB        *pgxpool.Pool
-	Blnk      *blnk.Client
-	Providers map[string]Provider
-	Mode      string
-	Enabled   bool
+	DB             *pgxpool.Pool
+	Blnk           *blnk.Client
+	Providers      map[string]Provider
+	Mode           string
+	Enabled        bool
+	Funds          *ledger.Service
+	ScopedWalletID string
 }
 type Supplier struct {
 	ID         string `json:"id"`
@@ -85,6 +88,10 @@ type Enrollment struct {
 	EvidenceRef   string `json:"evidenceRef"`
 }
 type Snapshot struct {
+	FundsWalletID    string   `json:"fundsWalletId,omitempty"`
+	FundsNamespace   string   `json:"fundsNamespace,omitempty"`
+	ConnectionID     string   `json:"connectionId,omitempty"`
+	VirtualAccountID string   `json:"virtualAccountId,omitempty"`
 	CardName         string   `json:"cardName,omitempty"`
 	Product          Product  `json:"product"`
 	Supplier         Supplier `json:"supplier"`

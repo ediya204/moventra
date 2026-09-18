@@ -43,6 +43,8 @@ export type Quote = {
   expiresAt: string;
 };
 export type Order = {
+  fundingSource?: "funds_wallet" | "issuing_wallet";
+  fundingAccountId?: string | null;
   consent?: { version: string; digest: string; text: string; acceptedAt: string } | null;
   events?: { state: string; createdAt: string; code: string }[];
   cardName: string;
@@ -84,8 +86,8 @@ export const statuses: Record<string, string> = {
 };
 export const orderStatuses = { ...statuses, active: "开卡成功", failed: "开卡未完成", funding_failed: "首充失败 · 可补充充值" };
 export type Terms = { version: string; text: string; digest: string };
-export type Wallet = { availableMinor: string; currency: "USD"; mode: string };
-export type IssuedCard = { order: Order; balanceMinor: string | null; balanceStatus: string; currency: "USD" };
+export type Wallet = { availableMinor: string; currency: "USD"; mode: string; fundingSource?: "funds_wallet" | "issuing_wallet"; executionEnabled?: boolean };
+export type IssuedCard = { projection?:{connection:string;cardId:string}; order: Order; balanceMinor: string | null; balanceStatus: string; currency: "USD" };
 export const reasons: Record<string, string> = {
   consent_required: "请勾选合法用途声明和开卡条款",
   terms_changed: "开卡条款已更新，请重新阅读并确认",
@@ -93,7 +95,10 @@ export const reasons: Record<string, string> = {
   source_product_inactive: "上游产品不可用",
   provider_access_blocked: "渠道访问被拒绝，等待运营恢复",
   product_paused: "该 BIN 暂停新开卡",
-  supplier_paused: "供应商暂停新开卡",
+  supplier_paused: "运营尚未开放该供应商的新开卡服务",
+  card_scope_migration_required: "历史卡片归属需先核对，请联系运营",
+  funds_wallet_not_ready: "请先在资金中心准备 USD 余额",
+  project_wallet_not_configured: "开卡渠道与项目钱包尚未关联",
   customer_not_enabled: "客户尚未获开卡资格",
   cardholder_not_verified: "持卡人尚未核验",
   execution_disabled: "真实开卡服务尚未启用",

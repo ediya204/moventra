@@ -205,6 +205,20 @@ func (s *Service) snapshot(ctx context.Context, tx pgx.Tx, customer, id string) 
 	if err != nil {
 		return
 	}
+	walletMissing := false
+	if s.Funds != nil {
+		v.FundsNamespace = s.Funds.Namespace
+		err = tx.QueryRow(ctx, `SELECT w.connection_id,w.virtual_account_ref FROM project_wallets w JOIN channel_connections c ON c.id=w.connection_id WHERE w.project_key='moventra' AND w.account_ref=$1 AND c.account_ref=w.account_ref`, v.Supplier.AccountRef).Scan(&v.ConnectionID, &v.VirtualAccountID)
+		if err != nil && err != pgx.ErrNoRows {
+			return
+		}
+		walletMissing = err == pgx.ErrNoRows
+		err = tx.QueryRow(ctx, `SELECT id::text FROM ledger_accounts WHERE namespace=$1 AND customer_id=$2 AND account_key='wallet-USD' AND kind='wallet' AND currency='USD' AND blnk_balance_id IS NOT NULL`, s.Funds.Namespace, customer).Scan(&v.FundsWalletID)
+		if err != nil && err != pgx.ErrNoRows {
+			return
+		}
+		err = nil
+	}
 	v.FeeMinor = v.Product.FeeMinor
 	v.PriceSource = "default"
 	var enabled, active bool
@@ -233,11 +247,23 @@ func (s *Service) snapshot(ctx context.Context, tx pgx.Tx, customer, id string) 
 	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_supplier_blocks WHERE supplier_id=$1)`, v.Supplier.ID).Scan(&accessBlocked); err != nil {
 		return
 	}
+	var legacyScope bool
+	if s.Funds != nil {
+		if err = tx.QueryRow(ctx, `SELECT NOT EXISTS(SELECT 1 FROM project_wallet_customers WHERE customer_id=$1) AND EXISTS(SELECT 1 FROM customer_card_snapshots WHERE customer_id=$1)`, customer).Scan(&legacyScope); err != nil {
+			return
+		}
+	}
 	var sourceInactive bool
 	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_catalog_sources WHERE product_id=$1 AND source_status<>'active')`, id).Scan(&sourceInactive); err != nil {
 		return
 	}
 	switch {
+	case legacyScope:
+		blocked = "card_scope_migration_required"
+	case walletMissing:
+		blocked = "project_wallet_not_configured"
+	case s.Funds != nil && v.FundsWalletID == "":
+		blocked = "funds_wallet_not_ready"
 	case sourceInactive:
 		blocked = "source_product_inactive"
 	case !Money(v.FeeMinor, false) || !Money(v.Product.MinimumMinor, true):

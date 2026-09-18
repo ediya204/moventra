@@ -740,7 +740,8 @@ function CustomerEditor({
       </Paper>
       <Paper variant="outlined" sx={{ p: 3 }}>
         <Stack spacing={2}>
-          <Typography variant="h6">真实到账入账申请</Typography>
+          <Typography variant="h6">原独立开卡钱包到账记录</Typography>
+          {wallet.data?.fundingSource === "funds_wallet" && <Alert severity="info">当前开卡使用资金中心 USD。入金及人工入账请在资金中心处理，此处仅保留历史记录。</Alert>}
           <Alert severity="info">
             只能提交已确认到账的凭证；另一名有权限的运营复核后才会入账。
           </Alert>
@@ -755,7 +756,7 @@ function CustomerEditor({
             onChange={(e) => setEvidence(e.target.value)}
           />
           <Button
-            disabled={busy}
+            disabled={busy || wallet.data?.fundingSource === "funds_wallet"}
             onClick={() =>
               write("/deposits", { amountMinor: amount, evidenceRef: evidence })
             }
@@ -774,7 +775,7 @@ function CustomerEditor({
                 {money(d.amountMinor)} USD · {String(d.evidenceRef)} ·{" "}
                 {statuses[String(d.state)]}
               </Typography>
-              {d.state === "submitted" && (
+              {d.state === "submitted" && wallet.data?.fundingSource !== "funds_wallet" && (
                 <>
                   <Button
                     disabled={busy}
@@ -806,7 +807,7 @@ function CustomerEditor({
       </Paper>
       <Paper variant="outlined" sx={{ p: 3 }}>
         <Stack spacing={2}>
-          <Typography variant="h6">开卡钱包与订单</Typography>
+          <Typography variant="h6">{wallet.data?.fundingSource === "funds_wallet" ? "资金中心 USD 与开卡订单" : "开卡钱包与订单"}</Typography>
           <LoadError message={wallet.error} retry={wallet.refresh}/>
           <Typography>USD 可用余额：{wallet.data ? money(wallet.data.availableMinor) : "暂不可查询"}</Typography>
           {selectedOrder && <AdminOrder prefix={prefix} id={selectedOrder} reload={reload}/>}

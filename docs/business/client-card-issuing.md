@@ -1,6 +1,8 @@
 # FLOW-CLIENT-ISSUING-001：客户端开卡闭环
 
-日期：2026-09-18。隔离资金闭环已验收；生产目录与应用发布进度见[发布记录](../../deploy/2026-09-18-client-issuing-release.md)，真实执行未开放。实现基线为 main `1ed842a`，发布代码 `92cad84`。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，独立发布保留并行数字货币模块改动。
+当前（2026-09-19）：第一批统一资金中心 USD 开卡已在本地实现，使用现有 Blnk 主钱包和卡分户，详见本文后半部分 FLOW-ISSUING-UNIFIED-001。尚未部署；以下2026-09-18内容保留为独立钱包阶段的历史基线。
+
+历史日期：2026-09-18。隔离资金闭环已验收；生产目录与应用发布进度见[发布记录](../../deploy/2026-09-18-client-issuing-release.md)，真实执行未开放。实现基线为 main `1ed842a`，发布代码 `92cad84`。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，独立发布保留并行数字货币模块改动。
 
 ## 范围、差异与决策
 
@@ -61,3 +63,55 @@ POST orders 使用 quoteId、termsVersion、lawfulUse、acceptedTerms 及 Idempo
 ## 连接准备增量（2026-09-18，已部署只读模式）
 
 API与独立Worker已发布2b4a905，Blnk私有CA认证连接及Worker重启检查通过；新增prepare只读检查模式与Blnk私有CA支持；Worker仅检查连接和订单计数，不调用金融处理，数据库会话只读、Blnk禁止非GET。私有TLS进程与Blnk同容器，开卡客户端远端连接加密、代理明文转发固定loopback。真实执行条件保持不变，具体配置与验证见[准备记录](../../deploy/2026-09-18-issuing-preparation.md)。
+
+## FLOW-ISSUING-UNIFIED-001：资金中心 USD 开卡（2026-09-19，统一本地闭环）
+
+本轮用户明确要求实现开卡，并选择从资金中心 USD 统一扣费及首充。基线 main `14fe215`，共享工作区已有 UI、消息、资金及卡片详情改动，保留原改动。本轮不授权生产部署、迁移或真实发卡。
+
+| 项目 | 实施范围 |
+| --- | --- |
+| 起止 | 已获开卡资格客户选产品、报价、同意、提交，Worker预占资金中心USD、发卡、收费、首充及查询结果 |
+| 页面 | `/portal/cards/new` → `/portal/card-orders/:id` → `/portal/issued-cards/:id` → 普通 `/portal/cards/:cardId?connection=...`；后台 `/card-bins/customers?customer=UUID&order=UUID` |
+| 业务身份 | customer、开卡订单、供应商范围及来源卡ID；订单快照固定账本namespace，旧单保留原钱包 |
+| 权威 | 共用现有ledger钱包wallet-USD与ledger_journal，开卡状态仍由issuing_orders维护；本地测试使用隔离数据库和模拟渠道 |
+| 接口链 | 现有React→issuing transport→网关→issuingAPI→归属/MFA授权→订单→Worker→统一ledger→Blnk/Slash；不新增公开金融写入口 |
+| 状态/恢复 | 沿用queued/reserved/creating/active及失败、退款、未知状态；跨数据库事务重放相同经济键，结果未知不重新发卡 |
+| 跨端 | 现有同单查询与轮询；资金中心读取同一USD余额及卡/在途分户，不复制到账金额 |
+| 权限 | 保留客户资格、产品/供应商暂停、渠道验收、客户归属、MFA及独立运营权限；旧开卡入金不得写入统一钱包 |
+| 兼容 | 新配置显式选择资金中心；旧订单快照无namespace继续原账本；切换namespace时拒绝处理不匹配订单，不隐式搬迁旧余额 |
+| 验收 | E01/E04/E05/E06/E07/E09：同钱包扣款、幂等、余额不足、恢复、失败退款及旧单隔离；E02/E03沿用稳定路由并回归；E08无新增全量查询 |
+| 待核实 | 真实渠道受限发卡/限额/恢复与对账验收及生产配置由本轮后续发布阶段核验；本地测试不替代这些证据 |
+
+### Blnk 与账户映射
+
+复用资金中心现有 Blnk 客户端与 ledger 服务，不另建第二份 USD 可用余额。每个客户在同一 namespace 下只有 `wallet-USD`；订单持久化 `fundsNamespace`、`fundsWalletId`、`connectionId` 和 `virtualAccountId`。历史无 namespace 的订单仍走原开卡账本；改变配置不会改变历史退款路径。
+
+| 资金用途 | 统一账户 | 处理规则 |
+| --- | --- | --- |
+| 客户 USD | wallet-USD | 与 OTC 共用余额、锁、journal 及 Blnk 精确记账 |
+| 订单预占 | issuing-hold:订单ID | 先预占，再发卡；未知结果保留核查并用原幂等键恢复 |
+| 开卡费 | issuing-fee-USD | 发卡确认后记费，发卡失败全退 |
+| 首充/原卡补首充 | funds-card:连接:渠道卡ID | 同一卡同一分户，内部划转不新增收入、不重复统计资产 |
+| 退款 | 原订单快照账户 | 首充失败核验受限后退首充，重复恢复不重复退款 |
+
+新卡写入可追溯的来源回执及客户项目归属，自动出现在普通卡片中心，统一详情链接原开卡订单。后续完整渠道导入优先于创建回执，不复制同一卡。分户初始账务可核对，但授权占用尚未接入的卡仍禁止通用充提；限额不冒充可用资金。
+
+### 盘点范围与第二批
+
+本轮完成代码、隔离测试数据和账户路径盘点，未连接生产数据库。生产两套钱包余额、在途订单、历史卡授权占用及归属仍须逐笔只读盘点。旧开卡钱包退出统一模式下的新入金业务，历史记录保留；未完成旧入金留待核查，不能直接转入主钱包。历史余额迁移必须使用有来源、审批和审计的迁移分录，禁止覆盖余额。拥有旧快照但尚无项目归属的客户由 `card_scope_migration_required` 阻止隐式迁移。
+
+### 配置、迁移与回退候选
+
+统一模式显式配置 `ISSUING_FUNDING_SOURCE=funds_wallet`，复用资金中心 `DEPOSIT_PILOT_BLNK_*` 连接及 `DEPOSIT_ADDRESS_NAMESPACE`；正式模式还要求既有资金执行开关和验收证据，开卡验收文件必须固定同一资金来源和 namespace。旧开卡 Blnk 连接需继续保留供历史订单恢复。prepare 只读模式不会发卡或扣款。
+
+迁移021仅增加新卡归属回执及来源投影兼容视图，不搬迁余额。受控命令 `api migrate-issuing-unified` 核验001–019校验和，仅执行021，不顺带执行消息迁移020。后续生产方案依次为：获授权后只读盘点、备份校验与隔离恢复、执行021、关闭执行开关部署、指定客户与产品验收、核对真实扣款/发卡/启用/退款证据后扩大。回退先关闭执行，保留021、原订单快照和账本，继续查询和核查；不得删除在途记录或改退款账户。
+
+### 本轮验证边界
+
+隔离 PostgreSQL 全套 Go race 回归通过；统一专项覆盖成功、发卡未知恢复、首充失败退款、原卡补首充、幂等、预占已提交而本地事务回滚、客户越权、后台 MFA、同单跨端查询、与其他资金操作并发防超支、余额不足及 namespace 变更拒绝。专项随后在新建独立 PostgreSQL、Redis 和真实本机 Blnk 进程上重跑通过（Slash 模拟）；不是生产 Blnk 或真实发卡验收。历史订单路由另有 `TestOrderKeepsOriginalLedger` 回归。
+
+两端 typecheck/build、43项相关前端测试通过。全仓前端测试曾遇到并行修改中的 funds navigation 断言失败，未作为全绿验收。浏览器统一链路使用真实 Go HTTP、独立数据库、独立 Worker 重启及有状态 Blnk/Slash 模拟；桌面与390px手机验证通过：声明、报价、支付、刷新、Worker重启、新卡详情、两端同单及1000→975 USD主钱包/20 USD卡分户/5 USD费用均已核验；不能和真实 Blnk 专项混为同一轮。
+
+复现统一专项：新的本地 Blnk 数据库与 Redis、设置 BLNK_TEST_URL/KEY 后，在新建 moventra_test_ 应用库运行 `go test -race -count=1 -run '^TestIssuingUnifiedFunds$' ./internal/api`。浏览器增加 `ISSUING_BROWSER_UNIFIED=1`；使用模拟 Blnk 时同时设置 `ISSUING_BROWSER_FAKE_BLNK=1`。`live_issuing_test_` namespace 仅在本地隔离模式及 loopback 检查通过后用于正式响应结构测试，不代表启用生产。
+
+本轮未执行生产迁移、部署、真实渠道发卡或真实资金操作。

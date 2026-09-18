@@ -130,7 +130,7 @@ export function DashboardCharts({
             value: {
               formatter: (value: string) =>
                 funds
-                  ? number(Number(value) / (currency === "USD" ? 100 : 1000000))
+                  ? asset(Number(value), currency).replace(` ${currency}`, "")
                   : value,
               fontSize: "24px",
               fontWeight: 700,
@@ -142,7 +142,7 @@ export function DashboardCharts({
               label: funds ? `${currency} 资金分布` : "全部卡片",
               formatter: () =>
                 funds
-                  ? number(total / (currency === "USD" ? 100 : 1000000))
+                  ? asset(total, currency).replace(` ${currency}`, "")
                   : String(total),
               color: theme.palette.text.secondary,
             },

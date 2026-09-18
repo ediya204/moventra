@@ -3,7 +3,7 @@
   "info": {
     "title": "Moventra card issuing",
     "version": "1.1.0",
-    "description": "LOCAL implementation. Live financial execution is disabled unless a dedicated Blnk service and supplier certification manifest are configured. USD virtual cards only. Lists return up to 51 entries: display 50, use the extra entry as hasMore. Checkout requires explicit versioned consent, persisted atomically with its order. Quotes bind termsVersion for five minutes. Card detail exposes internal subaccount balance, never upstream available funds. Local execution accepts only moventra_test_ databases and loopback fixtures; production stays disabled by default."
+    "description": "LOCAL implementation. Live financial execution is disabled unless the configured accounting service and supplier certification manifest are verified. Opt-in funds_wallet uses the existing USD wallet, freezes namespace and wallet ID in the order, and requires migration 021; legacy orders retain their original accounting route. USD virtual cards only. Lists return up to 51 entries: display 50, use the extra entry as hasMore. Checkout requires explicit versioned consent, persisted atomically with its order. Quotes bind termsVersion for five minutes. Card detail exposes internal subaccount balance, never upstream available funds. Local execution accepts only moventra_test_ databases and loopback fixtures; production stays disabled by default."
   },
   "servers": [
     {
@@ -3189,6 +3189,8 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "fundingSource": {"enum": ["funds_wallet", "issuing_wallet"]},
+          "fundingAccountId": {"type": ["string", "null"], "format": "uuid"},
           "id": {
             "type": "string",
             "format": "uuid"
@@ -3316,10 +3318,28 @@
             "pattern": "^-?[0-9]+$"
           },
           "mode": {
-            "enum": ["live", "isolated"]
+            "enum": [
+              "",
+              "live",
+              "prepare",
+              "isolated"
+            ]
+          },
+          "fundingSource": {
+            "enum": [
+              "funds_wallet",
+              "issuing_wallet"
+            ]
+          },
+          "executionEnabled": {
+            "type": "boolean"
           }
         },
-        "required": ["currency", "availableMinor", "mode"]
+        "required": [
+          "currency",
+          "availableMinor",
+          "mode"
+        ]
       },
       "PublicProduct": {
         "type": "object",

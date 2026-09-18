@@ -2796,7 +2796,8 @@
           "503": {
             "description": "Database or mandatory audit unavailable"
           }
-        }
+        },
+        "description": " Customer card details additionally expose an optional issuingOrderId for automatically linked new cards, cvvAvailable and nullable fundingCardId resolved by exact customer/connection/external card mapping. Optional network and expiry fields are shown only when available."
       }
     },
     "/client-api/v1/customers/{customerID}/test-wallet": {
@@ -3617,6 +3618,251 @@
           },
           "403": {
             "description": "MFA/operator required"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/cvv/reveal": {
+      "post": {
+        "summary": "Temporarily reveal the authenticated owner card CVV from the upstream",
+        "description": "Requires current customer ownership, explicit enabled live source and CARD_CVV_ENABLED. No secondary authentication. No response body logging, persistence or caching. Limits: 10 per actor and 3 per scoped card per minute. Ordinary card queries never return secrets.",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "purpose"
+                ],
+                "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "cardholder-view"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ephemeral unwrapped response; Cache-Control: private, no-store",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "cardId",
+                    "cvv",
+                    "expiresAt"
+                  ],
+                  "properties": {
+                    "source": {
+                      "type": "string",
+                      "enum": [
+                        "upstream"
+                      ]
+                    },
+                    "cardId": {
+                      "type": "string"
+                    },
+                    "cvv": {
+                      "type": "string",
+                      "pattern": "^[0-9]{3,4}$"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Card not owned or source unavailable"
+          },
+          "409": {
+            "description": "Reveal disabled"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Temporary failure; no upstream body is returned"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/details/reveal": {
+      "post": {
+        "summary": "Temporarily reveal full card number, CVV, name and expiry to the authenticated owner",
+        "description": "Requires current customer ownership, explicit enabled live source and CARD_CVV_ENABLED. No secondary authentication. No response body logging, persistence or caching. Limits: 10 per actor and 3 per scoped card per minute. Ordinary card queries never return secrets. Explicit user-requested full details. Shares the CVV rate bucket and gate; ownership is rechecked after upstream I/O. Never persist or log secrets.",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "purpose"
+                ],
+                "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "cardholder-view"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ephemeral unwrapped response; Cache-Control: private, no-store",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "cardId",
+                    "cvv",
+                    "expiresAt",
+                    "pan",
+                    "name",
+                    "expiryMonth",
+                    "expiryYear"
+                  ],
+                  "properties": {
+                    "source": {
+                      "type": "string",
+                      "enum": [
+                        "upstream"
+                      ]
+                    },
+                    "cardId": {
+                      "type": "string"
+                    },
+                    "cvv": {
+                      "type": "string",
+                      "pattern": "^[0-9]{3,4}$"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "pan": {
+                      "type": "string",
+                      "pattern": "^[0-9]{12,19}$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "expiryMonth": {
+                      "type": "string",
+                      "pattern": "^(0[1-9]|1[0-2])$"
+                    },
+                    "expiryYear": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}$"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Card not owned or source unavailable"
+          },
+          "409": {
+            "description": "Reveal disabled"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Temporary failure; no upstream body is returned"
           }
         }
       }

@@ -540,7 +540,7 @@ export function FinancePanel({
               <Box sx={{p:{xs:2,md:2.5},border:1,borderColor:'divider',borderRadius:2,bgcolor:'action.hover'}}>
                 <Typography variant="subtitle2" mb={2}>获得资产 · 您收到</Typography>
                 <TextField fullWidth select size="small" label="获得资产" value={to} disabled={exchangeBusy} onChange={e=>changeExchangeAsset(e.target.value==='USD'?'USDT':'USD')} sx={{mb:2}}>{(['USD','USDT'] as Currency[]).map(assetOption)}</TextField>
-                <TextField fullWidth label="预计获得数量" value={quote?toAmount(quote.receive,quote.to):'—'} InputProps={{readOnly:true,endAdornment:<InputAdornment position="end">{to}</InputAdornment>}} sx={{'& input':{typography:'h4',color:quoteValid?'primary.main':'text.secondary',fontVariantNumeric:'tabular-nums'}}} helperText={quote?(quoteValid?'已扣除手续费 · 确认兑换后，处理成功才入账':'报价已失效，请重新获取'):'输入支付金额并获取报价后，显示预计到账数量'}/>
+                <TextField fullWidth label="预计获得数量" value={quote?asset(quote.receive,quote.to).replace(` ${quote.to}`,''):'—'} InputProps={{readOnly:true,endAdornment:<InputAdornment position="end">{to}</InputAdornment>}} sx={{'& input':{typography:'h4',color:quoteValid?'primary.main':'text.secondary',fontVariantNumeric:'tabular-nums'}}} helperText={quote?(quoteValid?'已扣除手续费 · 确认兑换后，处理成功才入账':'报价已失效，请重新获取'):'输入支付金额并获取报价后，显示预计到账数量'}/>
                 <Typography variant="caption" color="text.secondary" display="block" mt={1}>当前可用 {asset(available(to),to)}</Typography>
               </Box>
               {quote&&!quoteValid&&<Alert severity="warning">{quote.used?'该报价已使用，请重新获取。':'报价已过期，请重新获取后确认兑换。'}</Alert>}

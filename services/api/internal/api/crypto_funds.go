@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func cryptoFail(w http.ResponseWriter, e error) {
@@ -169,12 +170,32 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 	page, limit := 0, 20
 	cardID := ""
 	kind, status := "", ""
+	direction := ""
+	var from, to *time.Time
 	for k, v := range r.URL.Query() {
 		if write || rest != "" || len(v) != 1 {
 			fail(w, 400, "invalid_query")
 			return
 		}
 		switch k {
+		case "direction":
+			direction = v[0]
+			if direction != "" && direction != "wallet_to_card" && direction != "card_to_wallet" {
+				fail(w, 400, "invalid_query")
+				return
+			}
+		case "from", "to":
+			parsed, err := time.Parse(time.RFC3339, v[0])
+			if err != nil {
+				fail(w, 400, "invalid_query")
+				return
+			}
+			if k == "from" {
+				from = &parsed
+			} else {
+				to = &parsed
+			}
+
 		case "page":
 			n, err := strconv.Atoi(v[0])
 			if err != nil || n < 0 || n > 500 {
@@ -218,6 +239,11 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	if from != nil && to != nil && !from.Before(*to) {
+		fail(w, 400, "invalid_query")
+		return
+	}
+
 	tx, e := s.DB.Begin(r.Context())
 	if e != nil {
 		cryptoFail(w, e)
@@ -294,12 +320,12 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var total int
-		e = tx.QueryRow(r.Context(), `SELECT count(*) FROM crypto_orders WHERE namespace=$1 AND customer_id=$2 AND ($3='' OR kind=$3) AND ($4='' OR state=$4) AND ($5='' OR data->>'cardId'=$5)`, svc.NS(), customer, kind, status, cardID).Scan(&total)
+		e = tx.QueryRow(r.Context(), `SELECT count(*) FROM crypto_orders WHERE namespace=$1 AND customer_id=$2 AND ($3='' OR kind=$3) AND ($4='' OR state=$4) AND ($5='' OR data->>'cardId'=$5) AND ($6::timestamptz IS NULL OR created_at >= $6) AND ($7::timestamptz IS NULL OR created_at < $7) AND ($8='' OR data->>'direction'=$8)`, svc.NS(), customer, kind, status, cardID, from, to, direction).Scan(&total)
 		if e != nil {
 			cryptoFail(w, e)
 			return
 		}
-		rows, err := tx.Query(r.Context(), `SELECT data FROM crypto_orders WHERE namespace=$1 AND customer_id=$2 AND ($3='' OR kind=$3) AND ($4='' OR state=$4) AND ($5='' OR data->>'cardId'=$5) ORDER BY created_at DESC,id LIMIT $6 OFFSET $7`, svc.NS(), customer, kind, status, cardID, limit, page*limit)
+		rows, err := tx.Query(r.Context(), `SELECT data FROM crypto_orders WHERE namespace=$1 AND customer_id=$2 AND ($3='' OR kind=$3) AND ($4='' OR state=$4) AND ($5='' OR data->>'cardId'=$5) AND ($6::timestamptz IS NULL OR created_at >= $6) AND ($7::timestamptz IS NULL OR created_at < $7) AND ($8='' OR data->>'direction'=$8) ORDER BY created_at DESC,id LIMIT $9 OFFSET $10`, svc.NS(), customer, kind, status, cardID, from, to, direction, limit, page*limit)
 		if err != nil {
 			cryptoFail(w, err)
 			return

@@ -36,17 +36,17 @@ type testIssuer struct {
 	transactions  []issuing.SourceTransaction
 }
 
-func (p *testIssuer) Create(_ context.Context, id string, _ issuing.Snapshot) (issuing.Card, error) {
+func (p *testIssuer) Create(_ context.Context, id string, v issuing.Snapshot) (issuing.Card, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.creates++
 	if p.unknown {
 		return issuing.Card{}, issuing.ErrUnknown
 	}
-	return issuing.Card{ID: "card_" + id, Last4: "1234", Restricted: true}, nil
+	return issuing.Card{ID: "card_" + id, Last4: "1234", Restricted: true, Projection: map[string]any{"id": "card_" + id, "accountId": v.Supplier.AccountRef, "virtualAccountId": v.VirtualAccountID, "last4": "1234", "cardStatus": "active", "name": v.CardName}}, nil
 }
-func (p *testIssuer) Find(_ context.Context, id string, _ issuing.Snapshot) (issuing.Card, error) {
-	return issuing.Card{ID: "card_" + id, Last4: "1234", Restricted: true}, nil
+func (p *testIssuer) Find(_ context.Context, id string, v issuing.Snapshot) (issuing.Card, error) {
+	return issuing.Card{ID: "card_" + id, Last4: "1234", Restricted: true, Projection: map[string]any{"id": "card_" + id, "accountId": v.Supplier.AccountRef, "virtualAccountId": v.VirtualAccountID, "last4": "1234", "cardStatus": "active", "name": v.CardName}}, nil
 }
 func (p *testIssuer) Enable(context.Context, issuing.Card, issuing.Snapshot, string) error {
 	if p.rejectFunding {
@@ -144,6 +144,10 @@ func issuingBlnk(t *testing.T) *blnk.Client {
 		}
 	}))
 	t.Cleanup(srv.Close)
+	if os.Getenv("ISSUING_BROWSER_FAKE_BLNK") == "1" {
+		t.Setenv("BLNK_TEST_URL", srv.URL)
+		t.Setenv("BLNK_TEST_KEY", "synthetic")
+	}
 	c, e := blnk.New(srv.URL, "synthetic")
 	if e != nil {
 		t.Fatal(e)

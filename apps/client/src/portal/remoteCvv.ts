@@ -9,6 +9,9 @@ export type CvvStatus = {
 };
 type Options = {
   remoteCardId: string;
+  writeDetails?: (value: {pan:string;name:string;expiryMonth:string;expiryYear:string} | null) => void;
+  endpoint?: string;
+  authorization?: () => Promise<string>;
   write: (value: string) => void;
   status: (status: CvvStatus) => void;
   isActive: () => boolean;
@@ -18,7 +21,7 @@ type Options = {
 };
 const MAX_VISIBLE_MS = 30_000;
 const REQUEST_TIMEOUT_MS = 10_000;
-const failure = "暂时无法获取 CVV，请稍后重试。";
+const failure = "暂时无法获取卡片信息，请稍后重试。";
 export function createCvvSession(options: Options) {
   const fetcher = options.fetcher || fetch;
   const now = options.now || Date.now;
@@ -42,6 +45,7 @@ export function createCvvSession(options: Options) {
     cancelRequest?.();
     cancelRequest = undefined;
     options.write("");
+    options.writeDetails?.(null);
   };
   const hide = () => {
     clear();
@@ -70,16 +74,19 @@ export function createCvvSession(options: Options) {
       options.status({ phase: "error", message: "请求超时，请重新查看。" });
     }, REQUEST_TIMEOUT_MS);
     try {
+      const authorization = options.authorization ? await options.authorization() : undefined;
+      if (disposed || request !== sequence || signal.aborted || !options.isActive()) return;
       const response = await fetcher(
-        `/client-api/cards/${encodeURIComponent(options.remoteCardId)}/cvv/reveal`,
+        options.endpoint || `/client-api/cards/${encodeURIComponent(options.remoteCardId)}/cvv/reveal`,
         {
           method: "POST",
-          credentials: "same-origin",
+          credentials: options.authorization ? "omit" : "same-origin",
           cache: "no-store",
           redirect: "error",
           referrerPolicy: "no-referrer",
           signal,
           headers: {
+            ...(authorization ? {Authorization: authorization} : {}),
             Accept: "application/json",
             "Content-Type": "application/json",
             "X-Requested-With": "Moventra-Portal",
@@ -91,7 +98,7 @@ export function createCvvSession(options: Options) {
       if (!response.ok) {
         // Do not read or echo upstream error bodies; they could contain card secrets.
         if (response.status === 401 || response.status === 403)
-          throw new Error("需要重新登录或完成安全验证后才能查看。");
+          throw new Error("登录已失效或无此卡查看权限，请重新登录后重试。");
         throw new Error(failure);
       }
       if (
@@ -129,10 +136,13 @@ export function createCvvSession(options: Options) {
         expiry <= now()
       )
         throw new Error(failure);
+      if (options.writeDetails && (typeof data.pan !== "string" || !/^\d{12,19}$/.test(data.pan) || typeof data.name !== "string" || !data.name || data.name.length>512 || typeof data.expiryMonth !== "string" || !/^(0[1-9]|1[0-2])$/.test(data.expiryMonth) || typeof data.expiryYear !== "string" || !/^\d{4}$/.test(data.expiryYear))) throw new Error(failure);
       const expiresAt = Math.min(expiry, now() + MAX_VISIBLE_MS);
       cancelRequest?.();
       cancelRequest = undefined;
       options.write(data.cvv);
+      options.writeDetails?.({pan:data.pan as string,name:data.name as string,expiryMonth:data.expiryMonth as string,expiryYear:data.expiryYear as string});
+      data.pan = data.name = data.expiryMonth = data.expiryYear = undefined;
       // Release the parsed object's reference to the field as soon as it is rendered.
       data.cvv = undefined;
       options.status({ phase: "visible", expiresAt });
@@ -145,7 +155,7 @@ export function createCvvSession(options: Options) {
         phase: "error",
         message:
           cause instanceof Error &&
-          cause.message === "需要重新登录或完成安全验证后才能查看。"
+          cause.message === "登录已失效或无此卡查看权限，请重新登录后重试。"
             ? cause.message
             : failure,
       });
