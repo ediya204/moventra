@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"github.com/google/uuid"
-	"moventra.local/api/internal/cryptofunds"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +13,7 @@ func (s *Server) cryptoSourceAPI(w http.ResponseWriter, r *http.Request) {
 		fail(w, 403, "mfa_required")
 		return
 	}
-	svc, e := cryptofunds.New(s.Ledger)
+	svc, e := s.fundsReadService()
 	if e != nil {
 		fail(w, 503, "crypto_disabled")
 		return

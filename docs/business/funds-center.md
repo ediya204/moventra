@@ -93,3 +93,5 @@ FLOW-FUNDS-PRODUCTION-VIEW：用户要求线上只展示正式资金。首页移
 独立FUNDS_PRODUCTION_MODE=prepare/enabled与pilot/full ledger互斥。要求原真实最终入账订单及零期初审计，复用私有TLS连接；不伪造双链或卡片认证清单。configure-production-funds仅一次设置用户指定政策并审计，启动不覆盖后台更改。此profile无出金/Slash writer，原独立Cregis地址申请保留。
 
 正式余额查询从已接通live账本读取，manual ReadOnly保证查询不开放人工写入。显式migrate-manual-funds仅安装016，校验前置版本，不创建余额或授权。133项前端及Go隔离PG race通过；真实渠道与部署另外记录。
+
+旧ledger快照及crypto来源查询同样复用正式读服务，保留各自原查询权限和MFA；对应API隔离回归通过。

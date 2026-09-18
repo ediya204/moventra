@@ -7,7 +7,8 @@ import (
 
 func (s *Server) ledgerSnapshot(surface string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if s.Ledger == nil {
+		readLedger := s.manualService().Ledger
+		if readLedger == nil {
 			fail(w, 503, "ledger_disabled")
 			return
 		}
@@ -41,12 +42,12 @@ func (s *Server) ledgerSnapshot(surface string) http.HandlerFunc {
 			fail(w, 404, "not_found")
 			return
 		}
-		data, err := s.Ledger.SnapshotTx(r.Context(), tx, customer)
+		data, err := readLedger.SnapshotTx(r.Context(), tx, customer)
 		if err != nil {
 			fail(w, 503, "ledger_unavailable")
 			return
 		}
-		_, err = tx.Exec(r.Context(), `INSERT INTO audit_events(actor_id,customer_id,action) VALUES($1,$2,$3)`, p.ID, customer, "ledger:shadow:read")
+		_, err = tx.Exec(r.Context(), `INSERT INTO audit_events(actor_id,customer_id,action) VALUES($1,$2,$3)`, p.ID, customer, map[bool]string{true: "ledger:live:read", false: "ledger:shadow:read"}[readLedger.IsLive()])
 		if err == nil {
 			err = tx.Commit(r.Context())
 		}

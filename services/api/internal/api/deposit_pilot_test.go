@@ -223,6 +223,10 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 		t.Fatal("replayed production deposit", snap, e)
 	}
 	handler = (&Server{DB: db, Verifier: fakeVerifier{}, Directory: &fakeDirectory{}, ProductionFunds: s}).Handler()
+	check("GET", "/client-api/v1/customers/"+personal+"/ledger", "alice", 200)
+	check("GET", "/client-api/v1/customers/"+personal+"/ledger", "bob", 404)
+	check("GET", "/admin-api/v1/crypto-sources", "staff", 200)
+	check("GET", "/admin-api/v1/crypto-sources", "staff-no-mfa", 403)
 	check("GET", "/admin-api/v1/balances?currency=USDT", "staff", 403)
 	exec(`INSERT INTO manual_funds_grants(user_id,scope,permission) VALUES('00000000-0000-0000-0000-000000000003',$1,'read')`, personal)
 	body = check("GET", "/admin-api/v1/balances/"+personal+"?currency=USDT", "staff", 200)
