@@ -121,3 +121,7 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 新增迁移 011；Ready 要求其 checksum。`api project-wallet-plan` 和 `api project-wallet-apply` 从 stdin 接受严格 JSON：`targetEmail`、`assignment`、`expectedPlan`。assignment 必填 connectionId/accountId/virtualAccountId/label/revision/cardIds/reason/evidenceRef。plan 不写库，输出 hash；apply 要求相同 hash。运行凭据为既有 Firebase、DATABASE_URL、PROJECTION_OPERATOR_UID、服务端 SLASH_API_KEY；每次仅 GET 核验指定 virtual account 与父账户及名称匹配且未关闭。不输出密钥和银行账号，不调用 Slash 写接口。
 
 首次将 APEXIS Op 配置为项目共用钱包时，仅把已审阅的当前卡 ID 清单分给指定用户。后续对其他用户再次运行固定清单分配，不设默认收卡用户；缺失来源 wallet 标识时拒绝。既有钱包禁止静默换连接。详情见 [FLOW-WALLET-001](../../docs/business/project-wallet.md)。现有测试资金开卡保持模拟，真实 Slash 开卡尚未接通。
+
+## 2026-09-18 BIN catalog
+
+新增正式 `/card-bins` 管理页与 `/admin-api/v1/card-issuing` 契约；来源目录导入使用 `issuing-admin import-catalog`。未配置价格以空字符串传输、数据库 NULL 保存，与免费 `0` 区分。生产保持真实发卡执行关闭。详见 `docs/business/bin-catalog-sync-2026-09-18.md` 与 `services/api/docs/issuing.openapi.json`。

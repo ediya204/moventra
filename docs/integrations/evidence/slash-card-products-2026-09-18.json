@@ -1,0 +1,50 @@
+{
+  "source": "Slash GET /card-product",
+  "collectedAt": "2026-09-18T03:55:03.335326+00:00",
+  "pages": 1,
+  "complete": true,
+  "items": [
+    {
+      "id": "card_product_260203k7tyny0",
+      "prefix": "40041641",
+      "status": "active"
+    },
+    {
+      "id": "card_product_21srtczdagp7p",
+      "prefix": "40041606",
+      "status": "active"
+    },
+    {
+      "id": "card_product_hsz62usueilg",
+      "prefix": "40024200",
+      "status": "active"
+    },
+    {
+      "id": "card_product_c2rjxwqnbz8t",
+      "prefix": "43612081",
+      "status": "active"
+    },
+    {
+      "id": "card_product_34mwpjogx4gu3",
+      "prefix": "43612077",
+      "status": "active"
+    },
+    {
+      "id": "card_product_2zwp1e2k7u0im",
+      "prefix": "43612078",
+      "status": "active"
+    },
+    {
+      "id": "card_product_2f0pb1sqhzse4",
+      "prefix": "43612079",
+      "status": "active"
+    },
+    {
+      "id": "card_product_1g6jd6ffgjas6",
+      "prefix": "43612080",
+      "status": "active"
+    }
+  ],
+  "scope": "Products visible to the current trial Slash API key; not a global Slash BIN inventory",
+  "executionEvidence": "Render job-dambc40u01pc73f1nutg"
+}

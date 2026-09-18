@@ -241,3 +241,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 本地增量 011 为 APEXIS Op 项目共用钱包及逐卡归属增加配置；不属于客户余额。现有 `/client-api/v1/customers/{customerID}/card-projections` 路由兼容：未切换客户保留 test_snapshot，已切换客户返回 assigned_wallet_projection，按当前导入版本、明确 cardId 归属及父账户/virtualAccountId 同时隔离。未知钱包来源字段不授予读取权限，新卡不继承初始邮箱归属；共享钱包标识和余额不进入客户 DTO。列表、总数、详情遵循同一条件，版本冲突仍为 409。
 
 后台卡片 DTO 新增内部 assignmentKind（project_wallet / test_snapshot / unassigned），不暴露客户邮箱。生效范围和验证见 [项目钱包流程卡](../business/project-wallet.md)。未部署，未改线上数据。
+
+## 2026-09-18 BIN catalog
+
+新增正式 `/card-bins` 管理页与 `/admin-api/v1/card-issuing` 契约；来源目录导入使用 `issuing-admin import-catalog`。未配置价格以空字符串传输、数据库 NULL 保存，与免费 `0` 区分。生产保持真实发卡执行关闭。详见 `docs/business/bin-catalog-sync-2026-09-18.md` 与 `services/api/docs/issuing.openapi.json`。

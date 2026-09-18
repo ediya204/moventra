@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"moventra.local/api/internal/database"
+	"moventra.local/api/internal/issuing"
 	"moventra.local/api/internal/ledger"
 
 	"github.com/google/uuid"
@@ -21,6 +22,7 @@ type Server struct {
 	DB        *pgxpool.Pool
 	Verifier  Verifier
 	Directory UserDirectory
+	Issuing   *issuing.Service
 	Ledger    *ledger.Service
 }
 type principal struct {
@@ -41,6 +43,7 @@ func fail(w http.ResponseWriter, status int, code string) {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	s.issuingRoutes(mux)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { respond(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)

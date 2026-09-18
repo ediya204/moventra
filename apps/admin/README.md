@@ -49,3 +49,7 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 正式测试资金审核入口 `/finance/test-funds`：仅显示逐客户获授权的测试钱包，要求现有运营身份与 MFA。充值先确认、后模拟入账；提现审核与模拟结算分开，未知状态持续预占。审批不调用真实付款接口。见 [流程卡](../../docs/business/online-test-funds.md)。
 
 项目钱包候选：卡列表/详情的分配状态改为读取服务端 assignmentKind（项目钱包分配/历史测试快照/未分配）；字段未返回时显示“归属未查询”，不再硬编码未绑定。不暴露客户邮箱；未部署，见 [流程卡](../../docs/business/project-wallet.md)。
+
+## 2026-09-18 BIN catalog
+
+新增正式 `/card-bins` 管理页与 `/admin-api/v1/card-issuing` 契约；来源目录导入使用 `issuing-admin import-catalog`。未配置价格以空字符串传输、数据库 NULL 保存，与免费 `0` 区分。生产保持真实发卡执行关闭。详见 `docs/business/bin-catalog-sync-2026-09-18.md` 与 `services/api/docs/issuing.openapi.json`。
