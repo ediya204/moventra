@@ -136,6 +136,13 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 	if e = s.PrepareDepositPilot(ctx); e != nil {
 		t.Fatal(e)
 	}
+	// A late preliminary callback must not hide an already posted order.
+	var cid string
+	if e = db.QueryRow(ctx, `SELECT external_id FROM crypto_events WHERE payload->>'txid'=$1 LIMIT 1`, strings.Repeat("9", 64)).Scan(&cid); e != nil {
+		t.Fatal(e)
+	}
+	late := uuid.NewString()
+	exec(`INSERT INTO crypto_events(id,namespace,connection_id,project_id,kind,external_id,digest,payload) SELECT $1::uuid,namespace,connection_id,project_id,kind,external_id,$1::text,jsonb_set(payload,'{status}','"0"') FROM crypto_events WHERE external_id=$2 LIMIT 1`, late, cid)
 	ds := &depositaddress.Service{DB: db, Namespace: ns, Project: project}
 	events, e := ds.Events(ctx, personal, 0, "")
 	if e != nil {
@@ -149,5 +156,9 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("posted deposit not visible", events)
+	}
+	detail, e := ds.Events(ctx, personal, 0, late)
+	if e != nil || len(detail) != 1 || detail[0].Posting != "posted" {
+		t.Fatal("late event detail regressed", detail, e)
 	}
 }

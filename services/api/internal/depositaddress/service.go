@@ -237,7 +237,21 @@ type Event struct {
 }
 
 func (s *Service) Events(ctx context.Context, customer string, page int, event string) ([]Event, error) {
-	rows, e := s.DB.Query(ctx, `SELECT recent.id::text,recent.payload->>'amount',COALESCE(recent.payload->>'txid',''),recent.payload->>'status',recent.received_at,recent.state,COALESCE(o.data->>'postingStatus','not_posted'),recent.error,COALESCE(o.id::text,'') FROM (SELECT DISTINCT ON(e.external_id) e.* FROM crypto_events e JOIN crypto_addresses a ON a.namespace=e.namespace AND a.connection_id=e.connection_id AND a.project_id=e.project_id AND a.address=e.payload->>'address' AND a.network='TRC20' AND a.mode='live' WHERE e.namespace=$1 AND a.customer_id=$2 AND e.project_id=$3 AND e.kind='deposit' AND e.payload->>'chain_id'='195' AND e.payload->>'token_id'=$4 AND ($6='' OR e.id::text=$6) ORDER BY e.external_id,e.received_at DESC,e.id DESC) recent LEFT JOIN crypto_orders o ON o.id=recent.order_id AND o.namespace=recent.namespace AND o.customer_id=$2 ORDER BY recent.received_at DESC,recent.id DESC LIMIT 5 OFFSET $5`, s.Namespace, customer, s.Project, Token, page*5, event)
+	rows, e := s.DB.Query(ctx, `WITH owned AS (
+ SELECT e.* FROM crypto_events e JOIN crypto_addresses a
+ ON a.namespace=e.namespace AND a.connection_id=e.connection_id AND a.project_id=e.project_id AND a.address=e.payload->>'address' AND a.network='TRC20' AND a.mode='live'
+ WHERE e.namespace=$1 AND a.customer_id=$2 AND e.project_id=$3 AND e.kind='deposit' AND e.payload->>'chain_id'='195' AND e.payload->>'token_id'=$4
+), canonical AS (
+ SELECT DISTINCT ON(external_id) * FROM owned
+ WHERE ($6='' OR external_id IN(SELECT external_id FROM owned WHERE id::text=$6))
+ ORDER BY external_id,(order_id IS NOT NULL) DESC,received_at DESC,id DESC
+), recent AS (
+ SELECT DISTINCT ON(COALESCE(order_id::text,'event:'||external_id)) * FROM canonical
+ ORDER BY COALESCE(order_id::text,'event:'||external_id),received_at DESC,id DESC
+)
+ SELECT recent.id::text,recent.payload->>'amount',COALESCE(recent.payload->>'txid',''),recent.payload->>'status',recent.received_at,recent.state,COALESCE(o.data->>'postingStatus','not_posted'),recent.error,COALESCE(o.id::text,'')
+ FROM recent LEFT JOIN crypto_orders o ON o.id=recent.order_id AND o.namespace=recent.namespace AND o.customer_id=$2
+ ORDER BY recent.received_at DESC,recent.id DESC LIMIT 5 OFFSET $5`, s.Namespace, customer, s.Project, Token, page*5, event)
 	if e != nil {
 		return nil, e
 	}
