@@ -186,9 +186,12 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 
 ## 消息服务（2026-09-19，本地未部署）
 
-`internal/messages` 提供消息持久化、草稿发布、逐接收人投递、权限/已读及恢复。增量020包含按namespace默认关闭的OTC同事务outbox触发器，既有资金流程不改成消息驱动执行。显式 `go run ./cmd/api migrate-messages` 验证001–019后安装；`go run ./cmd/message-admin < request.json` 管理配置/权限/状态/失败自动通知恢复，要求有效全局运营身份与证据。API使用 `MESSAGES_ENABLED`、`MESSAGES_NAMESPACE`、`MESSAGES_TOKEN_KEY`，发送/Worker另由 `MESSAGES_SEND_ENABLED`、`MESSAGES_WORKER_ENABLED` 控制；生产namespace须等于 `DEPOSIT_ADDRESS_NAMESPACE`。没有自动迁移/生产激活，详见[运行与回退](../../docs/business/message-center.md)及[机器契约](docs/messages.openapi.json)。
+`internal/messages` 提供消息持久化、草稿发布、逐接收人投递、权限/已读及恢复。增量021包含按namespace默认关闭的OTC同事务outbox触发器，既有资金流程不改成消息驱动执行。显式 `go run ./cmd/api migrate-messages` 验证001–020后安装；`go run ./cmd/message-admin < request.json` 管理配置/权限/状态/失败自动通知恢复，要求有效全局运营身份与证据。API使用 `MESSAGES_ENABLED`、`MESSAGES_NAMESPACE`、`MESSAGES_TOKEN_KEY`，发送/Worker另由 `MESSAGES_SEND_ENABLED`、`MESSAGES_WORKER_ENABLED` 控制；生产namespace须等于 `DEPOSIT_ADDRESS_NAMESPACE`。没有自动迁移/生产激活，详见[运行与回退](../../docs/business/message-center.md)及[机器契约](docs/messages.openapi.json)。
 
 
 ## 统一 USD 开卡增量（2026-09-19，本地）
 
-统一开卡配置与资金路径见 [流程说明](../../docs/business/client-card-issuing.md)。`ISSUING_FUNDING_SOURCE=funds_wallet` 复用资金中心 Blnk；API/Worker要求021校验通过。`api migrate-issuing-unified` 只执行021，保留旧单账本。测试本地 loopback 模式不授权生产执行。
+统一开卡配置与资金路径见 [流程说明](../../docs/business/client-card-issuing.md)。`ISSUING_FUNDING_SOURCE=funds_wallet` 复用资金中心 Blnk；API/Worker要求022校验通过。`api migrate-issuing-unified` 只执行022，保留旧单账本。测试本地 loopback 模式不授权生产执行。
+## 2026-09-19 卡片历史与指标
+
+已上线：card-metrics-plan/enroll/status/retry、migrate-card-metrics及只读回填任务/交易指标投影。020已定向迁移，CARD_METRICS_ENABLED=true，指定23张卡初始化完成；见[流程与命令](../../docs/business/card-metrics.md)。

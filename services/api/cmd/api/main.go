@@ -53,6 +53,12 @@ func run() error {
 	if len(os.Args) == 2 && os.Args[1] == "migrate-messages" {
 		return database.MigrateMessages(ctx, pool)
 	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-card-metrics" {
+		return database.MigrateCardMetrics(ctx, pool)
+	}
+	if len(os.Args) >= 2 && (os.Args[1] == "card-metrics-plan" || os.Args[1] == "card-metrics-status" || os.Args[1] == "card-metrics-enroll" || os.Args[1] == "card-metrics-retry") {
+		return cardMetricsCommand(ctx, pool)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-global-admin" {
 		return database.MigrateGlobalAdmin(ctx, pool)
 	}
@@ -299,7 +305,13 @@ func run() error {
 		}
 	}
 	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
-	handler := hook.Handler((&api.Server{Messages: messageService, CardSecrets: api.CardSecretsFromEnv(), ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
+	hook.MetricsEnabled = os.Getenv("CARD_METRICS_ENABLED") == "true"
+	if hook.MetricsEnabled {
+		if e := database.CardMetricsReady(ctx, pool); e != nil {
+			return e
+		}
+	}
+	handler := hook.Handler((&api.Server{Messages: messageService, CardMetricsEnabled: hook.MetricsEnabled, CardSecrets: api.CardSecretsFromEnv(), ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
 	if os.Getenv("CREGIS_SOURCE_ENABLED") == "true" {
 		funding, e := cryptofunds.New(shadowLedger)
 		if e != nil {

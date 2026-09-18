@@ -18,6 +18,7 @@ const messages: Record<string, string> = {
  card_control_scope_required:'没有这张卡的操作权限。',
  idempotency_conflict:'请求内容已变化，请关闭后重新操作。',
  invalid_card_action:'操作与当前卡片状态不匹配，请刷新后重试。',
+ card_metrics_not_enrolled: '此卡尚未完成历史数据初始化。',
  card_sync_disabled: '此卡来源尚未启用渠道同步。',
   projection_updated: '数据版本已变化，请刷新后重试。',
   test_wallet_unavailable: '测试余额暂时无法读取，请稍后重试。',
@@ -78,7 +79,7 @@ export function isChannelReadPath(path: string): boolean {
   if (new RegExp('^' + base + '/(transactions|cards)/[A-Za-z0-9_-]+$').test(pathname)) return !query;
   if (!new RegExp('^' + base + '/(transactions|cards)$').test(pathname)) return false;
   const params = new URLSearchParams(query);
-  const allowed = new Set(pathname.endsWith('/cards') ? ['revision', 'keyword', 'cardStatus', 'page'] : ['revision', 'keyword', 'detailedStatus', 'from', 'to', 'page', 'cardId']);
+  const allowed = new Set(pathname.endsWith('/cards') ? ['revision', 'keyword', 'cardStatus', 'page'] : ['revision', 'keyword', 'detailedStatus', 'from', 'to', 'page', 'cardId', 'metric']);
   return [...params.keys()].every(key => allowed.has(key) && params.getAll(key).length === 1);
 }
 

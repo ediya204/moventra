@@ -35,8 +35,13 @@
 - [生产资金展示发布（2026-09-18）](../deploy/2026-09-18-production-funds-view.md) — `deploy/2026-09-18-production-funds-view.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
 - [Moventra completed-session release — 2026-09-18](../deploy/2026-09-18-session-consolidation.md) — `deploy/2026-09-18-session-consolidation.md`
+- [全部本地更新统一发布 — 2026-09-19](../deploy/2026-09-19-all-local-release.md) — `deploy/2026-09-19-all-local-release.md`
+- [卡片中心布局与状态发布](../deploy/2026-09-19-card-center-release.md) — `deploy/2026-09-19-card-center-release.md`
 - [卡片详情与CVV发布（2026-09-19）](../deploy/2026-09-19-card-detail-cvv-release.md) — `deploy/2026-09-19-card-detail-cvv-release.md`
+- [卡片列表精简发布（2026-09-19）](../deploy/2026-09-19-card-list-refinement-release.md) — `deploy/2026-09-19-card-list-refinement-release.md`
+- [卡片历史与指标生产发布 — 2026-09-19](../deploy/2026-09-19-card-metrics-release.md) — `deploy/2026-09-19-card-metrics-release.md`
 - [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
+- [2026-09-19 交易页面发布](../deploy/2026-09-19-transaction-ui-release.md) — `deploy/2026-09-19-transaction-ui-release.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
 
 ## deploy/blnk
@@ -70,6 +75,7 @@
 - [FLOW-BIN-CATALOG-01：Slash 目录同步与正式 BIN 管理](business/bin-catalog-sync-2026-09-18.md) — `docs/business/bin-catalog-sync-2026-09-18.md`
 - [FLOW-CARD-DETAIL-02：客户端卡片详情规划](business/card-center-detail-plan-2026-09-18.md) — `docs/business/card-center-detail-plan-2026-09-18.md`
 - [docs/business/card-issuing-2026-09-18.md](business/card-issuing-2026-09-18.md) — `docs/business/card-issuing-2026-09-18.md`
+- [卡片历史回填与指标（2026-09-19）](business/card-metrics.md) — `docs/business/card-metrics.md`
 - [FLOW-CARD-OWNER-01：正式后台读取既有归属](business/card-owner-display.md) — `docs/business/card-owner-display.md`
 - [卡片当前状态同步](business/card-state-sync.md) — `docs/business/card-state-sync.md`
 - [卡片、渠道与交易业务逻辑](business/cards-and-transactions.md) — `docs/business/cards-and-transactions.md`

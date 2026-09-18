@@ -9,7 +9,7 @@ import ProductionWallet from './ProductionWallet';
 import CardSnapshots from './CardSnapshots';
 import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
 import {clientFeaturesEnabled,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
-import { workspaceNavigation, workspaceWidth, workspaceGrid, workspacePage } from "./workspaceNavigation";
+import { workspaceNavigation, workspaceWidth, workspacePage } from "./workspaceNavigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import {
@@ -386,16 +386,14 @@ export default function ClientHome() {
               )}
               {pathname === "/portal" && (
                 <>
-                  {customer&&<ProductionWallet key={`wallet:${customer.id}`} customerId={customer.id} reload={reload}/>}
-                  <Paper variant="outlined" sx={{p:2}}><Stack direction={{xs:'column',sm:'row'}} gap={1.5} alignItems={{sm:'center'}}>
-                    <Typography variant="subtitle2" sx={{flexShrink:0}}>快捷办理</Typography>
-                    <Box sx={{...workspaceGrid,flex:1,gap:1}}>
-                      {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
-                        <Button key={label} component={Link} to={label === "申请新卡" ? "/portal/cards/new" : label === "充值 USDT" ? "/portal/funds/deposit" : "/portal/funds/exchange"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={20} />}>{label}</Button>
-                      ))}
-                    </Box>
-                  </Stack></Paper>
-                  {customer&&<CardOverview key={`overview:${customer.id}`} customerId={customer.id} reload={reload}/>}
+                  <Stack component="nav" aria-label="常用操作" direction="row" flexWrap="wrap" gap={1} sx={{pb:1}}>
+                    {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon],i) => (
+                      <Button key={label} component={Link} to={label === "申请新卡" ? "/portal/cards/new" : label === "充值 USDT" ? "/portal/funds/deposit" : label === "兑换 USD" ? "/portal/funds/exchange" : "/portal/funds/fiat"} variant={i===0?'contained':'outlined'} disabled={!enabled} sx={{minHeight:44,px:2,flex:{xs:'1 1 calc(50% - 8px)',sm:'0 0 auto'},boxShadow:'none'}} startIcon={<Icon icon={icon} width={20} />}>{label}</Button>
+                    ))}
+                  </Stack>
+                  {customer&&<ProductionWallet key={`wallet:${customer.id}`} customerId={customer.id} reload={reload}>
+                    <CardOverview key={`overview:${customer.id}`} customerId={customer.id} reload={reload}/>
+                  </ProductionWallet>}
                 </>
               )}
               {pathname === "/portal/accounts" && accounts}

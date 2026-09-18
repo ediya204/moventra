@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {productionNavigation,isProductionPath} from '../../apps/admin/src/operations/navigation.ts';
 const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 test('production uses local navigation groups but only connected destinations are enabled',()=>{
- assert.deepEqual(productionNavigation.map(g=>g.label),['客户与开户','卡片与交易','资金与财务','风险与合规','经营分析','系统管理']);
+ assert.deepEqual(productionNavigation.map(g=>g.label),['运营管理','客户与开户','卡片与交易','资金与财务','风险与合规','经营分析','系统管理']);
  const items=productionNavigation.flatMap(g=>g.items);
  assert.ok(items.some(i=>i.path==='/user-groups/users'&&isProductionPath(i.path)));
  assert.ok(items.some(i=>i.path==='/transactions'&&isProductionPath(i.path)));

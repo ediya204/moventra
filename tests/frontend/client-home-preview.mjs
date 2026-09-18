@@ -9,7 +9,7 @@ const fixture=String.raw`
 const customerId='10000000-0000-0000-0000-000000000001', id='20000000-0000-0000-0000-000000000001';
 const createdAt='2026-09-19T02:30:00Z';
 const orders=[{id,customerId,kind:'deposit',currency:'USDT',amountMinor:'100000',feeMinor:'0',receiveMinor:'100000',toCurrency:'USDT',state:'completed',network:'TRC20',createdAt,approvalStatus:'not_required',providerStatus:'completed',postingStatus:'posted'}];
-const cards=Array.from({length:23},(_,i)=>({id:'card-'+i,name:['Marketing team','Software subscriptions','Travel expenses'][i%3],cardName:['Marketing team','Software subscriptions','Travel expenses'][i%3],last4:String(2047+i),cardStatus:i%3?'active':'paused',createdAtUTC:createdAt,network:'Visa',cvvAvailable:true,detailsAvailable:true,expiryMonth:'09',expiryYear:'2030',controlsEnabled:true,fundingCardId:null,metrics:{currency:'USD',scale:2,availableMinor:'100',cycleSpendMinor:'1900',totalLimitMinor:'2000',availability:'available',availableAt:createdAt,sharedGroup:false,coverage:'complete',spendingMinor:'10515',to:createdAt,syncState:'idle'}}));
+const cards=Array.from({length:23},(_,i)=>({id:'card-'+i,name:['Marketing team','Software subscriptions','Travel expenses'][i%3],cardName:['Marketing team','Software subscriptions','Travel expenses'][i%3],last4:String(2047+i),cardStatus:i%3?'active':'paused',createdAtUTC:createdAt,network:'Visa',cvvAvailable:false,fundingCardId:null,metrics:{currency:'USD',scale:2,availableMinor:i===2?null:'148500',availableAt:createdAt,availability:i===2?'not_supported':'available',coverage:i===3?'incomplete':'complete',spendingMinor:i===3?null:['84250','42680','21900','0','10515'][i%5],refundMinor:'0',from:'2026-08-20T02:30:00Z',to:createdAt,updatedAt:createdAt,syncState:'idle'}}));
 const transactions=[{id:'tx-1',cardId:'card-0',cardName:'Marketing team',cardLast4:'2047',merchant:'OpenAI',amountCents:'-2000',originalCurrency:{code:'USD',amountCents:'-2000'},status:'posted',detailedStatus:'settled',date:createdAt}];
 export class SessionError extends Error{};export class IssuingError extends Error{};
 export const authMessage=e=>e.message,cryptoError=authMessage,manualError=authMessage;
@@ -34,6 +34,10 @@ export async function liveGet(path,body){
  if(p.endsWith('/card-projections'))return [{id:'fixture',label:'我的卡片',revision:'v1'}];
  if(p.includes('/card-projections/')){
   const isCard=p.includes('/cards'),detail=/\/(cards|transactions)\/[^/]+$/.test(p);let rows=empty?[]:isCard?cards:transactions;
+  if(!isCard&&q.get('metric')==='spending'){
+   const card=cards.find(c=>c.id===q.get('cardId'));rows=[];
+   if(card&&card.metrics.spendingMinor!==null){const total=BigInt(card.metrics.spendingMinor);let used=0n;rows=Array.from({length:30},(_,i)=>{const amount=i===29?total-used:total*BigInt(i%5+1)/90n;used+=amount;return {id:'trend-'+card.id+'-'+i,cardId:card.id,amountCents:(-amount).toString(),status:'posted',detailedStatus:'settled',date:new Date(Date.parse(card.metrics.from)+i*86400000+3600000).toISOString()}}).filter(r=>r.amountCents!=='0')}
+  }
   if(detail)rows=rows.filter(r=>r.id===p.split('/').at(-1));
   if(q.get('keyword'))rows=rows.filter(r=>(r.name+' '+r.last4+' '+r.merchant).toLowerCase().includes(q.get('keyword').toLowerCase()));
   if(q.get('cardStatus'))rows=rows.filter(r=>r.cardStatus===q.get('cardStatus'));
@@ -45,7 +49,7 @@ export async function liveGet(path,body){
  if(p.includes('/deposit-addresses'))return {address:{network:'TRC20',state:'completed',address:'TThisIsAnIsolatedPreviewAddressDoNotUse'},mode:'production',postingEnabled:true,events:empty?[]:[{id:'notification-1',amount:'0.100000',txHash:'isolated-fixture-transaction-not-on-chain',receivedAt:createdAt,state:'verified',posting:'posted'}]};
  if(p.includes('/crypto')){
   if(p.includes('/orders/'))return {order:orders[0],events:[{action:'posted',createdAt}]};
-  return {mode:'live',customerId,canOperate:true,executionEligible:true,capabilities:{otcEnabled:true,cardTransfersEnabled:false},settings:{otcEnabled:true,withdrawEnabled:false,revision:1},ledger:{reconciliation:'matched',accounts:[{kind:'wallet',currency:'USD',ledgerAvailableMinor:'0'},{kind:'wallet',currency:'USDT',ledgerAvailableMinor:'100000'}]},orders:empty||q.get('kind')&&q.get('kind')!=='deposit'||q.get('status')&&q.get('status')!=='completed'?[]:orders,total:empty?0:1,page:Number(q.get('page')||0),cards:[],addresses:[],networks:[{network:'TRC20',depositEnabled:true,withdrawEnabled:false},{network:'ERC20',depositEnabled:false,withdrawEnabled:false}]};
+  return {mode:'live',customerId,canOperate:true,executionEligible:true,capabilities:{otcEnabled:true,cardTransfersEnabled:false},settings:{otcEnabled:true,withdrawEnabled:false,revision:1},ledger:{reconciliation:'matched',accounts:[{kind:'wallet',currency:'USD',ledgerAvailableMinor:'248050'},{kind:'wallet',currency:'USDT',ledgerAvailableMinor:'350250000'}]},orders:empty||q.get('kind')&&q.get('kind')!=='deposit'||q.get('status')&&q.get('status')!=='completed'?[]:orders,total:empty?0:1,page:Number(q.get('page')||0),cards:[],addresses:[],networks:[{network:'TRC20',depositEnabled:true,withdrawEnabled:false},{network:'ERC20',depositEnabled:false,withdrawEnabled:false}]};
  }
  if(p.includes('/manual-funds/orders/'))return {order:{id,customerId,source:'offline_receipt',direction:'credit',state:'completed',currency:'USD',amountMinor:'10000',walletBeforeMinor:'0',walletAfterMinor:'10000',createdAt,revision:1},events:[{action:'create',createdAt}],eventsHasMore:false,mode:'live',enabled:true};
  if(p.includes('/manual-funds'))return {orders:[],total:0,page:0,mode:'disabled',enabled:false};
@@ -65,7 +69,7 @@ export const cryptoRequest=liveGet,manualRequest=liveGet,issuingRequest=liveGet;
 `;
 const auth=`const customer={id:'10000000-0000-0000-0000-000000000001',name:'预览账户',kind:'personal'};const user={uid:'layout-fixture',email:'preview@example.invalid',emailVerified:true};const session={id:'layout-fixture',customers:[customer],mfaVerified:true};export const useAuth=()=>({ready:true,user,session,signOut:()=>{},refreshSession:async()=>{}});`;
 const entry=`import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{ThemeProvider,CssBaseline}from'@mui/material';import theme from '/packages/shared/src/theme.ts';import ClientHome from '/apps/client/src/portal/ClientHome.tsx';import '@fontsource/public-sans/400.css';import '@fontsource/public-sans/600.css';import '@fontsource/public-sans/700.css';import '/packages/shared/src/styles.css';createRoot(document.getElementById('root')).render(<ThemeProvider theme={theme}><CssBaseline/><BrowserRouter><ClientHome/></BrowserRouter></ThemeProvider>);`;
-const server=await createServer({root,publicDir:resolve('packages/assets/public'),configFile:false,esbuild:{jsx:'automatic'},server:{host:'127.0.0.1',port:Number(process.env.MOVENTRA_PREVIEW_PORT||8865),strictPort:true},plugins:[{name:'isolated-client-layout',enforce:'pre',resolveId(id){
+const server=await createServer({root,publicDir:resolve('packages/assets/public'),configFile:false,esbuild:{jsx:'automatic'},server:{host:'127.0.0.1',port:Number(process.env.MOVENTRA_PREVIEW_PORT||8868),strictPort:true},plugins:[{name:'isolated-client-layout',enforce:'pre',resolveId(id){
  if(id==='/layout-preview.tsx')return '\0layout-preview';
  if(/\/(liveApi|cryptoApi|manualFundsApi)$/.test(id)||id.endsWith('/issuing/api')||id==='./api')return '\0layout-api';
  if(id.endsWith('/AuthContext'))return '\0layout-auth';
@@ -78,11 +82,8 @@ const server=await createServer({root,publicDir:resolve('packages/assets/public'
  if(id==='\0layout-auth')return auth;
  if(id==='\0layout-registration')return 'export default ()=>null;';
  if(id==='\0layout-firebase-auth')return 'export const multiFactor=()=>({enrolledFactors:[{uid:"fixture"}]}),sendEmailVerification=()=>Promise.reject(new Error("Preview only")),TotpMultiFactorGenerator={};';
- if(id==='\0layout-firebase')return 'const user={getIdToken:async()=>"isolated-fixture"};export const getFirebaseAuth=()=>({currentUser:user});';
+ if(id==='\0layout-firebase')return 'export const getFirebaseAuth=()=>({currentUser:null});';
  },configureServer(s){s.middlewares.use((req,res,next)=>{
- if(req.method==='POST'&&/^\/client-api\/v1\/customers\/10000000-0000-0000-0000-000000000001\/card-projections\/fixture\/cards\/card-[0-9]+\/details\/reveal$/.test(req.url||'')){
-  const cardId=req.url.split('/').at(-3);res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','private, no-store');res.end(JSON.stringify({source:'upstream',cardId,pan:'4'.repeat(16),cvv:'789',name:'Synthetic preview card',expiryMonth:'09',expiryYear:'2030',expiresAt:new Date(Date.now()+30000).toISOString()}));return;
- }
  if(req.url?.startsWith('/client-api')||req.url?.startsWith('/admin-api')){res.statusCode=403;res.end('Isolated preview; no live API');return;}
  if(req.headers.accept?.includes('text/html')){res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Moventra · 本地合成数据布局验收</title></head><body><div role="note" style="position:fixed;bottom:8px;right:8px;z-index:1500;padding:6px 10px;border:1px solid #dfE3e8;border-radius:6px;background:white;color:#637381;font:12px sans-serif;pointer-events:none">本地布局预览 · 合成数据 · 写操作关闭</div><div id="root"></div><script type="module" src="/layout-preview.tsx"></script></body></html>')}else next();
  })}}]});

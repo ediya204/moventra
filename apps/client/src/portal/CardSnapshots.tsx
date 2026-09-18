@@ -9,7 +9,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { Alert, Box, Button, CircularProgress, Chip, Drawer, IconButton, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
 import { authMessage, liveGet, liveCardSync } from '../../../../packages/shared/src/auth/liveApi';
 import { MerchantCell, MerchantLogo, LogoAttribution } from '../../../../packages/shared/src/components/MerchantLogo';
-import { snapshotAmount, type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
+import { snapshotAmount, cardMetricDisplay, type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
 
 type Connection={id:string;label:string;revision:string;sourceAt:string;importedAt:string};
 type Row=CardSyncInfo & {id:string;name?:string;cardName?:string;last4?:string;cardLast4?:string;cardStatus?:string;cardId?:string;merchant?:string;status?:string;detailedStatus?:string;amountCents?:string;originalCurrency?:{code?:string;amountCents?:string};date?:string;authorizedAt?:string;createdAtUTC?:string;fundingCardId?:string|null;cvvAvailable?:boolean;detailsAvailable?:boolean;network?:string;expiryMonth?:string;expiryYear?:string};
@@ -17,12 +17,9 @@ type Result={rows:Row[];total:number;page:number;revision:string;sourceAt:string
 const detailLabels:Record<string,string>={pending:'待处理',pending_approval:'待批准',in_review:'审核中',canceled:'已取消',failed:'失败',settled:'已结算',declined:'已拒绝',refund:'退款',reversed:'已撤销',returned:'退回',dispute:'争议'};
 const cardStatusLabels:Record<string,string>={active:'正常',paused:'已暂停',inactive:'未启用',closed:'已注销'};
 const cardName=(row:Row)=>row.cardName||row.name||'未命名卡片';
-const cardMetricReasons={
- balance:'尚未接入可核实的卡片余额。钱包余额与消费限额不代表此卡余额。',
- spending:'近 30 天消费数据尚不完整，暂不能提供准确汇总。',
-};
-function UnavailableCardMetric({kind}:{kind:keyof typeof cardMetricReasons}){
- return <Typography component="span" variant="body2" color="text.secondary" title={cardMetricReasons[kind]} aria-label={`暂不可用：${cardMetricReasons[kind]}`}>暂不可用</Typography>;
+function CardMetric({row,kind}:{row:CardSyncInfo;kind:'available'|'spending'}) {
+ const metric=cardMetricDisplay(row.metrics,kind);
+ return <Typography component="span" variant="body2" title={metric.help}>{metric.value}</Typography>;
 }
 const time=(value?:string)=>value?value.replace('T',' ').replace('Z',' UTC'):'未知';
 const cardCreatedDate=(value?:string)=>{const date=value?.match(/^(\d{4})-(\d{2})-(\d{2})(?:T| |$)/);return date?`${date[1]}/${date[2]}/${date[3]}`:'未知';};
@@ -79,7 +76,7 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
  const currentContext=pathname+'?'+listContext;
  const link=(route:string,extra:Record<string,string>={})=>`${route}?${new URLSearchParams({connection,back:currentContext,...extra})}`;
  const requestedBack=params.get('back')||'';
- const back=/^\/portal\/(cards|transactions|card-transactions)(?:\/[A-Za-z0-9_-]+)?(?:\?[^#]*)?$/.test(requestedBack)&&requestedBack.length<1000?requestedBack:link(isCard?'/portal/cards':'/portal/transactions');
+ const back=requestedBack==='/portal'?'/portal':/^\/portal\/(cards|transactions|card-transactions)(?:\/[A-Za-z0-9_-]+)?(?:\?[^#]*)?$/.test(requestedBack)&&requestedBack.length<1000?requestedBack:link(isCard?'/portal/cards':'/portal/transactions');
  const change=(values:Record<string,string>)=>setParams({...Object.fromEntries(params),...values});
  const exportTransactions=async()=>{
   if(exporting||!result||!connection||filterError)return;
@@ -112,13 +109,13 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
   <TableContainer sx={{display:{xs:'none',md:'block'}}}>
    <Table aria-label="我的卡片列表" sx={{tableLayout:'fixed'}}>
     <colgroup>{[23,9,12,13,16,17,10].map((width,index)=><col key={index} style={{width:`${width}%`}}/>)}</colgroup>
-    <TableHead><TableRow>{['卡片','后四位','状态','余额','近 30 天消费','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead>
+    <TableHead><TableRow>{['卡片','后四位','状态','可消费额度','近 30 天消费','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead>
     <TableBody>{cardRows.map(row=><TableRow key={row.id} hover>
      <TableCell><Typography component={Link} to={link(`/portal/cards/${row.id}`)} fontWeight={600} color="text.primary" sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography></TableCell>
      <TableCell>{row.cardLast4||row.last4?<Typography component={Link} to={link(`/portal/cards/${row.id}`)} variant="body2" color="primary.main" aria-label={`查看尾号 ${row.cardLast4||row.last4} 的卡片详情`} sx={{display:'inline-block',py:0.5,textDecoration:'underline',textUnderlineOffset:'3px',fontVariantNumeric:'tabular-nums'}}>{row.cardLast4||row.last4}</Typography>:<Typography variant="body2" color="text.secondary">尾号未知</Typography>}</TableCell>
      <TableCell><ChannelCardStatus status={row.cardStatus}/></TableCell>
-     <TableCell><UnavailableCardMetric kind="balance"/></TableCell>
-     <TableCell><UnavailableCardMetric kind="spending"/></TableCell>
+     <TableCell><CardMetric row={row} kind="available"/></TableCell>
+     <TableCell><CardMetric row={row} kind="spending"/></TableCell>
      <TableCell sx={{overflowWrap:'anywhere'}}>{cardCreatedDate(row.createdAtUTC)}</TableCell>
      <TableCell><Button component={Link} to={link(`/portal/cards/${row.id}`)} aria-label={`查看 ${cardName(row)} 的详情`}>详情</Button></TableCell>
     </TableRow>)}</TableBody>
@@ -128,15 +125,15 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
    {cardRows.map(row=><Paper variant="outlined" key={row.id} sx={{p:2}}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}><Box sx={{minWidth:0}}><Typography fontWeight={600} sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography>{row.cardLast4||row.last4?<Typography component={Link} to={link(`/portal/cards/${row.id}`)} variant="body2" color="primary.main" aria-label={`查看尾号 ${row.cardLast4||row.last4} 的卡片详情`} sx={{display:'inline-block',py:0.5,textDecoration:'underline',textUnderlineOffset:'3px',fontVariantNumeric:'tabular-nums'}}>{row.cardLast4||row.last4}</Typography>:<Typography variant="body2" color="text.secondary">尾号未知</Typography>}</Box><ChannelCardStatus status={row.cardStatus}/></Stack>
     <Box sx={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:2,py:2}}>
-     <Box><Typography variant="caption" color="text.secondary" display="block">余额</Typography><UnavailableCardMetric kind="balance"/></Box>
-     <Box><Typography variant="caption" color="text.secondary" display="block">近 30 天消费</Typography><UnavailableCardMetric kind="spending"/></Box>
+     <Box><Typography variant="caption" color="text.secondary" display="block">可消费额度</Typography><CardMetric row={row} kind="available"/></Box>
+     <Box><Typography variant="caption" color="text.secondary" display="block">近 30 天消费</Typography><CardMetric row={row} kind="spending"/></Box>
     </Box>
     <Typography variant="caption" display="block" color="text.secondary">创建：{cardCreatedDate(row.createdAtUTC)}</Typography>
     <Button component={Link} to={link(`/portal/cards/${row.id}`)} fullWidth variant="outlined" sx={{mt:2,minHeight:44}}>详情</Button>
    </Paper>)}
   </Stack>
   {!cardRows.length&&<Stack alignItems="center" spacing={1} sx={{py:5,textAlign:'center'}}><Typography variant="h6">{keyword||cardStatus?'没有符合条件的卡片':'当前页暂无卡片'}</Typography><Typography color="text.secondary" variant="body2">{keyword||cardStatus?'试试其他名称、后四位，或清空筛选条件。':'可以返回第一页，或刷新查看最新分配结果。'}</Typography><Button onClick={resetFilters}>{keyword||cardStatus?'清空筛选':'返回第一页'}</Button></Stack>}
-  {!!cardRows.length&&<Typography variant="caption" color="text.secondary">卡片余额尚未接入，近 30 天消费数据尚不完整；暂不可用不代表金额为 0。</Typography>}
+  {!!cardRows.length&&<Typography variant="caption" color="text.secondary">近 30 天消费按已入账消费统计；可消费额度不代表可提现余额。</Typography>}
   {result&&paging(result)}
  </>;
  const content=<Stack spacing={3}>
@@ -145,9 +142,9 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
    <Stack direction="row" gap={1} flexWrap="wrap"><Button component={Link} to="/portal/card-orders" variant="outlined">开卡订单</Button><Button component={Link} to="/portal/cards/new" variant="contained">申请新卡</Button></Stack>
   </Stack>}
   <Paper variant="outlined" sx={{p:{xs:2,md:3},minWidth:0}}><Stack spacing={2.5}>
-  <Stack direction={{xs:'column',sm:'row'}} justifyContent="space-between" alignItems={{xs:'stretch',sm:'center'}} gap={1.5}><Box>{isCard&&id?<Button component={Link} to={back}>← 返回卡片列表</Button>:<><Typography variant="h6">{isCard?(id?'卡片详情':'我的卡片'):(id?'卡片交易详情':'卡片交易')}</Typography><Typography variant="caption" color="text.secondary">{isCard?'仅展示归属于本账户的卡片，状态以最近一次渠道核验为准。':'查询消费、退款及处理进度。'}</Typography></>}</Box><Stack direction="row" gap={1} flexWrap="wrap" justifyContent={{xs:'flex-start',sm:'flex-end'}}><Button sx={{flexShrink:0}} disabled={exporting} onClick={()=>setReload(x=>x+1)}>刷新状态</Button>{!isCard&&!id&&<Button variant="outlined" disabled={exporting||!result||!result.total||Boolean(filterError)||Boolean(failure)} onClick={()=>void exportTransactions()} startIcon={<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>}>{exporting?'导出中…':'导出 CSV'}</Button>}</Stack></Stack>
+  <Stack direction={{xs:'column',sm:'row'}} justifyContent="space-between" alignItems={{xs:'stretch',sm:'center'}} gap={1.5}><Box>{isCard&&id?<Button component={Link} to={back}>{back==='/portal'?'返回工作台':'返回卡片列表'}</Button>:<><Typography variant="h6">{isCard?(id?'卡片详情':'我的卡片'):(id?'卡片交易详情':'卡片交易')}</Typography><Typography variant="caption" color="text.secondary">{isCard?'仅展示归属于本账户的卡片，状态以最近一次渠道核验为准。':'查询消费、退款及处理进度。'}</Typography></>}</Box><Stack direction="row" gap={1} flexWrap="wrap" justifyContent={{xs:'flex-start',sm:'flex-end'}}><Button sx={{flexShrink:0}} disabled={exporting} onClick={()=>setReload(x=>x+1)}>刷新状态</Button>{!isCard&&!id&&<Button variant="outlined" disabled={exporting||!result||!result.total||Boolean(filterError)||Boolean(failure)} onClick={()=>void exportTransactions()} startIcon={<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>}>{exporting?'导出中…':'导出 CSV'}</Button>}</Stack></Stack>
   {!isCard&&!id&&<><TransactionFilters value={txFilters} onChange={value=>change({...value,page:'0'})}/><Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} flexWrap="wrap"><Typography variant="caption" color="text.secondary">{result?`共 ${result.total} 笔交易 · `:''}日期按 UTC · 导出当前筛选，最多 5,000 条</Typography><Button component={Link} to="/portal/funds/history" size="small">查看资金记录 →</Button></Stack>{exportMessage&&<Stack direction="row" alignItems="center" gap={1}><Typography variant="body2" role="status">{exportMessage}</Typography>{exporting&&<Button onClick={()=>{exportGeneration.current++;setExporting(false);setExportMessage('已取消导出。');}}>取消导出</Button>}</Stack>}</>}
-  {id&&!isCard&&<Button sx={{alignSelf:'flex-start'}} component={Link} to={back}>返回{isCard?'卡片':'交易'}列表</Button>}
+  {id&&!isCard&&<Button sx={{alignSelf:'flex-start'}} component={Link} to={back}>{back==='/portal'?'返回工作台':`返回${isCard?'卡片':'交易'}列表`}</Button>}
   {pollError&&<Alert severity="warning">连接暂时中断，当前显示最后已确认状态。请刷新重试。</Alert>}
   {failure?<Alert severity="error" action={<Button onClick={()=>setReload(x=>x+1)}>重试</Button>}>{failure}</Alert>:connections===null?<CircularProgress size={24}/>:!connections.length?<Alert severity="info">尚未为本账户分配卡片。</Alert>:<>
    {isCard&&!id&&<Stack direction={{xs:'column',md:'row'}} gap={1.5} alignItems={{md:'flex-start'}}>

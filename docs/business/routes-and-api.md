@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 客户端 `/` 与政策页 | 官网、咨询 POST /api/contact、隐私/条款/Cookie | 邮件受理不代表最终送达；见[咨询发布](../releases/2026-09-07-website-contact.md) |
 | `/register`、`/session`、`/forgot-password` | 注册预览、身份分流/资料补全、找回密码 | 预览页不直接创建身份；注册不自动生成真实资金 |
-| `/portal`、`/portal/accounts` | 首页正式钱包、最近资金订单与授权卡片；基础账户/交易仅在 accounts 兼容页 | 2026-09-19本地修复未部署；资金最近5笔、卡片每来源前5张，基础账户/交易默认前50条 |
+| `/portal`、`/portal/accounts` | 首页常用入口、正式钱包、最近资金订单与授权卡片指标；基础账户/交易仅在 accounts 兼容页 | 2026-09-19首页重排为本地候选未部署；资金最近5笔、卡片每连接前5张且不显示来源名称，基础账户/交易默认前50条 |
 | `/portal/transactions` | 最近正式资金订单及授权卡交易查询 | 2026-09-19本地修复未部署；资金与卡交易分开，不重复计入资金总计 |
 | `/portal/cards`、`/portal/cards/:id`、`/portal/card-transactions/:id` | 卡片及关联交易；connection 参数定位来源连接 | 按客户显式分配范围、服务端分页；真实资金操作未开放 |
 | `/portal/funds` 及 deposit/fiat-deposit/exchange/withdraw/history/orders/:id | OnlineFunds 测试充值、兑换、提现及订单 | online_test，服务资格和独立测试额度/授权；不是真实付款 |
@@ -110,3 +110,6 @@
 ## 消息中心（2026-09-19，本地未部署）
 
 客户端 `/portal/messages` 和 `/:messageId`，后台 `/operations/messages`、`/new`、`/:id`、`/:id/recipients` 已接独立消息API。客户前缀为 `/client-api/v1/customers/:customerId/messages`；后台为 `/admin-api/v1/message-campaigns`，草稿更新采用 POST `/:id/draft`。路径与方法完整白名单、主体授权、MFA、签名游标、原请求恢复见[FLOW与验收](message-center.md)及[OpenAPI](../../services/api/docs/messages.openapi.json)。源码存在不等于线上消息开通；依赖020迁移、namespace和独立开关/权限。
+## 2026-09-19 卡片中心发布
+
+卡片中心沿用card-projections查询链；keyword/cardStatus服务端筛选，cardSort仅本页排序。来源与页码随详情返回保留，不新增API、金融写操作或权限。

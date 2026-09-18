@@ -11,7 +11,7 @@ CREATE TABLE issuing_card_projections (
  FOREIGN KEY(customer_id,order_id) REFERENCES issuing_orders(customer_id,id)
 );
 
-CREATE OR REPLACE VIEW channel_current_records AS
+CREATE OR REPLACE VIEW channel_state_records AS
 WITH current_source AS (
  SELECT connection_id,revision,kind,external_id,data FROM channel_records
  UNION ALL

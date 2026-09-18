@@ -23,16 +23,17 @@ import (
 )
 
 type Server struct {
-	Messages        *messages.Service
-	CardSecrets     CardSecrets
-	ProductionFunds *cryptofunds.Service
-	DepositPilot    *cryptofunds.Service
-	Deposits        *depositaddress.Service
-	DB              *pgxpool.Pool
-	Verifier        Verifier
-	Directory       UserDirectory
-	Issuing         *issuing.Service
-	Ledger          *ledger.Service
+	CardMetricsEnabled bool
+	Messages           *messages.Service
+	CardSecrets        CardSecrets
+	ProductionFunds    *cryptofunds.Service
+	DepositPilot       *cryptofunds.Service
+	Deposits           *depositaddress.Service
+	DB                 *pgxpool.Pool
+	Verifier           Verifier
+	Directory          UserDirectory
+	Issuing            *issuing.Service
+	Ledger             *ledger.Service
 }
 type principal struct {
 	ID       string
@@ -71,6 +72,12 @@ func (s *Server) Handler() http.Handler {
 			fail(w, 503, "not_ready")
 			return
 		}
+		if s.CardMetricsEnabled {
+			if err := database.CardMetricsReady(ctx, s.DB); err != nil {
+				fail(w, 503, "not_ready")
+				return
+			}
+		}
 		if s.Issuing != nil && s.Issuing.Funds != nil {
 			if err := database.ReadyIssuingUnified(ctx, s.DB); err != nil {
 				fail(w, 503, "not_ready")
@@ -83,7 +90,9 @@ func (s *Server) Handler() http.Handler {
 		mux.Handle("GET /client-api/v1/customers/{customerID}/card-projections"+path, s.authenticate(http.HandlerFunc(s.channelRead)))
 	}
 	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/sync", s.authenticate(http.HandlerFunc(s.channelRead)))
+	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/metrics-sync", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("POST /admin-api/v1/channel-projections/{connection}/{resource}/{id}/sync", s.authenticate(http.HandlerFunc(s.channelRead)))
+	mux.Handle("POST /admin-api/v1/channel-projections/{connection}/{resource}/{id}/metrics-sync", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/actions", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("POST /admin-api/v1/channel-projections/{connection}/{resource}/{id}/actions", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections", s.authenticate(http.HandlerFunc(s.channelRead)))

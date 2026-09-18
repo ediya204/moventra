@@ -323,3 +323,8 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 ## 统一 USD 开卡增量（2026-09-19，本地）
 
 开卡 wallet 增加 fundingSource/executionEnabled，order 增加 fundingSource/fundingAccountId；统一钱包条款版本 issuing-funds-2026-09-19-v1。普通卡详情可附 issuingOrderId 链接原单。021新增新卡来源归属；历史无 namespace 订单保留原账本与退款路径。统一模式拒绝旧开卡入金新申请/复核。完整闭环与验收边界见 [开卡流程](../business/client-card-issuing.md)。
+## 2026-09-19 卡片历史与指标
+
+已上线：渠道卡行增加metrics（金额字符串/null、时间窗口、覆盖及同步状态），交易列表支持metric=spending，逐卡metrics-sync仅排队只读补查。详见[卡指标合同](../business/card-metrics.md)和[发布记录](../../deploy/2026-09-19-card-metrics-release.md)。
+
+2026-09-19 额度数据接入（本地实现，未部署）：浅灰额度卡使用同一渠道快照的 availableMinor（剩余可消费额度）、cycleSpendMinor（本周期已用）和 totalLimitMinor（明确的单卡 utilizationLimit 总额度）。总额度仅提取已识别的单卡规则，卡组共享或其他规则显示未提供；只有总额度等于已用加剩余且大于零才显示进度，不用近30天消费或钱包余额推算。卡分户及统一 USD 钱包余额独立读取，保留核对状态与充提权限门槛。刷新沿用 metrics-sync，只排队只读查询；近30天消费明细区间保持。

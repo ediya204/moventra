@@ -261,3 +261,8 @@ F-PRODUCTION-ACTIVATION：隔离PG验证超原限额事件恢复、2 USDT入账�
 ## 统一 USD 开卡增量（2026-09-19，本地）
 
 `TestIssuingUnifiedFunds` 覆盖统一 USD 开卡、预占后本地回滚恢复、与其他资金操作并发防超支、首充失败退款及原卡补充、越权/MFA、跨端同单、来源投影去重和 namespace 固定。本轮隔离全套 Go race 通过；该专项也在新建独立本机 Blnk/PostgreSQL/Redis 重跑通过，Slash 模拟。浏览器使用有状态模拟 Blnk，不能代替真实渠道验收。见 [证据与复现](../business/client-card-issuing.md#本轮验证边界)。
+## 2026-09-19 卡片历史与指标
+
+卡指标回归补充：分页失败保留游标、不完整不填零；重复导入/通知不重复统计；超JS安全整数精度；pending转posted、退款和旧通知回查；归属撤销停止采集；无资金账本变更。用例与执行证据见[卡指标](../business/card-metrics.md)。
+
+2026-09-19 本地额度接入验证：card-quota.test.mjs 覆盖同周期取值、零和未知区分、共享卡组不生成总额度、总额不匹配不画进度、大额精度；独立本机 PostgreSQL 下 TestMetricReadOnlyPipeline race 测试确认 cycleSpendMinor=123、totalLimitMinor=10000、availableMinor=0，且独立于近30天消费。未执行真实渠道请求或部署。

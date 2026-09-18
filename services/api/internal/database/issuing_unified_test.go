@@ -38,7 +38,7 @@ func TestIssuingUnifiedMigration(t *testing.T) {
 	}
 	defer pool.Close()
 
-	for i, sql := range []string{initial, channelProjection, onboarding, userRoles, userDirectoryAudit, blnkShadow, customerCardSnapshots, onlineTestWallet, onlineTestFunds, slashWebhook, projectWallet, cardIssuing, cryptoFunds, issuingCheckout, fundsFlows, manualFunds, cardStateSync, cardControls, globalAdmin} {
+	for i, sql := range []string{initial, channelProjection, onboarding, userRoles, userDirectoryAudit, blnkShadow, customerCardSnapshots, onlineTestWallet, onlineTestFunds, slashWebhook, projectWallet, cardIssuing, cryptoFunds, issuingCheckout, fundsFlows, manualFunds, cardStateSync, cardControls, globalAdmin, cardMetrics} {
 		if _, err = pool.Exec(ctx, sql); err != nil {
 			t.Fatal(err)
 		}
@@ -63,10 +63,10 @@ func TestIssuingUnifiedMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 	var n int
-	if err = pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations WHERE version=20`).Scan(&n); err != nil || n != 0 {
+	if err = pool.QueryRow(ctx, `SELECT count(*) FROM schema_migrations WHERE version=21`).Scan(&n); err != nil || n != 0 {
 		t.Fatal("unrelated migration applied", err)
 	}
-	if _, err = pool.Exec(ctx, `UPDATE schema_migrations SET checksum='invalid' WHERE version=21`); err != nil {
+	if _, err = pool.Exec(ctx, `UPDATE schema_migrations SET checksum='invalid' WHERE version=22`); err != nil {
 		t.Fatal(err)
 	}
 	if err = MigrateIssuingUnified(ctx, pool); err == nil {

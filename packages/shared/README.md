@@ -36,3 +36,7 @@
 ## 统一 USD 开卡增量（2026-09-19，本地）
 
 开卡契约支持 funds_wallet/issuing_wallet 来源及执行开关，订单明确原扣款/退款路径；新卡普通详情通过 issuingOrderId 返回原单。见 [统一开卡](../../docs/business/client-card-issuing.md)。
+
+## 2026-09-19 卡片中心发布
+
+ChannelCardStatus为双端卡片原始状态提供统一浅色标签与语义图标，不修改状态逻辑。
