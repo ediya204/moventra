@@ -215,3 +215,22 @@ test('clicking a transaction row opens its drawer without hijacking nested links
   assert.ok(view.root.findAll(n=>n.props.to?.includes('page%3D1')&&n.props.to?.includes('keyword%3DOPENAI')).length>0);
  }finally{await act(()=>view.unmount())}
 });
+
+test('metrics preserve precision, missing values, coverage and scoped consumption links',async()=>{
+ const {cardMetricDisplay}=await import(uri(outputText));
+ const metrics={currency:'USD',scale:2,availableMinor:'0',availableAt:'2026-09-19T00:00:00Z',availability:'available',sharedGroup:false,nextResetAt:null,from:'2026-08-20T00:00:00Z',to:'2026-09-19T00:00:00Z',updatedAt:'2026-09-19T00:00:01Z',coverage:'complete',spendingMinor:'9007199254740993',refundMinor:'200',syncState:'idle'};
+ assert.equal(cardMetricDisplay(metrics,'available').value,'USD 0.00');
+ assert.equal(cardMetricDisplay({...metrics,availableMinor:null,availability:'not_supported'},'available').value,'未提供');
+ assert.equal(cardMetricDisplay({...metrics,coverage:'incomplete',spendingMinor:null},'spending').value,'同步未完成');
+ assert.equal(cardMetricDisplay(metrics,'spending').value,'USD 90071992547409.93');
+ assert.equal(isCardSyncPath(base+'/slash/cards/c1/metrics-sync'),true);
+ assert.equal(isCardSnapshotPath(base+'/slash/transactions?metric=spending&cardId=c1&from='+metrics.from+'&to='+metrics.to),true);
+ const view=await mount('/portal/cards/c1?connection=slash');
+ await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+ await act(async()=>{fixture.requests[1].resolve(page([{id:'c1',cardName:'Card one',metrics}]));await flush()});
+ const button=view.root.findAllByType('button').find(b=>b.props.children==='查看消费明细');
+ await act(async()=>{button.props.onClick();await flush()});
+ const query=new URL('https://test'+fixture.requests.at(-1).path).searchParams;
+ assert.equal(query.get('metric'),'spending');assert.equal(query.get('from'),metrics.from);assert.equal(query.get('to'),metrics.to);assert.equal(query.get('cardId'),'c1');
+ await act(()=>view.unmount());
+});

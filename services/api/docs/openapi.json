@@ -1609,11 +1609,23 @@
               "type": "string",
               "maxLength": 200
             }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "spending"
+              ]
+            },
+            "description": "Transactions only. Source-category-verified posted/settled debits; combine with cardId and metrics.from/to."
           }
         ],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card and transaction rows include assignmentKind=project_wallet|test_snapshot|unassigned and internal={ownershipStatus:bound|unassigned|scope_mismatch,customerId:UUID|null,userId:UUID|null,customerName:string|null}. Identity is returned only for matching assignment scope; transactions describe current card assignment, not historical funds ownership. No email or Firebase UID. Client DTOs omit these fields"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card and transaction rows include assignmentKind=project_wallet|test_snapshot|unassigned and internal={ownershipStatus:bound|unassigned|scope_mismatch,customerId:UUID|null,userId:UUID|null,customerName:string|null}. Identity is returned only for matching assignment scope; transactions describe current card assignment, not historical funds ownership. No email or Firebase UID. Client DTOs omit these fields Current authorized card rows may include metrics conforming to CardMetrics when feature is enabled and card is enrolled."
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -2704,11 +2716,23 @@
               "type": "string",
               "maxLength": 200
             }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "spending"
+              ]
+            },
+            "description": "Transactions only. Source-category-verified posted/settled debits; combine with cardId and metrics.from/to."
           }
         ],
         "responses": {
           "200": {
-            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot or assigned_wallet_projection/coverageReason. Enrolled project-wallet customers read the current import revision, restricted by immutable per-card assignment AND exact source accountId/virtualAccountId. Legacy broad snapshots are superseded for enrolled customers. Customer DTO omits accountId, virtualAccountId and any unlisted source fields. Source amounts remain signed integer strings. New cards are never automatically assigned."
+            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot or assigned_wallet_projection/coverageReason. Enrolled project-wallet customers read the current import revision, restricted by immutable per-card assignment AND exact source accountId/virtualAccountId. Legacy broad snapshots are superseded for enrolled customers. Customer DTO omits accountId, virtualAccountId and any unlisted source fields. Source amounts remain signed integer strings. New cards are never automatically assigned. Current authorized card rows may include metrics conforming to CardMetrics when feature is enabled and card is enrolled."
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -3734,6 +3758,103 @@
           }
         }
       }
+    },
+    "/admin-api/v1/channel-projections/{connection}/cards/{id}/metrics-sync": {
+      "post": {
+        "operationId": "adminRequestCardMetricsRefresh",
+        "summary": "Queue read-only transaction and utilization refresh for an enrolled authorized card; no money or card-control writes.",
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Durable refresh requested"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Role/MFA denied"
+          },
+          "404": {
+            "description": "Outside authorized card scope"
+          },
+          "409": {
+            "description": "Not enrolled or metrics disabled"
+          },
+          "503": {
+            "description": "Database or audit unavailable"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/metrics-sync": {
+      "post": {
+        "operationId": "customerRequestCardMetricsRefresh",
+        "summary": "Queue read-only transaction and utilization refresh for an enrolled authorized card; no money or card-control writes.",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Durable refresh requested"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Role/MFA denied"
+          },
+          "404": {
+            "description": "Outside authorized card scope"
+          },
+          "409": {
+            "description": "Not enrolled or metrics disabled"
+          },
+          "503": {
+            "description": "Database or audit unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4604,6 +4725,112 @@
             "format": "date-time"
           }
         }
+      },
+      "CardMetrics": {
+        "type": "object",
+        "description": "Optional authorized current card row metrics. Decimal integer strings in USD cents; available is spending capacity, not withdrawable funds. from/to are a UTC half-open complete scan window, not a real-time promise.",
+        "properties": {
+          "availableMinor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "availableAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nextResetAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spendingMinor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "refundMinor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          },
+          "scale": {
+            "type": "integer",
+            "const": 2
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "not_supported",
+              "available"
+            ]
+          },
+          "sharedGroup": {
+            "type": "boolean"
+          },
+          "coverage": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "incomplete"
+            ]
+          },
+          "syncState": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "pending",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "availableMinor",
+          "availableAt",
+          "nextResetAt",
+          "from",
+          "to",
+          "updatedAt",
+          "spendingMinor",
+          "refundMinor",
+          "currency",
+          "scale",
+          "availability",
+          "sharedGroup",
+          "coverage",
+          "syncState"
+        ]
       }
     }
   }

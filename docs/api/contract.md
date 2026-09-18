@@ -308,3 +308,7 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 ### 2026-09-19 客户卡交易筛选与导出（本地前端）
 
 复用现有 card-projections 查询参数：keyword、detailedStatus（单值）、from（含）与 to（不含）、page、revision。界面日期为 UTC 日历日期，结束日期转换为次日零点；列表与导出共用参数生成器。导出从第 0 页顺序查询、固定 revision，每页 20 条，上限 5,000 条，不新增导出 API 或权限，不跨连接聚合；错误不下载部分数据。见[流程](../frontend/client-workspace-layout.md)。
+
+## 2026-09-19 卡片历史与指标
+
+本地候选：渠道卡行增加metrics（金额字符串/null、时间窗口、覆盖及同步状态），交易列表支持metric=spending，逐卡metrics-sync仅排队只读补查。详见[卡指标合同](../business/card-metrics.md)。未部署。

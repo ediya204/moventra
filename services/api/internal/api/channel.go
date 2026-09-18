@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"moventra.local/api/internal/slashhook"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -33,14 +34,18 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	connection := r.PathValue("connection")
 	resource := r.PathValue("resource")
 	id := r.PathValue("id")
-	allowed := map[string]bool{"page": true, "keyword": true, "detailedStatus": true, "from": true, "to": true, "revision": true, "cardId": true, "cardStatus": true}
+	allowed := map[string]bool{"page": true, "keyword": true, "detailedStatus": true, "from": true, "to": true, "revision": true, "cardId": true, "cardStatus": true, "metric": true}
 	for k, v := range q {
 		if !allowed[k] || len(v) != 1 || len(v[0]) > 200 || connection == "" || id != "" {
 			fail(w, 400, "invalid_query")
 			return
 		}
 	}
-	if resource == "cards" && (q.Has("detailedStatus") || q.Has("from") || q.Has("to") || q.Has("cardId")) || resource == "transactions" && q.Has("cardStatus") {
+	if resource == "cards" && (q.Has("detailedStatus") || q.Has("from") || q.Has("to") || q.Has("cardId") || q.Has("metric")) || resource == "transactions" && q.Has("cardStatus") {
+		fail(w, 400, "invalid_query")
+		return
+	}
+	if q.Has("metric") && q.Get("metric") != "spending" {
 		fail(w, 400, "invalid_query")
 		return
 	}
@@ -186,6 +191,9 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		cardLast4 = `COALESCE(NULLIF(data->>'cardLast4',''), (SELECT COALESCE(NULLIF(card.data->>'cardLast4',''),NULLIF(card.data->>'last4','')) FROM channel_records card WHERE card.connection_id=channel_records.connection_id AND card.revision=channel_records.revision AND card.kind='card' AND card.external_id=channel_records.data->>'cardId' AND card.data->>'accountId' IS NOT DISTINCT FROM channel_records.data->>'accountId' AND card.data->>'virtualAccountId' IS NOT DISTINCT FROM channel_records.data->>'virtualAccountId'))`
 		where = strings.ReplaceAll(where, "data->>'cardLast4'", cardLast4)
 	}
+	if q.Get("metric") == "spending" {
+		where += ` AND data->>'metricCategory'='card' AND data->>'status'='posted' AND data->>'detailedStatus'='settled' AND (data->>'amountCents')::numeric<0`
+	}
 	args := []any{connection, revision, kind, id, q.Get("keyword"), q.Get("detailedStatus"), from, to, q.Get("cardId"), q.Get("cardStatus")}
 	if client {
 		// Both cards and transactions are restricted before counting/pagination.
@@ -274,6 +282,31 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "temporarily_unavailable")
 		return
 	}
+	if s.CardMetricsEnabled && kind == "card" && (!client || walletScoped) {
+		ids := []string{}
+		for _, raw := range data {
+			var row struct {
+				ID string `json:"id"`
+			}
+			json.Unmarshal(raw, &row)
+			ids = append(ids, row.ID)
+		}
+		metrics, err := slashhook.ReadMetrics(r.Context(), tx, connection, ids)
+		if err != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+		for i, raw := range data {
+			var row map[string]json.RawMessage
+			json.Unmarshal(raw, &row)
+			var card string
+			json.Unmarshal(row["id"], &card)
+			if m, ok := metrics[card]; ok {
+				row["metrics"] = m
+				data[i], _ = json.Marshal(row)
+			}
+		}
+	}
 	if id != "" && len(data) == 0 {
 		fail(w, 404, "not_found")
 		return
@@ -305,6 +338,26 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		if resource != "cards" || id == "" || (client && !walletScoped) {
 			fail(w, 404, "not_found")
+			return
+		}
+		if strings.HasSuffix(r.URL.Path, "/metrics-sync") {
+			if !s.CardMetricsEnabled {
+				fail(w, 409, "card_metrics_not_enrolled")
+				return
+			}
+			if err := slashhook.QueueMetricRefresh(r.Context(), tx, connection, id); err != nil {
+				fail(w, 409, "card_metrics_not_enrolled")
+				return
+			}
+			if _, err := tx.Exec(r.Context(), `INSERT INTO channel_read_audit(connection_id,actor_id,action,revision) VALUES($1,$2,'card-metrics:refresh',$3)`, connection, p.ID, revision); err != nil {
+				fail(w, 503, "temporarily_unavailable")
+				return
+			}
+			if tx.Commit(r.Context()) != nil {
+				fail(w, 503, "temporarily_unavailable")
+				return
+			}
+			respond(w, 202, map[string]any{"data": map[string]string{"syncState": "pending"}})
 			return
 		}
 		if strings.HasSuffix(r.URL.Path, "/cvv/reveal") {
@@ -363,8 +416,8 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		mode = "assigned_wallet_projection"
 		coverage = "项目钱包内已明确归属本用户的卡片及对应交易；不含其他用户或其他钱包。仅已导入来源记录，不代表完整历史或个人可用资金。"
 	}
-	if kind == "card" && (!client || walletScoped) {
-		coverage = "卡片基础资料保留导入版本；已启用同步的卡片由卡片操作和渠道通知更新状态，交易仍按原导入范围，不代表资金余额。"
+	if s.CardMetricsEnabled && kind == "card" && (!client || walletScoped) {
+		coverage = "卡片状态由卡片操作和渠道通知更新；已初始化卡片的交易由历史回填与通知持续落库，指标完整性及截至时点按卡显示。可消费额度不代表资金余额。"
 		if client {
 			coverage = "仅展示正式归属本用户的项目钱包卡片。" + coverage
 		}

@@ -41,11 +41,12 @@ type Event struct {
 	At     time.Time `json:"eventTimestamp"`
 }
 type Service struct {
-	DB     *pgxpool.Pool
-	Key    *rsa.PublicKey
-	apiKey string
-	client *http.Client
-	base   string
+	MetricsEnabled bool
+	DB             *pgxpool.Pool
+	Key            *rsa.PublicKey
+	apiKey         string
+	client         *http.Client
+	base           string
 }
 
 func New(db *pgxpool.Pool, apiKey string) *Service {
@@ -250,6 +251,29 @@ func safePayload(m map[string]json.RawMessage, id string) ([]byte, error) {
 			}
 		}
 	}
+	for _, key := range []string{"merchantData", "originalCurrency"} {
+		var nested map[string]json.RawMessage
+		if json.Unmarshal(m[key], &nested) == nil && nested != nil {
+			clean := map[string]json.RawMessage{}
+			keys := []string{"description", "categoryCode"}
+			if key == "originalCurrency" {
+				keys = []string{"code", "amountCents"}
+			}
+			for _, k := range keys {
+				if raw, ok := nested[k]; ok {
+					var str string
+					if json.Unmarshal(raw, &str) == nil {
+						clean[k] = raw
+					} else if k == "amountCents" {
+						if _, e := integer(raw); e == nil {
+							clean[k] = raw
+						}
+					}
+				}
+			}
+			safe[key], _ = json.Marshal(clean)
+		}
+	}
 	return json.Marshal(safe)
 }
 func (s *Service) Step(ctx context.Context) error {
@@ -277,6 +301,9 @@ func (s *Service) Step(ctx context.Context) error {
 	var attempt int
 	err = db.QueryRow(ctx, `SELECT e.connection_id,e.event_id,e.kind,e.entity_id,c.account_ref,e.attempts FROM slash_hook_events e JOIN slash_hook_connections c ON c.id=e.connection_id WHERE c.enabled AND e.state='queued' AND e.event_type<>'internal.card.reconcile' AND e.next_attempt<=now() ORDER BY e.next_attempt,e.received_at LIMIT 1`).Scan(&conn, &id, &kind, &entity, &acct, &attempt)
 	if errors.Is(err, pgx.ErrNoRows) {
+		if s.MetricsEnabled {
+			return s.metricStep(ctx, db)
+		}
 		return nil
 	}
 	if err != nil {
@@ -347,6 +374,17 @@ func (s *Service) Step(ctx context.Context) error {
 				return err
 			}
 			return tx.Commit(ctx)
+		}
+	}
+	var metricPayload map[string]json.RawMessage
+	json.Unmarshal(payload, &metricPayload)
+	if s.MetricsEnabled {
+		if err = publishMetricEvent(ctx, tx, conn, id, kind, entity, metricPayload); err != nil {
+			// Roll back partial observations, then retain a reviewable failure instead
+			// of retrying malformed/foreign financial data indefinitely.
+			tx.Rollback(ctx)
+			_, updateErr := db.Exec(ctx, `UPDATE slash_hook_events SET state='review',last_error='metric_projection_rejected' WHERE connection_id=$1 AND event_id=$2 AND state='queued'`, conn, id)
+			return updateErr
 		}
 	}
 	_, err = tx.Exec(ctx, `UPDATE slash_hook_events SET state='done',last_error='' WHERE connection_id=$1 AND event_id=$2`, conn, id)

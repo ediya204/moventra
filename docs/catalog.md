@@ -73,6 +73,7 @@
 - [FLOW-BIN-CATALOG-01：Slash 目录同步与正式 BIN 管理](business/bin-catalog-sync-2026-09-18.md) — `docs/business/bin-catalog-sync-2026-09-18.md`
 - [FLOW-CARD-DETAIL-02：客户端卡片详情规划](business/card-center-detail-plan-2026-09-18.md) — `docs/business/card-center-detail-plan-2026-09-18.md`
 - [docs/business/card-issuing-2026-09-18.md](business/card-issuing-2026-09-18.md) — `docs/business/card-issuing-2026-09-18.md`
+- [卡片历史回填与指标（2026-09-19）](business/card-metrics.md) — `docs/business/card-metrics.md`
 - [FLOW-CARD-OWNER-01：正式后台读取既有归属](business/card-owner-display.md) — `docs/business/card-owner-display.md`
 - [卡片当前状态同步](business/card-state-sync.md) — `docs/business/card-state-sync.md`
 - [卡片、渠道与交易业务逻辑](business/cards-and-transactions.md) — `docs/business/cards-and-transactions.md`
