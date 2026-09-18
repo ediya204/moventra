@@ -245,3 +245,12 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-18 BIN catalog
 
 新增正式 `/card-bins` 管理页与 `/admin-api/v1/card-issuing` 契约；来源目录导入使用 `issuing-admin import-catalog`。未配置价格以空字符串传输、数据库 NULL 保存，与免费 `0` 区分。生产保持真实发卡执行关闭。详见 `docs/business/bin-catalog-sync-2026-09-18.md` 与 `services/api/docs/issuing.openapi.json`。
+
+## 2026-09-18：开卡名称与默认持卡人（LOCAL）
+
+`card-issuing/orders` 增加 `cardName`：服务端首次提交时从100个姓名选取并持久化，重试/补充首充保持；历史无名称返回空字符串。Slash name 使用该值；新请求省略 cardholderId。Enrollment 新调用只需 customerId/groupId/enabled/revision，旧 supplierId/cardholderRef/evidenceRef 输入弃用，GET 不再返回 cardholders。见[流程与兼容边界](../business/card-issuing-2026-09-18.md)。
+## 2026-09-18：后台用户归属读取修复（本地，未部署）
+
+正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../business/card-owner-display.md)。
+
+归属联合验收补充：连接读取权限不自动授予客户身份读取；需要该客户 accounts:read，缺失或撤销时只返回 restricted，不泄露 customerId/userId/name。

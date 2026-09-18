@@ -14,7 +14,7 @@ func TestSlashBoundary(t *testing.T) {
 	var posts atomic.Int32
 	limit := "0"
 	reject := false
-	v := Snapshot{Product: Product{UpstreamID: "prod"}, Supplier: Supplier{Adapter: "slash", AccountRef: "acct", EntityRef: "entity"}, CardholderRef: "holder"}
+	v := Snapshot{Product: Product{UpstreamID: "prod"}, Supplier: Supplier{Adapter: "slash", AccountRef: "acct", EntityRef: "entity"}, CardName: "James Anderson"}
 	card := func() map[string]any {
 		return map[string]any{"id": "card", "accountId": "acct", "cardProductId": "prod", "last4": "1234", "status": "active", "userData": map[string]string{"moventraOrderId": "order"}, "spendingConstraint": constraint(limit), "pan": "DO_NOT_PERSIST", "cvv": "DO_NOT_PERSIST"}
 	}
@@ -30,11 +30,16 @@ func TestSlashBoundary(t *testing.T) {
 		case r.Method == "POST":
 			posts.Add(1)
 			var body struct {
+				Name       string          `json:"name"`
+				Holder     *string         `json:"cardholderId"`
 				Product    string          `json:"cardProductId"`
 				Account    string          `json:"accountId"`
 				Constraint slashConstraint `json:"spendingConstraint"`
 			}
 			json.NewDecoder(r.Body).Decode(&body)
+			if body.Name != v.CardName || body.Holder != nil {
+				t.Error("display name or default holder mismatch")
+			}
 			if body.Product != "prod" || body.Account != "acct" || body.Constraint.SpendingRule.UtilizationLimit.LimitAmount.Amount.String() != "0" {
 				t.Error("unrestricted creation")
 			}

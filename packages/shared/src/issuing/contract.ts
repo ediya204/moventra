@@ -42,6 +42,7 @@ export type Quote = {
   expiresAt: string;
 };
 export type Order = {
+  cardName: string;
   id: string;
   customerId: string;
   productId: string;

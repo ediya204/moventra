@@ -127,6 +127,16 @@ func TestCustomerCardSnapshot(t *testing.T) {
 	if got := decode(base + "/binding-test/transactions?keyword=2048"); got["total"] != float64(0) {
 		t.Fatal("matched unrelated card suffix", got)
 	}
+	adminPath := "/admin-api/v1/channel-projections/binding-test/transactions/tx-one"
+	if w := request(adminPath, "staff"); w.Code != 200 || !strings.Contains(w.Body.String(), `"state":"restricted"`) || strings.Contains(w.Body.String(), personal) {
+		t.Fatal("legacy assignment identity exposed", w.Code, w.Body.String())
+	}
+	if _, e = db.Exec(ctx, `INSERT INTO staff_grants(user_id,customer_id,permission) VALUES('00000000-0000-0000-0000-000000000003',$1,'accounts:read')`, personal); e != nil {
+		t.Fatal(e)
+	}
+	if w := request(adminPath, "staff"); w.Code != 200 || !strings.Contains(w.Body.String(), `"state":"assigned"`) || !strings.Contains(w.Body.String(), "Alice personal") {
+		t.Fatal("legacy assignment missing", w.Code, w.Body.String())
+	}
 	// Same resource IDs in another connection must not grant access.
 	b.ConnectionID = "other-connection"
 	if _, e = projection.Import(ctx, db, b, "staff"); e != nil {

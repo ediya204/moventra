@@ -84,6 +84,7 @@ type Enrollment struct {
 	EvidenceRef   string `json:"evidenceRef"`
 }
 type Snapshot struct {
+	CardName         string   `json:"cardName,omitempty"`
 	Product          Product  `json:"product"`
 	Supplier         Supplier `json:"supplier"`
 	FeeMinor         string   `json:"feeMinor"`
@@ -101,6 +102,7 @@ type Quote struct {
 	ExpiresAt    string `json:"expiresAt"`
 }
 type Order struct {
+	CardName     string   `json:"cardName"`
 	ID           string   `json:"id"`
 	CustomerID   string   `json:"customerId"`
 	ProductID    string   `json:"productId"`

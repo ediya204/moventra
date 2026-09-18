@@ -211,6 +211,39 @@ func TestProjectWalletAssignments(t *testing.T) {
 	if aw.Code != 200 || !strings.Contains(aw.Body.String(), `"assignmentKind":"project_wallet"`) || strings.Contains(aw.Body.String(), personal) {
 		t.Fatal("admin assignment state", aw.Code, aw.Body.String())
 	}
+	// Transaction ownership is disclosed only with an independent customer grant.
+	adminTransaction := func(id string) string {
+		t.Helper()
+		r := httptest.NewRequest("GET", "/admin-api/v1/channel-projections/wallet-source/transactions/"+id, nil)
+		r.Header.Set("Authorization", "Bearer staff")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != 200 {
+			t.Fatal(w.Code, w.Body.String())
+		}
+		return w.Body.String()
+	}
+	if body := adminTransaction("history"); !strings.Contains(body, `"state":"restricted"`) || strings.Contains(body, personal) || strings.Contains(body, "Alice personal") {
+		t.Fatal("customer identity leaked without grant", body)
+	}
+	if _, e = db.Exec(ctx, `INSERT INTO staff_grants(user_id,customer_id,permission) VALUES('00000000-0000-0000-0000-000000000003',$1,'accounts:read')`, personal); e != nil {
+		t.Fatal(e)
+	}
+	if body := adminTransaction("history"); !strings.Contains(body, `"state":"assigned"`) || !strings.Contains(body, "Alice personal") || !strings.Contains(body, `"cardLast4":"2047"`) {
+		t.Fatal("authorized assignment absent", body)
+	}
+	if body := adminTransaction("other-history"); !strings.Contains(body, `"state":"scope_mismatch"`) || strings.Contains(body, "Alice personal") {
+		t.Fatal("cross-wallet assignment leaked", body)
+	}
+	if _, e = db.Exec(ctx, `DELETE FROM staff_grants WHERE user_id='00000000-0000-0000-0000-000000000003' AND customer_id=$1`, personal); e != nil {
+		t.Fatal(e)
+	}
+	if body := adminTransaction("history"); !strings.Contains(body, `"state":"restricted"`) || strings.Contains(body, personal) {
+		t.Fatal("revoked grant still exposes customer", body)
+	}
+	if row := rows("alice", personal, "transactions")["rows"].([]any)[0].(map[string]any); row["customerAssignment"] != nil {
+		t.Fatal("admin assignment field exposed to client", row)
+	}
 	// Missing virtual-account provenance never acquires customer visibility.
 	b.SourceAt = "2026-09-18T02:00:00Z"
 	absent := trans("unknown-wallet", "old-card", "apexis")

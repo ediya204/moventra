@@ -174,7 +174,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	// Resolve display metadata only from the same scoped card snapshot. Never
 	// derive a suffix from a card ID or read another connection/revision.
 	cardLast4 := "data->>'cardLast4'"
-	if client && kind == "transaction" {
+	if kind == "transaction" {
 		cardLast4 = `COALESCE(NULLIF(data->>'cardLast4',''), (SELECT COALESCE(NULLIF(card.data->>'cardLast4',''),NULLIF(card.data->>'last4','')) FROM channel_records card WHERE card.connection_id=channel_records.connection_id AND card.revision=channel_records.revision AND card.kind='card' AND card.external_id=channel_records.data->>'cardId' AND card.data->>'accountId' IS NOT DISTINCT FROM channel_records.data->>'accountId' AND card.data->>'virtualAccountId' IS NOT DISTINCT FROM channel_records.data->>'virtualAccountId'))`
 		where = strings.ReplaceAll(where, "data->>'cardLast4'", cardLast4)
 	}
@@ -213,16 +213,23 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		offset = "$12"
 	}
 	selection := "data"
-	if client && kind == "transaction" {
+	if kind == "transaction" {
 		selection = `data || jsonb_build_object('cardLast4', ` + cardLast4 + `)`
 	}
-	if !client && kind == "card" {
-		selection = `data || jsonb_build_object('assignmentKind', CASE
-   WHEN EXISTS(SELECT 1 FROM project_wallet_cards a WHERE a.connection_id=channel_records.connection_id AND a.external_card_id=channel_records.external_id) THEN 'project_wallet'
-   WHEN EXISTS(SELECT 1 FROM customer_card_bindings a WHERE a.connection_id=channel_records.connection_id AND a.external_card_id=channel_records.external_id AND NOT EXISTS(SELECT 1 FROM project_wallet_customers p WHERE p.customer_id=a.customer_id)) THEN 'test_snapshot'
-   ELSE 'unassigned' END)`
+	// Apply the owner join after pagination, preserving count and ordering and
+	// avoiding per-card queries. Source and ownership share one read snapshot.
+	if !client {
+		selection += " AS data,connection_id,kind,external_id"
 	}
-	rows, e := tx.Query(r.Context(), `SELECT `+selection+` FROM channel_records WHERE `+where+` ORDER BY (data->>'date')::timestamptz DESC NULLS LAST,external_id LIMIT 20 OFFSET `+offset, append(args, page*20)...)
+	query := `SELECT ` + selection + ` FROM channel_records WHERE ` + where + ` ORDER BY (data->>'date')::timestamptz DESC NULLS LAST,external_id LIMIT 20 OFFSET ` + offset
+	if !client {
+		query = `SELECT ` + channelOwnershipSelection + ` FROM (` + query + `) r` + channelOwnershipJoin + ` ORDER BY (r.data->>'date')::timestamptz DESC NULLS LAST,r.external_id`
+	}
+	queryArgs := append(args, page*20)
+	if !client {
+		queryArgs = append(queryArgs, p.ID)
+	}
+	rows, e := tx.Query(r.Context(), query, queryArgs...)
 	if e != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return

@@ -27,7 +27,7 @@ export const DataGrid=props=>{m.grid=props;return null};
 export default function Drawer(props){m.drawer=props;return null;}
 `);
 let {outputText}=ts.transpileModule(readFileSync(new URL('../../apps/admin/src/operations/ChannelTransactionsPage.tsx',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}});
-outputText=outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:mocks)}`);
+outputText=outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:name.includes('channelOwnership')?new URL('../../apps/admin/src/components/channelOwnership.ts',import.meta.url).href:mocks)}`);
 const {default:Page}=await import(uri(outputText));
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function Location(){fixture.location=useLocation();return null;}

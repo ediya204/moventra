@@ -178,3 +178,7 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 ## FLOW-WALLET-001 本地验证（2026-09-18）
 
 `TestProjectWalletAssignments` 覆盖原整批测试授权收窄、不同钱包和未知钱包交易排除、新同步卡不自动归初始用户、新用户按卡隔离、跨客户/跨连接范围、错误版本/plan hash/重复ID拒绝、归属冲突拒绝、幂等、来源金额字符串精度、客户DTO不含共享账户ID、后台实际分配状态、写入及读取审计失败关闭。使用随机 moventra_test_* 库，不修改真实账务；命令与结果见 [流程卡](../business/project-wallet.md)。
+
+## 2026-09-18：卡名隔离验收补充
+
+开卡 fixture 验证：100个唯一英文姓名候选；随机结果属于池；未绑定 holder 的已启用客户可报价/提交；新 Slash 请求无 cardholderId 且 name 与订单一致；幂等重试及原卡补充首充保留 cardName；后台资格响应无 cardholders。仅本地隔离测试，不代表真实渠道默认 holder 验收。流程见[开卡规则](../business/card-issuing-2026-09-18.md)。

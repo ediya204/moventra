@@ -682,9 +682,6 @@ function CustomerEditor({
         groupId: data.groupId,
         enabled: data.enabled,
         revision: data.revision,
-        supplierId: data.cardholders[0]?.supplierId || "",
-        cardholderRef: data.cardholders[0]?.cardholderRef || "",
-        evidenceRef: data.cardholders[0]?.evidenceRef || "",
       });
   }, [data, customer]);
   async function write(path: string, body: unknown) {
@@ -720,9 +717,6 @@ function CustomerEditor({
           />
           {[
             ["groupId", "定价组 ID（留空使用默认价）"],
-            ["supplierId", "供应商 ID"],
-            ["cardholderRef", "已核验的渠道持卡人 ID"],
-            ["evidenceRef", "资格及持卡人核验依据"],
           ].map(([k, l]) => (
             <TextField
               key={k}
@@ -809,7 +803,7 @@ function CustomerEditor({
           {orders.data?.slice(0, 50).map((o) => (
             <Stack key={String(o.id)} spacing={1}>
               <Typography>
-                {String(o.productName)} · {statuses[String(o.state)]} ·{" "}
+                {String(o.cardName || "卡片名称未生成")} · {String(o.productName)} · {statuses[String(o.state)]} ·{" "}
                 {String(o.id)}
               </Typography>
               <Typography variant="body2">

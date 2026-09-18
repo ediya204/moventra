@@ -1,3 +1,4 @@
+import {channelOwnerLabel,type ChannelOwnership} from '../components/channelOwnership';
 import {MerchantLogo,LogoAttribution} from '../../../../packages/shared/src/components/MerchantLogo';
 import { useState, type ReactNode } from "react";
 import { Icon } from "@iconify/react";
@@ -32,7 +33,8 @@ import {
   utcTime,
 } from "../components/cardTransactionFields";
 
-export type DrawerTransaction = {
+export type DrawerTransaction = ChannelOwnership & {
+  customerAssignment?: {state: "assigned" | "restricted" | "unassigned" | "scope_mismatch"; id?: string; name?: string};
   id: string;
   merchant?: string | null;
   merchantData?: {
@@ -72,7 +74,7 @@ export type DrawerTransaction = {
   fetchError?: string;
   issues?: string[];
 };
-export type DrawerCard = {
+export type DrawerCard = ChannelOwnership & {
   id: string;
   cardName?: string;
   maskedCardNumber?: string;
@@ -143,12 +145,9 @@ export default function TransactionDrawer({
         : Number.isFinite(Date.parse(value))
           ? new Date(value).toLocaleString("zh-CN", { hour12: false })
           : "无效时间";
-  const owner =
-    t?.internal?.customerName ||
-    t?.internal?.customerId ||
-    card?.internal?.customerName ||
-    card?.internal?.customerId ||
-    "未绑定";
+  const ownerRecord = t?.internal || t?.assignmentKind ? t : matchingCard;
+  const assigned = t?.customerAssignment;
+  const owner = assigned ? assigned.state === 'assigned' ? assigned.name || assigned.id || '客户名称未提供' : assigned.state === 'restricted' ? '已分配 · 无查看权限' : assigned.state === 'scope_mismatch' ? '归属范围待核实' : '未分配' : channelOwnerLabel(ownerRecord);
   const copy = async (value: string) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -359,7 +358,7 @@ export default function TransactionDrawer({
                     "— 未提供卡片关联"
                   )}
                 </Field>
-                <Field label="所属用户">{owner}</Field>
+                <Field label={t.customerAssignment ? "所属账户" : "所属用户"}>{owner}</Field>
                 {cardWarning && (
                   <Alert severity="info" sx={{ my: 1 }}>
                     {cardWarning}

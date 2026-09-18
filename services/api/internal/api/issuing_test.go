@@ -259,7 +259,11 @@ func TestIssuingFullFlow(t *testing.T) {
 	p2.SupplierID = otherSupplier
 	request("POST", a+"/products", "staff", p2, "", 200)
 	gid := getID(request("POST", a+"/groups", "staff", map[string]any{"id": "", "name": "Tier A", "revision": 0}, "", 200))
-	request("POST", ac+"/enrollment", "staff", issuing.Enrollment{CustomerID: personal, GroupID: gid, Enabled: true, SupplierID: sid, CardholderRef: "holder", EvidenceRef: "synthetic-verification"}, "", 200)
+	request("POST", ac+"/enrollment", "staff", issuing.Enrollment{CustomerID: personal, GroupID: gid, Enabled: true}, "", 200)
+	enrollment := request("GET", ac+"/enrollment", "staff", nil, "", 200)
+	if strings.Contains(string(enrollment), "cardholder") {
+		t.Fatal("holder exposed in enrollment")
+	}
 	price := "300"
 	request("POST", a+"/prices", "staff", issuing.Price{ProductID: pid, ScopeKind: "group", ScopeID: gid, FeeMinor: &price, Revision: 1}, "", 200)
 	quote := func(funding string, want int) json.RawMessage {
@@ -298,6 +302,21 @@ func TestIssuingFullFlow(t *testing.T) {
 		t.Fatal("idempotency")
 	}
 	request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, uuid.NewString(), 409)
+	var named, retryNamed issuing.Order
+	json.Unmarshal(request("GET", c+"/orders/"+oid, "alice", nil, "", 200), &named)
+	json.Unmarshal(request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, key, 200), &retryNamed)
+	if named.CardName == "" || named.CardName != retryNamed.CardName {
+		t.Fatal("card name changed on retry")
+	}
+	var frozen issuing.Snapshot
+	var frozenRaw []byte
+	if e = db.QueryRow(ctx, `SELECT snapshot FROM issuing_orders WHERE id=$1`, oid).Scan(&frozenRaw); e != nil {
+		t.Fatal(e)
+	}
+	json.Unmarshal(frozenRaw, &frozen)
+	if frozen.CardName != named.CardName || frozen.CardholderRef != "" {
+		t.Fatal("name/holder snapshot mismatch")
+	}
 	provider.unknown = true
 	for i := 0; i < 7; i++ {
 		if e = svc.Process(ctx, oid); e != nil {
@@ -340,6 +359,11 @@ func TestIssuingFullFlow(t *testing.T) {
 	}
 	provider.rejectFunding = false
 	topup := getID(request("POST", c+"/topups", "alice", map[string]string{"orderId": oid2, "fundingMinor": "1000"}, uuid.NewString(), 200))
+	var topupOrder issuing.Order
+	json.Unmarshal(request("GET", c+"/orders/"+topup, "alice", nil, "", 200), &topupOrder)
+	if o.CardName == "" || topupOrder.CardName != o.CardName {
+		t.Fatal("topup renamed card")
+	}
 	for i := 0; i < 5; i++ {
 		if e = svc.Process(ctx, topup); e != nil {
 			t.Fatal(e)
@@ -463,7 +487,6 @@ func TestIssuingFullFlow(t *testing.T) {
 	request("POST", ac+"/products", "staff", p, "", 404)
 	request("POST", c+"/deposits", "alice", map[string]any{}, "", 404)
 	request("GET", c+"/enrollment", "alice", nil, "", 404)
-
 	// Source catalog import preserves unconfigured values, commercial edits and identity.
 	input := issuing.CatalogImport{ActorID: "00000000-0000-0000-0000-000000000003", SupplierID: uuid.NewString(), SupplierName: "Slash trial catalog", EvidenceRef: "fixture:catalog-complete", CollectedAt: time.Now().UTC(), Complete: true, Items: []issuing.CatalogSourceItem{{ID: "card_product_catalog", Prefix: "43612080", Status: "active"}}}
 	if n, e := issuing.ImportCatalog(ctx, db, input); e != nil || n != 1 {

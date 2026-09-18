@@ -99,14 +99,23 @@ func (s *Slash) call(ctx context.Context, method, path string, in, out any) erro
 	return nil
 }
 func (s *Slash) scoped(v Snapshot) bool {
-	return v.Supplier.Adapter == "slash" && v.Supplier.AccountRef == s.account && v.Supplier.EntityRef == s.entity && sourceID.MatchString(v.Product.UpstreamID) && sourceID.MatchString(v.CardholderRef)
+	return v.Supplier.Adapter == "slash" && v.Supplier.AccountRef == s.account && v.Supplier.EntityRef == s.entity && sourceID.MatchString(v.Product.UpstreamID) && (v.CardholderRef == "" || sourceID.MatchString(v.CardholderRef))
 }
 func (s *Slash) Create(ctx context.Context, order string, v Snapshot) (Card, error) {
 	if !s.scoped(v) {
 		return Card{}, ErrRejected
 	}
 	var c slashCard
-	e := s.call(ctx, "POST", "/card", map[string]any{"type": "virtual", "name": "Moventra " + order, "accountId": s.account, "cardholderId": v.CardholderRef, "cardProductId": v.Product.UpstreamID, "spendingConstraint": constraint("0"), "userData": map[string]string{"moventraOrderId": order}}, &c)
+	name := v.CardName
+	if name == "" {
+		name = "Moventra " + order
+	} // Preserve historical order behavior.
+	body := map[string]any{"type": "virtual", "name": name, "accountId": s.account, "cardProductId": v.Product.UpstreamID, "spendingConstraint": constraint("0"), "userData": map[string]string{"moventraOrderId": order}}
+	// New snapshots omit the holder and use Slash defaults; historical orders retain their frozen assignment.
+	if v.CardholderRef != "" {
+		body["cardholderId"] = v.CardholderRef
+	}
+	e := s.call(ctx, "POST", "/card", body, &c)
 	if e != nil {
 		return Card{}, e
 	}

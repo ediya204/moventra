@@ -32,7 +32,7 @@ func (s *Service) Quote(ctx context.Context, tx pgx.Tx, customer, productID, fun
 	return q, e
 }
 
-const orderJSON = `jsonb_build_object('id',id,'customerId',customer_id,'productId',product_id,'state',state,'feeMinor',fee_minor::text,'fundingMinor',funding_minor::text,'last4',last4,'errorCode',error_code,'createdAt',created_at,'cardId',CASE WHEN external_card_id<>'' THEN COALESCE(parent_id,id)::text ELSE '' END,'parentId',COALESCE(parent_id::text,''),'productName',snapshot->'product'->>'name','bin',snapshot->'product'->>'bin')`
+const orderJSON = `jsonb_build_object('id',id,'customerId',customer_id,'productId',product_id,'state',state,'feeMinor',fee_minor::text,'fundingMinor',funding_minor::text,'last4',last4,'errorCode',error_code,'createdAt',created_at,'cardId',CASE WHEN external_card_id<>'' THEN COALESCE(parent_id,id)::text ELSE '' END,'parentId',COALESCE(parent_id::text,''),'cardName',COALESCE(snapshot->>'cardName',''),'productName',snapshot->'product'->>'name','bin',snapshot->'product'->>'bin')`
 
 func OrderRead(ctx context.Context, tx pgx.Tx, customer, id string) (any, error) {
 	if !ValidID(id) {
@@ -96,6 +96,14 @@ func (s *Service) Submit(ctx context.Context, tx pgx.Tx, customer, quoteID, key 
 	}
 	if number(balance).Cmp(number(add(fee, funding))) < 0 {
 		return nil, ErrInsufficient
+	}
+	v.CardName, e = randomCardName()
+	if e != nil {
+		return nil, e
+	}
+	raw, e = json.Marshal(v)
+	if e != nil {
+		return nil, e
 	}
 	id := uuid.NewString()
 	_, e = tx.Exec(ctx, `INSERT INTO issuing_orders(id,customer_id,product_id,quote_id,idempotency_key,snapshot,fee_minor,funding_minor,state,supplier_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,'queued',$9)`, id, customer, productID, quoteID, key, raw, fee, funding, v.Supplier.ID)
@@ -190,7 +198,7 @@ func CustomerRead(ctx context.Context, tx pgx.Tx, customer, resource, id string,
 		return jsonRows(ctx, tx, `SELECT `+orderJSON+` FROM issuing_orders WHERE customer_id=$1 ORDER BY created_at DESC,id LIMIT 51 OFFSET $2`, customer, offset)
 	case "enrollment":
 		var raw json.RawMessage
-		e := tx.QueryRow(ctx, `SELECT jsonb_build_object('customerId',c.id,'name',c.name,'enabled',COALESCE(i.enabled,false),'groupId',COALESCE(i.group_id::text,''),'revision',COALESCE(i.revision,0),'cardholders',COALESCE((SELECT jsonb_agg(jsonb_build_object('supplierId',supplier_id,'cardholderRef',cardholder_ref,'evidenceRef',evidence_ref)) FROM issuing_cardholders WHERE customer_id=c.id),'[]'::jsonb)) FROM customers c LEFT JOIN issuing_customers i ON i.customer_id=c.id WHERE c.id=$1`, customer).Scan(&raw)
+		e := tx.QueryRow(ctx, `SELECT jsonb_build_object('customerId',c.id,'name',c.name,'enabled',COALESCE(i.enabled,false),'groupId',COALESCE(i.group_id::text,''),'revision',COALESCE(i.revision,0)) FROM customers c LEFT JOIN issuing_customers i ON i.customer_id=c.id WHERE c.id=$1`, customer).Scan(&raw)
 		return raw, mapped(e)
 	case "deposits":
 		return jsonRows(ctx, tx, `SELECT jsonb_build_object('id',id,'amountMinor',amount_minor::text,'evidenceRef',evidence_ref,'submittedBy',submitted_by,'reviewedBy',reviewed_by,'state',state,'revision',revision,'createdAt',created_at) FROM issuing_deposits WHERE customer_id=$1 ORDER BY created_at DESC,id LIMIT 51 OFFSET $2`, customer, offset)

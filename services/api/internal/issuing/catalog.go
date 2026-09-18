@@ -134,7 +134,11 @@ func SavePrice(ctx context.Context, tx pgx.Tx, p Price) error {
 	return e
 }
 func SaveEnrollment(ctx context.Context, tx pgx.Tx, p Enrollment) error {
-	if !ValidID(p.CustomerID) || (p.GroupID != "" && !ValidID(p.GroupID)) || !ValidID(p.SupplierID) || !textOK(p.CardholderRef, 180) || !textOK(p.EvidenceRef, 300) {
+	if !ValidID(p.CustomerID) || (p.GroupID != "" && !ValidID(p.GroupID)) {
+		return ErrInvalid
+	}
+	legacyHolder := p.SupplierID != "" || p.CardholderRef != "" || p.EvidenceRef != ""
+	if legacyHolder && (!ValidID(p.SupplierID) || !textOK(p.CardholderRef, 180) || !textOK(p.EvidenceRef, 300)) {
 		return ErrInvalid
 	}
 	if e := Lock(ctx, tx, "catalog"); e != nil {
@@ -151,17 +155,22 @@ func SaveEnrollment(ctx context.Context, tx pgx.Tx, p Enrollment) error {
 	if current != p.Revision {
 		return ErrConflict
 	}
-	var old string
-	e = tx.QueryRow(ctx, `SELECT cardholder_ref FROM issuing_cardholders WHERE customer_id=$1 AND supplier_id=$2`, p.CustomerID, p.SupplierID).Scan(&old)
-	if e != nil && e != pgx.ErrNoRows {
-		return e
-	}
-	if old != "" && old != p.CardholderRef {
-		return ErrConflict
+	if legacyHolder {
+		var old string
+		e = tx.QueryRow(ctx, `SELECT cardholder_ref FROM issuing_cardholders WHERE customer_id=$1 AND supplier_id=$2`, p.CustomerID, p.SupplierID).Scan(&old)
+		if e != nil && e != pgx.ErrNoRows {
+			return e
+		}
+		if old != "" && old != p.CardholderRef {
+			return ErrConflict
+		}
 	}
 	_, e = tx.Exec(ctx, `INSERT INTO issuing_customers(customer_id,group_id,enabled) VALUES($1,NULLIF($2,'')::uuid,$3) ON CONFLICT(customer_id) DO UPDATE SET group_id=EXCLUDED.group_id,enabled=EXCLUDED.enabled,revision=issuing_customers.revision+1`, p.CustomerID, p.GroupID, p.Enabled)
 	if e != nil {
 		return e
+	}
+	if !legacyHolder {
+		return nil
 	}
 	_, e = tx.Exec(ctx, `INSERT INTO issuing_cardholders(customer_id,supplier_id,cardholder_ref,evidence_ref) VALUES($1,$2,$3,$4) ON CONFLICT(customer_id,supplier_id) DO UPDATE SET evidence_ref=EXCLUDED.evidence_ref`, p.CustomerID, p.SupplierID, p.CardholderRef, p.EvidenceRef)
 	return e
@@ -213,10 +222,12 @@ func (s *Service) snapshot(ctx context.Context, tx pgx.Tx, customer, id string) 
 		return
 	}
 	err = nil
-	e := tx.QueryRow(ctx, `SELECT cardholder_ref FROM issuing_cardholders WHERE customer_id=$1 AND supplier_id=$2`, customer, v.Supplier.ID).Scan(&v.CardholderRef)
-	if e != nil && e != pgx.ErrNoRows {
-		err = e
-		return
+	if v.Supplier.Adapter != "slash" {
+		e := tx.QueryRow(ctx, `SELECT cardholder_ref FROM issuing_cardholders WHERE customer_id=$1 AND supplier_id=$2`, customer, v.Supplier.ID).Scan(&v.CardholderRef)
+		if e != nil && e != pgx.ErrNoRows {
+			err = e
+			return
+		}
 	}
 	var accessBlocked bool
 	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_supplier_blocks WHERE supplier_id=$1)`, v.Supplier.ID).Scan(&accessBlocked); err != nil {
@@ -239,7 +250,7 @@ func (s *Service) snapshot(ctx context.Context, tx pgx.Tx, customer, id string) 
 		blocked = "supplier_" + v.Supplier.Status
 	case !enabled || !active:
 		blocked = "customer_not_enabled"
-	case v.CardholderRef == "":
+	case v.Supplier.Adapter != "slash" && v.CardholderRef == "":
 		blocked = "cardholder_not_verified"
 	case !s.Enabled || s.Blnk == nil:
 		blocked = "execution_disabled"

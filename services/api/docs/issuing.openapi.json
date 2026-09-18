@@ -2571,23 +2571,26 @@
           },
           "supplierId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Legacy configuration only. New Slash enrollment omits holder configuration and uses channel defaults."
           },
           "cardholderRef": {
-            "type": "string"
+            "type": "string",
+            "deprecated": true,
+            "description": "Legacy configuration only. New Slash enrollment omits holder configuration and uses channel defaults."
           },
           "evidenceRef": {
-            "type": "string"
+            "type": "string",
+            "deprecated": true,
+            "description": "Legacy configuration only. New Slash enrollment omits holder configuration and uses channel defaults."
           }
         },
         "required": [
           "customerId",
           "groupId",
           "enabled",
-          "revision",
-          "supplierId",
-          "cardholderRef",
-          "evidenceRef"
+          "revision"
         ]
       },
       "QuoteInput": {
@@ -2793,6 +2796,10 @@
           },
           "parentId": {
             "type": "string"
+          },
+          "cardName": {
+            "type": "string",
+            "description": "Persisted internal display alias; empty for historical orders. Not a cardholder identity."
           }
         },
         "required": [

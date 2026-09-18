@@ -98,8 +98,17 @@ func TestChannelBoundary(t *testing.T) {
 	for i := 0; i < 25; i++ {
 		b.Records = append(b.Records, projection.Record{Kind: "card", Data: map[string]any{"id": fmt.Sprintf("card-%02d", i), "accountId": "synthetic-account", "cardName": fmt.Sprintf("Search Card %02d", i), "last4": fmt.Sprintf("%04d", i), "cardStatus": "active", "createdAtUTC": "2026-09-07T00:00:00Z"}})
 	}
+	// Add card metadata to the same snapshot without denormalizing the transaction.
+	b.Records[1].Data["id"] = "test-card"
+	b.Records[1].Data["last4"] = "2047"
 	if _, e = projection.Import(ctx, db, b, "staff"); e != nil {
 		t.Fatal(e)
+	}
+	for _, suffix := range []string{"", "/test-tx", "?keyword=2047"} {
+		w := request(path+suffix, "staff")
+		if w.Code != 200 || !strings.Contains(w.Body.String(), `"cardLast4":"2047"`) || !strings.Contains(w.Body.String(), `"total":1`) {
+			t.Fatal("admin linked suffix", suffix, w.Code, w.Body.String())
+		}
 	}
 	for _, tc := range []struct {
 		suffix string

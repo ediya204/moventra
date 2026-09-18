@@ -1486,7 +1486,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card rows include assignmentKind=project_wallet|test_snapshot|unassigned, without exposing customer identity"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card and transaction rows include assignmentKind=project_wallet|test_snapshot|unassigned and internal={ownershipStatus:bound|unassigned|scope_mismatch,customerId:UUID|null,userId:UUID|null,customerName:string|null}. Identity is returned only for matching assignment scope; transactions describe current card assignment, not historical funds ownership. No email or Firebase UID. Client DTOs omit these fields"
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -1609,7 +1609,7 @@
         ],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card rows include assignmentKind=project_wallet|test_snapshot|unassigned, without exposing customer identity"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card and transaction rows include assignmentKind=project_wallet|test_snapshot|unassigned and internal={ownershipStatus:bound|unassigned|scope_mismatch,customerId:UUID|null,userId:UUID|null,customerName:string|null}. Identity is returned only for matching assignment scope; transactions describe current card assignment, not historical funds ownership. No email or Firebase UID. Client DTOs omit these fields"
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -1668,7 +1668,7 @@
         ],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card rows include assignmentKind=project_wallet|test_snapshot|unassigned, without exposing customer identity"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card and transaction rows include assignmentKind=project_wallet|test_snapshot|unassigned and internal={ownershipStatus:bound|unassigned|scope_mismatch,customerId:UUID|null,userId:UUID|null,customerName:string|null}. Identity is returned only for matching assignment scope; transactions describe current card assignment, not historical funds ownership. No email or Firebase UID. Client DTOs omit these fields"
           },
           "400": {
             "description": "Invalid or unknown query parameter"

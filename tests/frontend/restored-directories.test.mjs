@@ -14,7 +14,9 @@ const mocks=uri(`
 import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};
 const s=globalThis.__restoredDirectories;
 const Pass=({children,component:C='div',...props})=>React.createElement(C,props,children);
-export const Alert=Pass,Button=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,TextField=Pass,Typography=Pass,DashboardLayout=Pass;
+export const Box=Pass,MerchantCell=Pass,LogoAttribution=Pass,TransactionStatusChip=Pass,Alert=Pass,Button=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,TextField=Pass,Typography=Pass,DashboardLayout=Pass;
+export default function Drawer(){return null};
+export const minorText=String,originalText=String,slashTransactionFilters=[],transactionRowClass=()=>'',transactionRowStyles={};
 export const PageSkeleton=()=>null,utcTime=String,authMessage=e=>e.code||'error';
 export const zhCN={components:{MuiDataGrid:{defaultProps:{localeText:{}}}}};
 export const useAuth=()=>s.auth;
@@ -22,7 +24,8 @@ export const DataGrid=props=>{s.grid=props;return null};
 export const liveGet=async path=>{s.calls.push(path);if(path==='/admin-api/v1/channel-projections')return [{id:'connection_a',label:'Slash 1',revision:'v1',sourceAt:'2026-09-07T00:00:00Z'}];const q=new URLSearchParams(path.split('?')[1]);return {rows:[{id:q.get('page')==='1'?'card_21':'card_01',cardName:'Saved Card',last4:'0012'}],total:25,sourceAt:'',importedAt:'',coverageReason:'fixture'};};
 export const liveGetPage=async path=>{s.calls.push(path);if(path.startsWith('/admin-api/v1/users')){if(s.directoryError)throw {code:'identity_directory_unavailable'};return {data:s.directoryRows||[{id:'user_fixture',email:'registered@example.com',name:'Registered',registrationStatus:'registered',authStatus:'enabled',emailVerified:true,userStatus:'active',customerLinkState:'linked_restricted',customers:[]}],meta:{hasMore:!path.includes('offset=20')&&!path.includes('email=')}};}if(s.accountsError)throw {code:'temporarily_unavailable'};return {data:[{id:'account_fixture',name:'Account A',status:'active'}],meta:{hasMore:!path.includes('offset=20'),offset:0,limit:20}};};
 `);
-async function component(name){let {outputText}=ts.transpileModule(readFileSync(new URL(`../../apps/admin/src/operations/${name}.tsx`,import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}});outputText=outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:mocks)}`);return (await import(uri(outputText))).default;}
+async function component(name){let {outputText}=ts.transpileModule(readFileSync(new URL(`../../apps/admin/src/operations/${name}.tsx`,import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}});outputText=outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:name.includes('channelOwnership')?new URL('../../apps/admin/src/components/channelOwnership.ts',import.meta.url).href:mocks)}`);return (await import(uri(outputText))).default;}
+const Transactions=await component('ChannelTransactionsPage');
 const Cards=await component('CardsPage'),Customers=await component('CustomerDirectoryPage'),Users=await component('RegisteredUsersPage'),Details=await component('UserDetailsPage');
 const flush=()=>new Promise(r=>setImmediate(r));
 function Location(){state.location=useLocation();return null;}
@@ -128,4 +131,29 @@ test('identity-only user details, missing users, invalid links and no MFA remain
  state.auth.session.mfaVerified=false;
  view=await mount(Details,`/user-groups/users/detail?userId=${targetId}`);assert.equal(state.calls.length,0);assert.equal(state.location.pathname,'/session');
  state.auth.session.mfaVerified=true;await act(async()=>view.unmount());delete state.directoryRows;
+});
+
+
+test('admin transaction card cells use the resolved suffix and keep connection in links',async()=>{
+ const view=await mount(Transactions,'/transactions?connection=connection_a');
+ const column=state.grid.columns.find(c=>c.field==='cardLast4');
+ const cell=column.renderCell({row:{cardId:'c1',cardLast4:'2047'}});
+ assert.match(cell.props.children.join(''),/•••• 2047/);
+ assert.match(cell.props.to,/connection=connection_a/);
+ const missing=column.renderCell({row:{cardId:'c1'}});
+ assert.match(missing.props.children.join(''),/尾号未采集/);
+ await act(()=>view.unmount());
+});
+
+
+test('admin customer column follows card column and separates authorized, restricted and unassigned',async()=>{
+ const view=await mount(Transactions,'/transactions?connection=connection_a');
+ const i=state.grid.columns.findIndex(c=>c.field==='cardLast4');
+ const column=state.grid.columns[i+1];assert.equal(column.headerName,'所属账户');
+ const assigned=column.renderCell({row:{customerAssignment:{state:'assigned',id:'customer-a',name:'Customer A'}}});
+ assert.equal(assigned.props.children,'Customer A');assert.equal(assigned.props.to,'/customers?customer=customer-a');
+ for(const [state,label] of [['restricted','已分配 · 无查看权限'],['unassigned','未分配']]){
+  const cell=column.renderCell({row:{customerAssignment:{state}}});assert.equal(cell.props.children,label);assert.equal(cell.props.to,undefined);
+ }
+ await act(()=>view.unmount());
 });
