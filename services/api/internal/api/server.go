@@ -6,6 +6,7 @@ import (
 	"errors"
 	"moventra.local/api/internal/cryptofunds"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -99,6 +100,10 @@ func (s *Server) Handler() http.Handler {
 		}
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("FUNDS_DISPLAY_MODE") == "production" && (strings.Contains(r.URL.Path, "/test-funds") || strings.HasSuffix(r.URL.Path, "/test-wallet")) {
+			fail(w, 404, "not_found")
+			return
+		}
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)

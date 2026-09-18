@@ -7,6 +7,7 @@ import (
 	"io"
 	"moventra.local/api/internal/cryptofunds"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -33,6 +34,18 @@ func (s *Server) cryptoRoutes(mux *http.ServeMux) {
 		}
 	}
 }
+
+// The pilot's ledger may be queried independently of financial execution.
+func (s *Server) fundsReadService() (*cryptofunds.Service, error) {
+	svc, e := cryptofunds.New(s.Ledger)
+	if e != nil && s.DepositPilot != nil && s.DepositPilot.Ledger.IsLive() {
+		return s.DepositPilot, nil
+	}
+	if e == nil && os.Getenv("FUNDS_DISPLAY_MODE") == "production" && !svc.Ledger.IsLive() {
+		return nil, errors.New("production_ledger_required")
+	}
+	return svc, e
+}
 func (s *Server) cryptoScopes(w http.ResponseWriter, r *http.Request) {
 	p := r.Context().Value(principalKey{}).(principal)
 	if !p.Identity.MFA {
@@ -43,7 +56,7 @@ func (s *Server) cryptoScopes(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "invalid_query")
 		return
 	}
-	svc, e := cryptofunds.New(s.Ledger)
+	svc, e := s.fundsReadService()
 	if e != nil {
 		fail(w, 503, "crypto_disabled")
 		return
@@ -104,8 +117,13 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 		fail(w, 403, "mfa_required")
 		return
 	}
-	svc, e := cryptofunds.New(s.Ledger)
+	svc, e := s.fundsReadService()
 	if e != nil {
+		fail(w, 503, "crypto_disabled")
+		return
+	}
+	readOnly := svc.Pilot != nil
+	if write && readOnly {
 		fail(w, 503, "crypto_disabled")
 		return
 	}
@@ -259,7 +277,7 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 				e = journal.Err()
 			}
 			journal.Close()
-			out = map[string]any{"mode": svc.Mode(), "executionEligible": svc.Live != nil, "order": order, "events": events, "postings": postings}
+			out = map[string]any{"mode": svc.Mode(), "executionEligible": svc.Live != nil && !readOnly, "order": order, "events": events, "postings": postings}
 		}
 	} else {
 		config, err := svc.Settings(r.Context(), tx)
@@ -267,7 +285,7 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 			cryptoFail(w, err)
 			return
 		}
-		snapshot, err := s.Ledger.SnapshotTx(r.Context(), tx, customer)
+		snapshot, err := svc.Ledger.SnapshotTx(r.Context(), tx, customer)
 		if err != nil {
 			cryptoFail(w, err)
 			return
@@ -358,7 +376,7 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 			cryptoFail(w, err)
 			return
 		}
-		out = map[string]any{"cards": cards, "addressJobs": jobs, "networks": svc.Capabilities(config), "canOperate": canOperate, "capabilities": map[string]any{"currencies": []string{"USDT", "USD"}, "networks": []string{"TRC20", "ERC20"}, "realWrites": svc.Live != nil, "quoteSeconds": 60}, "pendingDepositsMinor": map[string]string{"USDT": pendingDeposit, "USD": "0"}, "mode": svc.Mode(), "executionEligible": svc.Live != nil, "customerId": customer, "settings": config, "ledger": snapshot, "orders": orders, "addresses": addresses, "total": total, "page": page}
+		out = map[string]any{"cards": cards, "addressJobs": jobs, "networks": svc.Capabilities(config), "canOperate": canOperate && !readOnly, "capabilities": map[string]any{"currencies": []string{"USDT", "USD"}, "networks": []string{"TRC20", "ERC20"}, "realWrites": svc.Live != nil && !readOnly, "quoteSeconds": 60}, "pendingDepositsMinor": map[string]string{"USDT": pendingDeposit, "USD": "0"}, "mode": svc.Mode(), "executionEligible": svc.Live != nil && !readOnly, "customerId": customer, "settings": config, "ledger": snapshot, "orders": orders, "addresses": addresses, "total": total, "page": page}
 	}
 	if e == nil && !write {
 		e = svc.Audit(r.Context(), tx, customer, "", p.ID, "read", map[string]string{"path": rest})

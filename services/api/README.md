@@ -159,3 +159,5 @@ TRC20限额充值使用`api prepare-deposit-pilot`核验零期初，再开启`DE
 ## 卡片状态同步
 
 017保存当前状态；018新增持久卡片命令并取消周期补查。API启动校验018；`api migrate-card-controls` 只安装018，要求已安装002/010/011/017，不自动安装资金迁移。既有同步映射保留，操作开关默认关闭：设置 `CARD_SYNC_CONNECTION` 后运行 `api slash-webhook-enable-card-controls`，核验连接账户/项目钱包匹配后启用。Worker每5秒处理队列，空队列不查询Slash；通知、手动核对和命令结果恢复只查询对应卡片。PATCH前持久submitted，超时/重启不重发，12次未确认进入review；手动GET或Webhook观察到目标状态可解除。checkedAt不按时间判过期。详见[流程与限制](../../docs/business/card-state-sync.md)。
+
+`FUNDS_DISPLAY_MODE=production`关闭test-wallet/test-funds读取及写入；crypto GET可读取限定充值的正式账本，POST仍受独立启用限制。此展示切换不执行迁移、不创建期初金额、不修改充值额度。见[生产展示](../../docs/business/funds-center.md)。

@@ -51,7 +51,8 @@
       "preview_urls": false,
       "vars": {
         "API_ORIGIN": "https://moventra-api-ejeq.onrender.com",
-        "SITE_KIND": "client"
+        "SITE_KIND": "client",
+        "FUNDS_DISPLAY_MODE": "production"
       },
       "routes": [
         {

@@ -214,3 +214,7 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 ## CARD-SYNC-01（2026-09-18）
 
 隔离PostgreSQL测试覆盖空闲不查渠道、通知乱序重新GET、钱包错配不发布、恢复、无事件不判过期、原导入不变、当前状态筛选/计数、手动同步跨客户拒绝。卡片命令另测启用/停用/注销、幂等ID、同卡互斥、客户及运营范围、MFA、关闭确认、状态前置冲突、未知响应与submitted重启只GET不重发。前端覆盖精确同步路由、同源与跨端边界、同步状态文案及既有页面流程。真实渠道和部署证据单列于[同步流程](../business/card-state-sync.md)，自动化fixture不证明线上通知到达。
+
+### F-PRODUCTION-VIEW
+
+正式读取原限定充值余额与订单；跨客户404；只读时提款POST拒绝；生产旧测试API返回404且不触达上游；首页仅展示live钱包，USD账户缺失显示未开通，shadow响应拒绝。历史测试金额保留且不进入新账本；本批不执行迁移或资金写入。覆盖见deposit_pilot_test.go、customer-funds.test.mjs和gateway.test.mjs。

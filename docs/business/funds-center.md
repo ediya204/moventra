@@ -64,3 +64,13 @@ Slash 适配仅支持已核验的 collective utilizationLimit，V2 或未知状�
 复现：`DEVELOPER_DIR=/Library/Developer/CommandLineTools services/api/scripts/test-crypto.sh` 创建和清理自身本地测试库。`CRYPTO_BROWSER_PREVIEW=1` 配合 `tests/frontend/crypto-browser-preview.mjs` 为合成身份浏览器辅助，不进入正式构建。此前真实本地 Blnk 记录见[隔离资金证据](cregis-funds.md)，本批未据此追认真实 Blnk 重跑。
 
 官方依据：[Cregis WaaS](https://developers.cregis.com/en/waas-quickstart-30min)、[充值通知](https://developers.cregis.com/en/reference/waas-api/depositCallback/)、[出金通知](https://developers.cregis.com/en/reference/waas-api/payoutCallback/)、[Ethereum JSON-RPC](https://ethereum.org/developers/docs/apis/json-rpc/)、[Slash 卡约束](https://docs.slash.com/api-reference/card-patch)、[Slash 交易查询](https://docs.slash.com/api-reference/transaction-get)。接口文档不等于本项目真实验收证据。
+
+## 生产资金展示（2026-09-18）
+
+FLOW-FUNDS-PRODUCTION-VIEW：用户要求线上只展示正式资金。首页移除测试钱包及重复占位余额，使用正式账本钱包；资金总览、分类记录及订单详情复用GET crypto契约。当前限定充值服务提供live命名空间的只读账本查询，不通过读取余额开启交易执行。正式钱包缺失为“尚未开通”，核对异常为“余额核对中”，不以测试额度或零值补齐。
+
+页面链：首页ProductionWallet/资金中心CustomerFunds → cryptoRequest/现有同域白名单 → cryptoAPI → 客户所有权或后台MFA+资金查询授权 → 原live账本、正式订单、Blnk与journal核对。只读能力executionEligible/realWrites/canOperate均为false，POST交易仍拒绝；USDT充值沿用独立地址和既有额度，不提高限额或启用其他能力。订单详情返回原资金中心，跨客户仍404。
+
+客户端及运营导航不再展示测试资金入口，旧客户链接跳转正式资金中心、旧后台链接跳转余额查询。生产API与两端网关设`FUNDS_DISPLAY_MODE=production`，拒绝test-wallet/test-funds读写；生产读服务拒绝shadow账本。旧测试数据、额度及订单不删除、不迁入，保留于原独立范围供隔离测试环境查询。
+
+异常恢复沿用真实订单、Blnk引用、原幂等与渠道核验规则。页面只查询，不创建账户或补余额；回退页面展示也不得迁移测试余额。自动化覆盖正式余额、未知USD不伪装0、shadow响应拒绝、跨客户读取、正式只读时写操作拒绝以及网关/源站同时屏蔽测试API。本批已发布；真实客户浏览器会话未验收，自动化与部署证据见[生产展示发布](../../deploy/2026-09-18-production-funds-view.md)。

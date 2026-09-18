@@ -23,12 +23,15 @@
       "/admin/*",
       "/portal",
       "/portal/*",
-      "/register"
+      "/register",
+      "/finance/test-funds",
+      "/finance/test-funds/*"
     ]
   },
   "vars": {
     "API_ORIGIN": "https://moventra-api-ejeq.onrender.com",
-    "SITE_KIND": "admin"
+    "SITE_KIND": "admin",
+    "FUNDS_DISPLAY_MODE": "production"
   },
   "account_id": "1159a5e57869211278b99f401f41321a",
   "routes": [

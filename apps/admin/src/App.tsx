@@ -8,7 +8,6 @@ const CryptoFundsPage=lazy(()=>import('./operations/CryptoFundsPage'));
 const CregisSourcesPage=lazy(()=>import('./operations/CregisSourcesPage'));
 const BinCatalogPage=lazy(()=>import('./operations/BinCatalogPage'));
 const PricingPage=lazy(()=>import('./operations/PricingPage'));
-const TestFundsPage=lazy(()=>import('./operations/TestFundsPage'));
 const CustomerDirectoryPage=lazy(()=>import('./operations/CustomerDirectoryPage'));
 const RegisteredUsersPage=lazy(()=>import('./operations/RegisteredUsersPage'));
 const UserDetailsPage=lazy(()=>import('./operations/UserDetailsPage'));
@@ -43,8 +42,8 @@ export default function App(){
   <Route path="/system/channels" element={<CardsPage channels/>}/>
   <Route path="/cards/:id" element={<ChannelTransactionsPage/>}/>
   <Route path="/" element={<Navigate to="/workbench" replace/>}/>
-  <Route path="/finance/test-funds" element={<TestFundsPage/>}/>
-  <Route path="/finance/test-funds/:customerId/*" element={<TestFundsPage/>}/>
+  <Route path="/finance/test-funds" element={<Navigate to="/finance/balances" replace/>}/>
+  <Route path="/finance/test-funds/:customerId/*" element={<Navigate to="/finance/balances" replace/>}/>
   <Route path="/onboarding" element={<OnboardingPage/>}/>
   <Route path="/onboarding/:customerId" element={<OnboardingPage/>}/>
   <Route path="/workbench" element={<OperationsPage/>}/>

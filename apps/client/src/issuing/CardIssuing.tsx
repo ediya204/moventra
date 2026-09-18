@@ -378,7 +378,7 @@ function Checkout({
                   : "查询中"}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              此钱包独立于线上测试额度。余额不足请联系运营核对并补足到账资金。
+              余额不足请联系运营核对并补足到账资金。
             </Typography>
             {product ? (
               <>

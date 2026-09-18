@@ -77,3 +77,5 @@ BIN 管理客户页 `/card-bins/customers?customer=UUID&order=UUID` 可查询开
 ## 卡片状态同步
 
 全部卡片与详情使用和客户端相同的当前状态，并保留内部归属显示。详情可提交异步只读回查，要求MFA及渠道授权；交易导入语义不变。参见[流程](../../docs/business/card-state-sync.md)。
+
+生产导航移除测试资金中心，旧地址跳转余额查询；源站及网关关闭生产测试资金API。既有正式查询授权、MFA和资金执行资格保持独立，见[资金流程](../../docs/business/funds-center.md)。
