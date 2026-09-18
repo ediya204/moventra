@@ -1,8 +1,7 @@
 import ManualFunds from '../../../../packages/shared/src/finance/ManualFunds';
 import CardIssuing from "../issuing/CardIssuing";
 import CustomerFunds from '../../../../packages/shared/src/finance/CustomerFunds';
-import OnlineFunds from '../../../../packages/shared/src/finance/OnlineFunds';
-import TestWallet from './TestWallet';
+import ProductionWallet from './ProductionWallet';
 import CardSnapshots from './CardSnapshots';
 import OnboardingPanel from "../../../../packages/shared/src/onboarding/OnboardingPanel";
 import {clientFeaturesEnabled,type OnboardingState} from "../../../../packages/shared/src/auth/onboarding";
@@ -104,6 +103,7 @@ export default function ClientHome() {
     };
   }, [customer?.id, session, user, reload]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
+  if (pathname.startsWith("/portal/test-funds")) return <Navigate to="/portal/funds" replace />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
   if (!/^\/portal\/funds\/manual(?:\/orders\/[0-9a-f-]{36})?$/.test(pathname) && !/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/test-funds(?:\/(?:history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/crypto(?:\/(?:deposit|fiat|withdraw|exchange|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
@@ -370,15 +370,7 @@ export default function ClientHome() {
               )}
               {pathname === "/portal" && (
                 <>
-                  <Paper variant="outlined" sx={{ display: "grid", gridTemplateColumns: workspaceGrid.gridTemplateColumns, overflow: "hidden" }}>
-                    {["USD 可用余额", "USDT 可用余额", "内部卡预算 · USD", "使用中卡片"].map(label => (
-                      <Box key={label} sx={{ p: 2.5, borderRight: 1, borderBottom: 1, borderColor: "divider" }}>
-                        <Typography variant="body2" color="text.secondary">{label}</Typography>
-                        <Typography variant="h4" sx={{ my: 1.5 }}>—</Typography>
-                        <Typography variant="caption" color="text.secondary">余额 / 卡片数据接口尚未接入</Typography>
-                      </Box>
-                    ))}
-                  </Paper>
+                  {customer&&<ProductionWallet key={`wallet:${customer.id}`} customerId={customer.id} reload={reload}/>}
                   <Box sx={workspaceGrid}>
                     {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
                       <Paper key={label} variant="outlined" sx={{ p: 2 }}>
@@ -403,7 +395,6 @@ export default function ClientHome() {
                   </Box>
                 </>
               )}
-              {pathname === "/portal" && customer && <TestWallet key={`test-wallet:${customer.id}`} customerId={customer.id} reload={reload}/> }
               {["/portal", "/portal/accounts"].includes(pathname) && accounts}
               {["/portal", "/portal/transactions"].includes(pathname) && transactions}
               {pathname === "/portal/settings" && <Paper variant="outlined" sx={{ p: 3 }}>
@@ -415,10 +406,8 @@ export default function ClientHome() {
                 </Stack>
               </Paper>}
               {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={`cards:${customer.id}`} customerId={customer.id}/> }
-              {pathname.startsWith('/portal/funds')&&<Button component={Link} to="/portal/test-funds/history">历史测试资金记录</Button>}
               {pathname.startsWith('/portal/crypto')&&customer&&<CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/crypto" orderId={pathname.split('/orders/')[1]}/>}
               {customer && (pathname === "/portal/cards" || pathname === "/portal/cards/new" || pathname.startsWith("/portal/card-orders") || pathname.startsWith("/portal/issued-cards/")) && <CardIssuing key={`issuing:${customer.id}`} customerId={customer.id} uid={user.uid}/> }
-              {pathname.startsWith("/portal/test-funds")&&customer&&<OnlineFunds key={`test:${customer.id}`} customerId={customer.id} reload={reload} basePath="/portal/test-funds"/>}
               {pathname.startsWith('/portal/funds')&&<Button component={Link} to="/portal/funds/manual">人工出入金记录</Button>}
               {pathname.startsWith('/portal/funds/manual')&&customer&&<ManualFunds key={customer.id+pathname} customerId={customer.id} basePath="/portal/funds/manual" orderId={pathname.split('/orders/')[1]}/>}
               {pathname.startsWith("/portal/funds") && !pathname.startsWith('/portal/funds/manual') && customer && <CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/funds" orderId={pathname.split('/orders/')[1]}/> }

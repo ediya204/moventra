@@ -14,6 +14,11 @@ const error = (status, code) => Response.json({ error: { code } }, {
 
 export async function handle(request, env, upstreamFetch = fetch) {
   const url = new URL(request.url);
+  if(env.FUNDS_DISPLAY_MODE==='production' && /\/(test-funds(?:-scopes)?|test-wallet)(?:\/|$)/.test(url.pathname)) {
+   if(url.pathname.startsWith('/portal/'))return new Response(null,{status:302,headers:{Location:'/portal/funds','Cache-Control':'no-store'}});
+   if(url.pathname.startsWith('/finance/'))return new Response(null,{status:302,headers:{Location:'/finance/balances','Cache-Control':'no-store'}});
+   return error(404,'api_not_available');
+  }
   if (env.SITE_KIND === 'admin' && /^\/(portal|register)(\/|$)/.test(url.pathname) || env.SITE_KIND === 'client' && /^\/admin(\/|$)/.test(url.pathname)) return error(404, 'page_not_available');
   if (url.pathname === '/login' && ['admin', 'client'].includes(env.SITE_KIND)) {
     return new Response(null, { status: 302, headers: { Location: env.SITE_KIND === 'admin' ? '/admin/login' : '/portal/login', 'Cache-Control': 'no-store' } });

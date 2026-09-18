@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"sync"
@@ -132,6 +133,36 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 	if e != nil || other.Cap != "" || other.Wallet != "" {
 		t.Fatal("cross customer status", other, e)
 	}
+	// Production reads use the same formal ledger without granting execution.
+	t.Setenv("FUNDS_DISPLAY_MODE", "production")
+	handler := (&Server{DB: db, Verifier: fakeVerifier{}, DepositPilot: s}).Handler()
+	check := func(method, path, token string, want int) string {
+		t.Helper()
+		r := httptest.NewRequest(method, path, nil)
+		r.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+		if w.Code != want {
+			t.Fatalf("%s: %d %s", path, w.Code, w.Body)
+		}
+		return w.Body.String()
+	}
+	body := check("GET", "/client-api/v1/customers/"+personal+"/crypto", "alice", 200)
+	var view struct {
+		Data struct {
+			Mode              string
+			ExecutionEligible bool
+			CanOperate        bool
+			Ledger            ledger.Snapshot
+		}
+	}
+	if json.Unmarshal([]byte(body), &view) != nil || view.Data.Mode != "live" || view.Data.ExecutionEligible || view.Data.CanOperate || view.Data.Ledger.Totals["USDT"] != "1000000" {
+		t.Fatal("incorrect production view", body)
+	}
+	check("GET", "/client-api/v1/customers/"+personal+"/crypto", "bob", 404)
+	check("POST", "/client-api/v1/customers/"+personal+"/crypto/withdrawals/orders", "alice", 503)
+	check("GET", "/client-api/v1/customers/"+personal+"/test-wallet", "alice", 404)
+	check("GET", "/client-api/v1/customers/"+personal+"/test-funds", "alice", 404)
 	// A status replay after settlement must not reset/reseed the opening.
 	if e = s.PrepareDepositPilot(ctx); e != nil {
 		t.Fatal(e)

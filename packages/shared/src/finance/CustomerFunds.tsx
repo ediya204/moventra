@@ -28,7 +28,7 @@ function FundsContent({customerId,basePath='/portal/funds',orderId}:{customerId:
  useEffect(()=>{generation.current++;setQuote(null);setAmount('');setAddress('');setMessage('');setError('')},[section]);
  useEffect(()=>{let active=true,running=false;setData(null);setDetail(null);const load=async()=>{if(running)return;running=true;try{
  const q=new URLSearchParams({page:String(operation?0:page),limit:operation?'5':'20',kind,status:operation?'':status});if((section==='fiat'||section==='history')&&cardId)q.set('cardId',cardId);
- const s=await cryptoRequest<View>(`${api}?${q}`);if(s.customerId!==customerId||!['shadow','live'].includes(s.mode))throw new Error('资金响应不一致');if(active){setData(s);setError('')}
+ const s=await cryptoRequest<View>(`${api}?${q}`);if(s.customerId!==customerId||s.mode!=='live')throw new Error('资金响应不一致');if(active){setData(s);setError('')}
  if(orderId){const d=await cryptoRequest<{order:CryptoOrder;events:{action:string;createdAt:string}[]}>(`${api}/orders/${orderId}`);if(active)setDetail(d)}
  }catch(e){if(active){if(e instanceof SessionError&&e.code==='crypto_disabled'&&!orderId){setData({mode:'disabled',executionEligible:false,customerId,canOperate:false,settings:{revision:0,otcEnabled:false,withdrawEnabled:false,usdtToUsd:'',usdToUsdt:'',withdrawalFeeMinor:null},ledger:{accounts:[],reconciliation:'unavailable',totalsMinor:{}},addresses:[],orders:[],total:0,page:0,cards:[],networks:[]});setError('')}else setError(cryptoError(e))}}finally{running=false}};void load();const timer=setInterval(()=>{setClock(Date.now());if(!document.hidden)void load()},5000);return()=>{active=false;clearInterval(timer)}},[api,customerId,orderId,section,kind,status,page,cardId,operation,tick]);
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(timer)},[]);
@@ -41,7 +41,7 @@ function FundsContent({customerId,basePath='/portal/funds',orderId}:{customerId:
  function getQuote(){try{const c=section==='fiat'?'USD':section==='withdraw'?'USDT':currency;const body:Record<string,unknown>={currency:c,amountMinor:cryptoUnits(amount,c)};if(section==='withdraw')Object.assign(body,{network,address});if(section==='fiat')Object.assign(body,{cardId,direction});submit(section==='exchange'?'otc/quotes':section==='fiat'?'cards/quotes':'withdrawals/quotes',body)}catch(e){setError(cryptoError(e))}}
  const blocked=busy||!!pending,canOperate=data?.canOperate!==false,selectedCard=data?.cards?.find(c=>c.id===cardId);
  const selectedAddress=data?.addresses.find(a=>(a.network===network||network==='TRC20'&&a.network==='tron-fixture'||network==='ERC20'&&a.network==='ethereum-fixture')&&a.mode==='live');
- const capability=data?.networks?.find(n=>n.network===network);const balance=(c:string)=>{if(data?.mode==='disabled')return '尚未启用';const rows=data?.ledger.accounts.filter(a=>a.kind==='wallet'&&a.currency===c)||[];return rows.length?cryptoMoney(rows.reduce((v,a)=>v+BigInt(a.ledgerAvailableMinor),0n).toString(),c):'0'+(c==='USD'?'.00 USD':'.000000 USDT')};
+ const capability=data?.networks?.find(n=>n.network===network);const balance=(c:string)=>{if(data?.mode==='disabled')return '尚未启用';const rows=data?.ledger.accounts.filter(a=>a.kind==='wallet'&&a.currency===c)||[];if(data?.ledger.reconciliation==='mismatch')return '余额核对中';return rows.length?cryptoMoney(rows.reduce((v,a)=>v+BigInt(a.ledgerAvailableMinor),0n).toString(),c):'尚未开通'};
  const addressState=data?.addressJobs?.[network];
  useEffect(()=>{const requestKey=customerId+':'+network;if(section!=='deposit'||orderId||!data||!data.canOperate||!capability?.depositEnabled||selectedAddress||addressState||blocked||addressRequested.current.has(requestKey))return;addressRequested.current.add(requestKey);submit('addresses',{currency:'USDT',network})},[section,orderId,customerId,network,data,capability?.depositEnabled,selectedAddress,addressState,blocked]);
  const current=section==='fiat'?'USD':section==='exchange'?currency:'USDT';const expired=!!quote&&Date.parse(quote.expiresAt)<=clock;
@@ -50,13 +50,13 @@ function FundsContent({customerId,basePath='/portal/funds',orderId}:{customerId:
  const networks=<Stack direction={{xs:'column',sm:'row'}} spacing={2}><TextField select label="币种" value="USDT" disabled fullWidth><MenuItem value="USDT">USDT</MenuItem></TextField><TextField select label="网络" value={network} disabled={blocked} onChange={e=>{invalidate();setNetwork(e.target.value);setAddress('')}} fullWidth><MenuItem value="TRC20">TRON · TRC20</MenuItem><MenuItem value="ERC20">Ethereum · ERC20</MenuItem></TextField></Stack>;
  return <Stack spacing={3}>
  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>{nav.map(([path,title])=><Button key={path} component={Link} to={basePath+(path?'/'+path:'')} variant={!orderId&&section===path?'contained':'outlined'}>{title}</Button>)}<Button onClick={()=>setTick(v=>v+1)} disabled={busy}>刷新</Button></Stack>
- {data?.mode==='disabled'&&<Alert severity="info">资金服务尚未启用，暂不能办理充值、提款或兑换。历史测试记录可从页面上方入口查看。</Alert>}
- {data?.mode==='shadow'&&<Alert severity="info">当前为隔离测试资金，不能用于真实充值或付款。</Alert>}
+ {data?.mode==='disabled'&&<Alert severity="info">资金服务尚未启用，请查看各业务页面的开通状态。</Alert>}
  {error&&<Alert severity="error" action={<Button onClick={()=>setTick(v=>v+1)}>重试查询</Button>}>{error}</Alert>}{message&&<Alert severity="success">{message}</Alert>}
  {pending&&<Alert severity="warning" action={<Button disabled={busy} onClick={()=>void run(pending)}>核对并重试原请求</Button>}>请求结果待确认，系统将沿用原请求编号核对，避免重复提交。</Alert>}
  {!data&&!error&&<Typography role="status">正在加载资金…</Typography>}
  {data&&<>
  {!section&&!orderId&&<><Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',md:'1fr 1fr'},gap:2}}>{(['USD','USDT'] as const).map(c=><Paper key={c} variant="outlined" sx={{p:3}}><Stack direction="row" spacing={1} alignItems="center"><CurrencyLogo currency={c}/><Typography>{c} 钱包可用余额</Typography></Stack><Typography variant="h4" sx={{my:2,overflowWrap:'anywhere'}}>{balance(c)}</Typography><Typography color="text.secondary">预占和在途资金不可重复使用</Typography></Paper>)}</Box>{shell(<Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">{nav.slice(1,5).map(([p,t])=><Button key={p} component={Link} to={`${basePath}/${p}`}>{t}</Button>)}</Stack>)}</>}
+ {operation&&data&&!data.canOperate&&<Alert severity="info">此业务尚未开通，暂不可提交。</Alert>}
  {operation&&<Typography color="text.secondary">钱包可用：{balance(current)}</Typography>}
  {operation&&!canOperate&&data?.mode!=='disabled'&&<Alert severity="warning">当前账户尚未启用资金办理，已有订单仍可查询。</Alert>}
  {section==='deposit'&&!orderId&&shell(<Stack spacing={3}><Typography variant="h5">USDT 充值</Typography>{networks}
