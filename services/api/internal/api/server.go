@@ -44,6 +44,7 @@ func fail(w http.ResponseWriter, status int, code string) {
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	s.issuingRoutes(mux)
+	s.cryptoRoutes(mux)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { respond(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)

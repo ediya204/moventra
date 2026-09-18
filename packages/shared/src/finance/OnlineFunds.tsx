@@ -18,9 +18,9 @@ function actions(o:Order,admin:boolean){
  if(o.kind==='withdraw')return o.status==='pending_review'?['approve','reject']:o.status==='processing'?['unknown','complete','fail']:o.status==='unknown'?['complete','fail']:[];
  return [];
 }
-export default function OnlineFunds({customerId,admin=false,reload=0}:{customerId:string;admin?:boolean;reload?:number}){
+export default function OnlineFunds({customerId,admin=false,reload=0,basePath}:{customerId:string;admin?:boolean;reload?:number;basePath?:string}){
  const {session}=useAuth();const {pathname,search,state:locationState}=useLocation();const navigate=useNavigate();
- const base=admin?`/finance/test-funds/${customerId}`:'/portal/funds';
+ const base=admin?`/finance/test-funds/${customerId}`:(basePath||'/portal/funds');
  const endpoint=`/${admin?'admin':'client'}-api/v1/customers/${customerId}/test-funds`;
  const section=pathname.slice(base.length);const orderId=section.startsWith('/orders/')?section.slice(8):'';
  const storageKey=`moventra:test-funds:${session?.id}:${customerId}:${admin}`;

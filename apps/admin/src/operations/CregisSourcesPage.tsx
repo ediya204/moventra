@@ -1,0 +1,24 @@
+import {useEffect,useState} from 'react';
+import {Alert,Button,MenuItem,Paper,Stack,Table,TableHead,TableBody,TableRow,TableCell,TextField,Typography} from '@mui/material';
+import {Link,Navigate,useSearchParams} from 'react-router-dom';
+import {DashboardLayout} from '../components/DashboardLayout';
+import {useAuth} from '../../../../packages/shared/src/auth/AuthContext';
+import {cryptoRequest,cryptoError} from '../../../../packages/shared/src/auth/cryptoApi';
+import {PageSkeleton} from '../../../../packages/shared/src/components/AsyncState';
+type Source={id:string;state:string;lastSuccess:string|null;error:string;coverage:string};
+export default function CregisSourcesPage(){
+ const {ready,authenticated,user,session}=useAuth();const [params,setParams]=useSearchParams();const [sources,setSources]=useState<Source[]>([]),[result,setResult]=useState<{rows:Record<string,string>[];total:number}|null>(null),[error,setError]=useState(''),[reload,setReload]=useState(0),[busy,setBusy]=useState(false),[detail,setDetail]=useState<Record<string,string>|null>(null);
+ const connection=params.get('connection')||sources[0]?.id||'',page=Number(params.get('page')||0),selected=params.get('event');
+ useEffect(()=>{let active=true;setError('');if(session?.operator&&session.mfaVerified)cryptoRequest<Source[]>('/admin-api/v1/crypto-sources').then(v=>{if(active)setSources(v)}).catch(e=>{if(active)setError(cryptoError(e))});return()=>{active=false}},[session,reload]);
+ useEffect(()=>{let active=true;setResult(null);if(connection)cryptoRequest<{rows:Record<string,string>[];total:number}>(`/admin-api/v1/crypto-sources/${encodeURIComponent(connection)}/events?page=${page}`).then(v=>{if(active)setResult(v)}).catch(e=>{if(active)setError(cryptoError(e))});return()=>{active=false}},[connection,page,reload]);
+ useEffect(()=>{let active=true;setDetail(null);if(connection&&selected)cryptoRequest<Record<string,string>>(`/admin-api/v1/crypto-sources/${encodeURIComponent(connection)}/events/${encodeURIComponent(selected)}`).then(v=>{if(active)setDetail(v)}).catch(e=>{if(active)setError(cryptoError(e))});return()=>{active=false}},[connection,selected,reload]);
+ if(!ready)return <PageSkeleton/>;if(!authenticated||!session?.operator||!session.mfaVerified)return <Navigate to={user?'/session?security=1':'/admin/login'} replace/>;
+ const update=(values:Record<string,string>)=>{const q=new URLSearchParams(params);Object.entries(values).forEach(([k,v])=>v?q.set(k,v):q.delete(k));setParams(q)};
+
+ return <DashboardLayout production><Stack spacing={3}><Typography variant="h4">Cregis 来源观察</Typography><Alert severity="info">此处为只读来源记录，不代表客户归属、入账或全历史覆盖。重复投递与来源版本单独保留。</Alert><Stack direction="row"><Button component={Link} to="/finance/crypto-flows">客户资金订单</Button><Button onClick={()=>setReload(v=>v+1)}>刷新本地记录</Button></Stack>{error&&<Alert severity="error">{error}</Alert>}
+ {!sources.length&&!error&&<Alert severity="info">没有已授权的 Cregis 来源连接。</Alert>}
+ {!!sources.length&&<><TextField select label="来源连接" value={connection} onChange={e=>update({connection:e.target.value,page:'0',event:''})}>{sources.map(s=><MenuItem key={s.id} value={s.id}>{s.id}</MenuItem>)}</TextField>{sources.filter(s=>s.id===connection).map(s=><Paper variant="outlined" sx={{p:2}} key={s.id}><Typography>同步状态：{s.state} · 最近成功：{s.lastSuccess?new Date(s.lastSuccess).toLocaleString():'尚未同步'}</Typography><Typography>覆盖范围：分批扫描，不保证全历史完整</Typography>{s.error&&<Alert severity="warning">上次同步失败，可恢复原任务。</Alert>}<Button disabled={busy} onClick={async()=>{setBusy(true);try{await cryptoRequest(`/admin-api/v1/crypto-sources/${connection}/sync`,{},crypto.randomUUID());setReload(v=>v+1)}catch(e){setError(cryptoError(e))}finally{setBusy(false)}}}>请求补同步</Button></Paper>)}</>}
+ {detail&&<Paper variant="outlined" sx={{p:2}}><Typography variant="h6">来源详情</Typography>{Object.entries(detail).map(([k,v])=><Typography key={k} variant="body2" sx={{overflowWrap:'anywhere'}}>{k}：{String(v)}</Typography>)}<Button onClick={()=>update({event:''})}>关闭详情</Button></Paper>}
+ {result&&<><Table><TableHead><TableRow>{['来源 ID','类型','金额','处理状态','详情'].map(s=><TableCell key={s}>{s}</TableCell>)}</TableRow></TableHead><TableBody>{result.rows.map(r=><TableRow key={r.id}><TableCell>{r.externalId}</TableCell><TableCell>{r.kind}</TableCell><TableCell>{r.amount} {r.currency}</TableCell><TableCell>{r.state}</TableCell><TableCell><Button onClick={()=>update({connection,event:r.id})}>查看</Button></TableCell></TableRow>)}</TableBody></Table><Stack direction="row"><Button disabled={page<=0} onClick={()=>update({page:String(page-1),event:''})}>上一页</Button><Typography>第 {page+1} 页，共 {result.total} 条来源版本</Typography><Button disabled={(page+1)*20>=result.total} onClick={()=>update({page:String(page+1),event:''})}>下一页</Button></Stack></>}
+ </Stack></DashboardLayout>;
+}

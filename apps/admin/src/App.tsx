@@ -3,6 +3,8 @@ import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { PageSkeleton } from '../../../packages/shared/src/components/AsyncState';
 import { isDemoMode } from '../../../packages/shared/src/utils/dataMode';
 import {useAuth} from '../../../packages/shared/src/auth/AuthContext';
+const CryptoFundsPage=lazy(()=>import('./operations/CryptoFundsPage'));
+const CregisSourcesPage=lazy(()=>import('./operations/CregisSourcesPage'));
 const BinCatalogPage=lazy(()=>import('./operations/BinCatalogPage'));
 const PricingPage=lazy(()=>import('./operations/PricingPage'));
 const TestFundsPage=lazy(()=>import('./operations/TestFundsPage'));
@@ -29,6 +31,9 @@ export default function App(){
   <Route path="/user-groups/users" element={<RegisteredUsersPage/>}/>
   <Route path="/user-groups/users/detail" element={<UserDetailsPage/>}/>
   <Route path="/card-bins/*" element={<BinCatalogPage/>}/>
+  {['/finance/crypto-flows','/finance/withdrawals','/finance/otc'].map(path=><Route key={path} path={path} element={<CryptoFundsPage/>}/>)}
+  {['/finance/crypto-flows/orders/:orderId','/finance/withdrawals/orders/:orderId','/finance/otc/orders/:orderId'].map(path=><Route key={path} path={path} element={<CryptoFundsPage/>}/>)}
+  <Route path="/system/cregis" element={<CregisSourcesPage/>}/>
   <Route path="/pricing" element={<PricingPage/>}/>
   <Route path="/pricing/products/:productId" element={<PricingPage/>}/>
   <Route path="/reports" element={<OperationsPage report/>}/>

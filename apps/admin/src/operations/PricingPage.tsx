@@ -44,9 +44,10 @@ function PricingContent() {
       <Typography variant="h4">费率管理</Typography>
       <Button onClick={refresh}>刷新</Button>
     </Stack>
-    <Alert severity="info">当前管理 USD 卡产品开卡费：客户专属价优先于定价组价，最后使用产品默认价。数字货币出入金及 OTC 费率尚未接入，不使用卡费率代替。</Alert>
+    <Alert severity="info">当前管理 USD 卡产品开卡费：客户专属价优先于定价组价，最后使用产品默认价。数字货币提现和 OTC 成交价通过独立隔离资金配置维护。</Alert>
     <Stack direction="row" gap={1}>
       {productId && <Button component={Link} to={'/pricing' + (params.size ? '?' + params : '')}>返回费率列表</Button>}
+      <Button component={Link} to="/finance/otc?tab=settings">提现手续费与 OTC 成交价</Button>
       <Button component={Link} to="/card-bins/groups">管理定价组</Button>
       <Button component={Link} to="/card-bins/audit">查看维护记录</Button>
     </Stack>

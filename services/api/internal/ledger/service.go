@@ -75,6 +75,13 @@ func New(db *pgxpool.Pool, c *blnk.Client, namespace, ledgerID string) (*Service
 	}
 	return &Service{db, c, namespace, ledgerID}, nil
 }
+func (s *Service) IsLive() bool { return strings.HasPrefix(s.Namespace, "live_") }
+func NewLive(db *pgxpool.Pool, c *blnk.Client, namespace, ledgerID string) (*Service, error) {
+	if db == nil || c == nil || !regexp.MustCompile(`^live_[a-z0-9_]{1,48}$`).MatchString(namespace) || ledgerID != "general_ledger_id" {
+		return nil, ErrInvalid
+	}
+	return &Service{db, c, namespace, ledgerID}, nil
+}
 func scale(currency string) (int, int64, error) {
 	switch currency {
 	case "USD":
@@ -125,7 +132,7 @@ func (s *Service) Provision(ctx context.Context, r AccountSpec) (Account, error)
 		return a, ErrInvalid
 	}
 	switch r.Kind {
-	case "wallet", "clearing":
+	case "wallet", "clearing", "escrow", "fee":
 		if r.ConnectionID != "" || r.ExternalCardID != "" {
 			return a, ErrInvalid
 		}
@@ -202,6 +209,11 @@ func (s *Service) Submit(ctx context.Context, c Command) (Operation, error) {
 		return o, ErrInvalid
 	}
 	switch c.Kind {
+	case "crypto_move":
+		valid := (a.Kind == "wallet" || a.Kind == "card") && b.Kind == "escrow" || a.Kind == "escrow" && (b.Kind == "wallet" || b.Kind == "card" || b.Kind == "clearing" || b.Kind == "fee") || a.Kind == "clearing" && b.Kind == "escrow"
+		if !valid || c.TransitID != "" {
+			return o, ErrInvalid
+		}
 	case "wallet_credit":
 		if a.Kind != "clearing" || b.Kind != "wallet" || c.TransitID != "" {
 			return o, ErrInvalid
@@ -357,7 +369,7 @@ func (s *Service) Process(ctx context.Context, customer, id string) (Operation, 
 		if errors.Is(postErr, blnk.ErrRejected) {
 			next = "review_required"
 			lastError = "blnk_rejected"
-			if phase == "reserve" {
+			if phase == "reserve" || o.Kind == "crypto_move" && (a.Kind == "wallet" || a.Kind == "card") {
 				next = "rejected"
 			}
 		}
@@ -462,6 +474,9 @@ func (s *Service) snapshotAndCommit(ctx context.Context, tx pgx.Tx, customer str
 // consume a second pool connection. The caller commits after recording the audit.
 func (s *Service) SnapshotTx(ctx context.Context, tx pgx.Tx, customer string) (Snapshot, error) {
 	out := Snapshot{Mode: "shadow", ReconciliationScope: "local_journal_vs_blnk", ExternalReconciliation: "not_checked", AuthorizationCoverage: "not_integrated", Accounts: []BalanceView{}, Totals: map[string]string{}, Reconciliation: "matched"}
+	if s.IsLive() {
+		out.Mode = "live"
+	}
 	var err error
 	if err = s.lock(ctx, tx, customer); err != nil {
 		return out, err
@@ -507,11 +522,11 @@ func (s *Service) SnapshotTx(ctx context.Context, tx pgx.Tx, customer string) (S
 			out.Reconciliation = "mismatch"
 		}
 		held := new(big.Int).Set(b.InflightDebit)
-		if a.Kind == "transit" {
+		if a.Kind == "transit" || a.Kind == "escrow" {
 			held.Set(b.Amount)
 		}
 		available := new(big.Int).Sub(b.Amount, held)
-		if a.Kind != "clearing" {
+		if a.Kind != "clearing" && a.Kind != "fee" {
 			out.Accounts = append(out.Accounts, BalanceView{a, b.Amount.String(), held.String(), available.String()})
 			sum := new(big.Int)
 			if v, ok := out.Totals[a.Currency]; ok {

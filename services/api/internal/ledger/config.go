@@ -10,11 +10,21 @@ import (
 	"strings"
 )
 
-// This release only supports explicit, isolated local shadow mode.
+// Shadow is local-only. Live requires explicit activation and a separate namespace.
 func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	mode := os.Getenv("LEDGER_MODE")
 	if mode == "" || mode == "disabled" {
 		return nil, nil
+	}
+	if mode == "live" {
+		if os.Getenv("CONFIRM_ZERO_OPENING_LEDGER") != "yes" || os.Getenv("FUNDS_LIVE_ACTIVATION") != "approved" || os.Getenv("CREGIS_SOURCE_ENABLED") != "true" {
+			return nil, errors.New("live_ledger_activation_required")
+		}
+		c, err := blnk.New(os.Getenv("BLNK_URL"), os.Getenv("BLNK_API_KEY"))
+		if err != nil {
+			return nil, err
+		}
+		return NewLive(db, c, os.Getenv("BLNK_NAMESPACE"), os.Getenv("BLNK_LEDGER_ID"))
 	}
 	if mode != "shadow" {
 		return nil, errors.New("only_shadow_ledger_supported")

@@ -131,3 +131,5 @@
 - [Slash 来源持久化设计](integrations/slash-persistence-design-2026-09-18.md)
 
 - [客户端开卡闭环](business/client-card-issuing.md)：BIN、声明、钱包、订单及新卡，生产开放边界单独记录。
+
+2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](business/funds-center.md)。

@@ -67,3 +67,5 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 ## 开卡订单与客户钱包
 
 BIN 管理客户页 `/card-bins/customers?customer=UUID&order=UUID` 可查询开卡钱包、订单阶段及不可变同意证据，沿用运营 MFA、逐客户授权和入账双人复核。与客户端读取同一订单；见[开卡流程](../../docs/business/client-card-issuing.md)。
+
+2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。

@@ -34,6 +34,8 @@ func Ready(ctx context.Context, db *pgxpool.Pool, ledgerEnabled bool) error {
 	required := map[int]string{1: initial, 2: channelProjection, 3: onboarding, 4: userRoles, 5: userDirectoryAudit, 7: customerCardSnapshots, 11: projectWallet, 12: cardIssuing, 14: issuingCheckout}
 	if ledgerEnabled {
 		required[6] = blnkShadow
+		required[13] = cryptoFunds
+		required[15] = fundsFlows
 	}
 	for version, sql := range required {
 		var checksum string

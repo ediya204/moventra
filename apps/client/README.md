@@ -33,3 +33,5 @@
 ## 客户端开卡
 
 正式入口 `/portal/cards/new`，订单 `/portal/card-orders` 与 `/portal/card-orders/:id`，新卡详情 `/portal/issued-cards/:id`。费用、最低首充、声明、独立 USD 钱包与失败恢复见[开卡流程](../../docs/business/client-card-issuing.md)。生产是否可支付由服务端资格和执行能力决定。
+
+2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。

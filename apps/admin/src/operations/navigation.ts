@@ -10,5 +10,5 @@ export const productionNavigation = navigationGroups(true).map(group => ({
     item.path === '/system/access' ? { ...item, path: '/session?security=1' } : item),
 }));
 export function isProductionPath(path: string) {
-  return ['/pricing', '/reports', '/card-bins', '/finance/test-funds', '/workbench', '/onboarding', '/user-groups/users', '/cards', '/customers', '/system/channels', '/transactions', '/session?security=1'].includes(path);
+  return ['/finance/crypto-flows', '/finance/withdrawals', '/finance/otc', '/system/cregis', '/pricing', '/reports', '/card-bins', '/finance/test-funds', '/workbench', '/onboarding', '/user-groups/users', '/cards', '/customers', '/system/channels', '/transactions', '/session?security=1'].includes(path);
 }

@@ -1,3 +1,4 @@
+import { cryptoRoute } from './crypto.mjs';
 import { issuingRoute } from './issuing.mjs';
 import { contact } from './contact.mjs';
 // Only the implemented Go contract is routable. Legacy and local Demo APIs
@@ -35,9 +36,11 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (fundsWrite && request.method !== 'POST') return error(405, 'method_not_allowed');
   const issuing = issuingRoute(request.method, url.pathname);
   if (issuing && (env.SITE_KIND === 'client' && url.pathname.startsWith('/admin-api/') || env.SITE_KIND === 'admin' && url.pathname.startsWith('/client-api/'))) return error(404, 'api_not_available');
-  const readable = issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const crypto = cryptoRoute(request.method, url.pathname+url.search);
+  if (crypto && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
+  const readable = crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
-  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
+  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (crypto || issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 
   let origin;
   try { origin = new URL(env.API_ORIGIN); } catch { return error(503, 'api_not_configured'); }

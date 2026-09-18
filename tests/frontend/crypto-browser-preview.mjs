@@ -1,0 +1,18 @@
+// Explicit local visual/flow harness. Authentication is synthetic, and only the
+// opt-in Go _test server on loopback may be used. Never included in app builds.
+import {createServer} from 'vite';
+import {mkdtemp,writeFile,readFile,realpath} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join,resolve} from 'node:path';
+const api=(await readFile('/tmp/moventra-crypto-browser-api','utf8')).trim();
+if(!/^http:\/\/127\.0\.0\.1:\d+$/.test(api))throw Error('isolated test API required');
+const root=await realpath(await mkdtemp(join(tmpdir(),'moventra-crypto-ui-'))),workspace=resolve('.');
+const auth='\0crypto-preview-auth',firebase='\0crypto-preview-firebase',site='\0crypto-preview-site',live='\0crypto-preview-errors';
+await writeFile(join(root,'index.html'),'<html lang="zh-CN"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><div id="root"></div><script type="module" src="/entry.jsx"></script></html>');
+await writeFile(join(root,'entry.jsx'),`
+import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter,useLocation}from'react-router-dom';import{ThemeProvider,createTheme,CssBaseline,Container,Typography}from'@mui/material';
+import CryptoFunds from '/@fs${workspace}/packages/shared/src/finance/CryptoFunds.tsx';import CustomerFunds from '/@fs${workspace}/packages/shared/src/finance/CustomerFunds.tsx';
+function App(){const {pathname}=useLocation();const admin=pathname.startsWith('/finance/');const orderId=pathname.split('/orders/')[1];return <ThemeProvider theme={createTheme({palette:{primary:{main:'#0078D4'}},typography:{fontFamily:'Arial, sans-serif'}})}><CssBaseline/><Container sx={{py:4}}><Typography variant="h4" sx={{mb:3}}>{admin?'运营审核 · 隔离验收':'客户资金中心 · 隔离验收'}</Typography><>{admin?<CryptoFunds key={pathname} customerId="10000000-0000-0000-0000-000000000001" admin={admin} basePath={admin?'/finance/crypto-flows':'/portal/crypto'} orderId={orderId} permissions={admin?['read','review','configure','recover']:[]}/>:<CustomerFunds customerId="10000000-0000-0000-0000-000000000001" basePath="/portal/funds" orderId={orderId}/>}</></Container></ThemeProvider>};createRoot(document.getElementById('root')).render(<BrowserRouter><App/></BrowserRouter>);
+`);
+const server=await createServer({configFile:false,root,esbuild:{jsx:"automatic"},resolve:{dedupe:['react','react-dom','react-router-dom'],alias:{react:resolve('node_modules/react'),'react-dom':resolve('node_modules/react-dom'),'react-router-dom':resolve('node_modules/react-router-dom'),'@mui/material':resolve('node_modules/@mui/material')}},plugins:[{name:'synthetic-auth',enforce:'pre',resolveId(id,importer){if(!importer?.includes('packages/shared'))return;if(id.endsWith('/AuthContext'))return auth;if(id.endsWith('/firebase'))return firebase;if(id==='./site')return site;if(id.endsWith('/liveApi'))return live},load(id){if(id===auth)return 'export const useAuth=()=>({session:{id:location.pathname.startsWith("/finance/")?"staff":"alice"}})';if(id===firebase)return 'const user={getIdToken:async()=>location.pathname.startsWith("/finance/")?"staff":"alice"};export const getFirebaseAuth=()=>({currentUser:user})';if(id===site)return 'export const isAdminSite=location.pathname.startsWith("/finance/")';if(id===live)return 'export class SessionError extends Error{constructor(code,status=0){super(code);this.code=code;this.status=status}}'}}],server:{host:'127.0.0.1',port:8868,strictPort:true,fs:{allow:[workspace,root]},proxy:{'/client-api':api,'/admin-api':api}}});
+await server.listen();console.log('Local browser fixture: http://127.0.0.1:8868/portal/funds/exchange');

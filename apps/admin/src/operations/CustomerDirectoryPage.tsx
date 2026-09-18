@@ -27,6 +27,7 @@ function Directory({scopes}:{scopes:{customerId:string;name:string}[]}){
   <Stack direction="row" justifyContent="space-between"><Typography variant="h4">账户目录</Typography><Button onClick={()=>setRefresh(n=>n+1)} disabled={busy}>刷新</Button></Stack>
   <Typography color="text.secondary">正式客户的已授权账户。此目录不包含旧本地客户记录，也不将渠道卡片自动绑定给客户。</Typography>
   {!scopes.length&&<Alert severity="info">当前没有账户读取授权。</Alert>}
+  {customer&&<Button component={Link} to={`/finance/crypto-flows?customer=${customer}`}>客户隔离钱包与资金订单</Button>}
   {scopes.length>0&&<TextField select size="small" label="客户" value={customer} onChange={e=>update({customer:e.target.value,page:'0'})}>{scopes.map(s=><MenuItem key={s.customerId} value={s.customerId}>{s.name}</MenuItem>)}</TextField>}
   {error&&<Alert severity="error" action={<Button onClick={()=>setRefresh(n=>n+1)}>重试</Button>}>{error}</Alert>}
   <Paper variant="outlined" sx={{p:2}}><DataGrid autoHeight rows={rows} columns={columns} loading={busy} hideFooter disableColumnSorting disableColumnFilter disableRowSelectionOnClick localeText={zhCN.components.MuiDataGrid.defaultProps.localeText}/><Stack direction="row" justifyContent="flex-end" spacing={2} mt={2}><Button disabled={busy||page===0} onClick={()=>update({page:String(page-1)})}>上一页</Button><Typography sx={{alignSelf:'center'}}>第 {page+1} 页</Typography><Button disabled={busy||!more} onClick={()=>update({page:String(page+1)})}>下一页</Button></Stack></Paper>

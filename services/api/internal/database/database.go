@@ -39,8 +39,14 @@ var projectWallet string
 //go:embed 012_card_issuing.sql
 var cardIssuing string
 
+//go:embed 013_crypto_funds.sql
+var cryptoFunds string
+
 //go:embed 014_issuing_checkout.sql
 var issuingCheckout string
+
+//go:embed 015_funds_flows.sql
+var fundsFlows string
 
 // Migrate is explicit (never called automatically by the API process).
 // One transaction and advisory lock make concurrent invocations safe.
@@ -59,7 +65,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	for _, item := range []struct {
 		version int
 		sql     string
-	}{{1, initial}, {2, channelProjection}, {3, onboarding}, {4, userRoles}, {5, userDirectoryAudit}, {6, blnkShadow}, {7, customerCardSnapshots}, {8, onlineTestWallet}, {9, onlineTestFunds}, {10, slashWebhook}, {11, projectWallet}, {12, cardIssuing}, {14, issuingCheckout}} {
+	}{{1, initial}, {2, channelProjection}, {3, onboarding}, {4, userRoles}, {5, userDirectoryAudit}, {6, blnkShadow}, {7, customerCardSnapshots}, {8, onlineTestWallet}, {9, onlineTestFunds}, {10, slashWebhook}, {11, projectWallet}, {12, cardIssuing}, {13, cryptoFunds}, {14, issuingCheckout}, {15, fundsFlows}} {
 		version, migration := item.version, item.sql
 		checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(migration)))
 		var count int

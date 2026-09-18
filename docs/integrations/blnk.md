@@ -91,3 +91,6 @@ Blnk 是余额引擎，本地 ledger_journal 是已应用动作的审计/核对�
 ## 私有TLS与开卡prepare模式（2026-09-18，本地）
 
 开卡专用CA只影响issuing客户端，不改变shadow限制；证书链、主机名与有效期继续校验。原私有Blnk可同容器增加TLS代理，后端固定loopback；未部署。prepare为只读连接验证，不能执行记账或视为开卡验收通过，见[准备记录](../../deploy/2026-09-18-issuing-preparation.md)。
+## 正式构造器准备增量（2026-09-18）
+
+本地新增独立 live namespace、零期初构造器及钱包/卡/预占/费用/对手分录接线，显式验收文件和多项激活配置缺失即拒绝。原 shadow 保持本机隔离。此次未激活正式账本；卡授权/渠道最终性/三方对账仍须真实验收。见[四流程](../business/funds-center.md)。

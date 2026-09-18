@@ -260,3 +260,7 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 ## 客户端开卡确认契约
 
 `card-issuing` 新增 GET products/{id}、terms、cards、cards/{id}；报价绑定 termsVersion，POST orders 必须提交 quoteId、termsVersion、lawfulUse=true、acceptedTerms=true，并携带原始 Idempotency-Key。服务端拒绝可信费用字段，声明/订单原子持久化。详情含同意证据和阶段事件；历史证据为空。金额为USD最小单位字符串，未知余额为null而非零。详见[机器契约](../../services/api/docs/issuing.openapi.json)与[流程](../business/client-card-issuing.md)。
+
+## 四流程增量（2026-09-18，本地接入准备）
+
+现行 crypto 契约扩展 `POST addresses`（currency/network，开户完成后进入充值页触发）、`withdrawals/quotes`（network/address/amountMinor）、`cards/quotes` 和 `cards/orders`（cardId/direction）。提款订单必须匹配报价网络及完整地址。GET 支持 kind/status/cardId、limit=5 或 20，时间倒序；返回 networks/cards/addressJobs/canOperate，mode 为 shadow 或 live。正式模式仍受独立启用条件约束，不能仅凭 mode 或 executionEligible 判定全部能力已验收。详细字段见[机器契约](../../services/api/docs/crypto.openapi.json)与[流程卡](../business/funds-center.md)。

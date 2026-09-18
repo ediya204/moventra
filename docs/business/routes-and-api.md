@@ -72,3 +72,7 @@
 ## 客户端开卡路由
 
 正式 `/portal/cards/new` → `/portal/card-orders/:id` → `/portal/issued-cards/:id`，订单列表 `/portal/card-orders`；后台 `/card-bins/customers` 按customer/order读取同一记录。两端共享transport与精确同域网关，Go校验主体/运营MFA/授权。完整接口与异常恢复见[流程](client-card-issuing.md)。
+
+## 资金中心四流程（2026-09-18，本地未部署）
+
+`/portal/funds` 总览；`/deposit`、`/fiat`、`/withdraw`、`/exchange` 四操作；`/history` 与 `/orders/:id` 完整历史和深链。`/portal/crypto` 兼容同一页面，旧测试历史保留 `/portal/test-funds/history`。调用独立 crypto API，不把 online_test 改成正式余额。开户完成后进入充值页才发地址请求。transport、网关、Go 路由均增加网络/逐卡报价、订单与最近 5 条；详见[FLOW](funds-center.md)。

@@ -1,0 +1,2706 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Moventra funding flows",
+    "version": "2026-09-18-flows-v2",
+    "description": "Independent shadow and explicitly certified live namespaces. Zero opening. No automatic activation or migration."
+  },
+  "paths": {
+    "/client-api/v1/customers/{customerID}/crypto": {
+      "get": {
+        "description": "Owner-scoped funds, filtered records and capabilities. limit=5 for recent operations or 20 for history.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "",
+                "deposit",
+                "withdrawal",
+                "otc",
+                "card_transfer"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                5,
+                20
+              ],
+              "default": 20
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Snapshot"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/orders/{orderID}": {
+      "get": {
+        "description": "Stable parent-scoped order detail, timeline and fixed ledger references.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Detail"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/addresses": {
+      "post": {
+        "description": "After approved/active onboarding, entering USDT deposit requests a per-customer per-network Cregis address job. Repeated requests reuse the job and address; no local live address generation.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "network": {
+                          "type": "string",
+                          "enum": [
+                            "TRC20",
+                            "ERC20"
+                          ]
+                        },
+                        "state": {
+                          "type": "string"
+                        },
+                        "address": {
+                          "type": "string"
+                        },
+                        "mode": {
+                          "type": "string"
+                        }
+                      },
+                      "description": "Live returns job state; GET snapshot returns the resulting address."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "network": {
+                    "type": "string",
+                    "enum": [
+                      "TRC20",
+                      "ERC20"
+                    ]
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/otc/quotes": {
+      "post": {
+        "description": "60-second owner-bound quote. Withdrawal binds network and recipient; explicit fees required. Configuration revision invalidates outstanding quotes.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Quote"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "USDT",
+                      "USD"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]{0,37})$"
+                  }
+                },
+                "required": [
+                  "currency",
+                  "amountMinor"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/otc/orders": {
+      "post": {
+        "description": "Accept one current unexpired quote; save immutable snapshot. No OTC inventory gate or manual approval.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quoteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "quoteId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/withdrawals/quotes": {
+      "post": {
+        "description": "60-second owner-bound quote. Withdrawal binds network and recipient; explicit fees required. Configuration revision invalidates outstanding quotes.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Quote"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "USDT",
+                      "USD"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]{0,37})$"
+                  },
+                  "network": {
+                    "type": "string",
+                    "enum": [
+                      "TRC20",
+                      "ERC20"
+                    ]
+                  },
+                  "address": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "currency",
+                  "amountMinor"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/withdrawals/orders": {
+      "post": {
+        "description": "Accept one current unexpired quote; save immutable snapshot. No OTC inventory gate or manual approval.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quoteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "address": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "network": {
+                    "type": "string",
+                    "enum": [
+                      "TRC20",
+                      "ERC20"
+                    ]
+                  }
+                },
+                "required": [
+                  "quoteId",
+                  "address"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/cancel": {
+      "post": {
+        "description": "Customer may cancel pending_review only; worker releases principal and fee.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "orderId",
+                  "revision"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/crypto": {
+      "get": {
+        "description": "Owner-scoped funds, filtered records and capabilities. limit=5 for recent operations or 20 for history.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "",
+                "deposit",
+                "withdrawal",
+                "otc",
+                "card_transfer"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                5,
+                20
+              ],
+              "default": 20
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Snapshot"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/crypto/orders/{orderID}": {
+      "get": {
+        "description": "Stable parent-scoped order detail, timeline and fixed ledger references.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Detail"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/crypto/settings": {
+      "post": {
+        "description": "configure grant + MFA; namespace-wide CAS revision, audited reason; null fee disables withdrawals, zero is free.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Settings"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "settings": {
+                    "$ref": "#/components/schemas/Settings"
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "settings",
+                  "note"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/crypto/approve": {
+      "post": {
+        "description": "review grant + MFA; no self approval; stale revision rejected. Unknown payout cannot be blindly recovered.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "orderId",
+                  "revision",
+                  "note"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/crypto/reject": {
+      "post": {
+        "description": "review grant + MFA; no self approval; stale revision rejected. Unknown payout cannot be blindly recovered.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "orderId",
+                  "revision",
+                  "note"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/crypto/recover": {
+      "post": {
+        "description": "recover grant + MFA; no self approval; stale revision rejected. Unknown payout cannot be blindly recovered.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "orderId",
+                  "revision",
+                  "note"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin-api/v1/crypto-scopes": {
+      "get": {
+        "description": "Explicit customer/action scopes, MFA; capped at 200, fails rather than truncating.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "permissions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "read",
+                                "review",
+                                "configure",
+                                "recover"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "permissions"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/crypto-sources": {
+      "get": {
+        "description": "MFA + connection read grants. lastSuccess is data time; coverage explicitly bounded rescans, not full history.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/crypto-sources/{connection}/events": {
+      "get": {
+        "description": "Connection-authorized source versions, 20/page; never automatically attributed.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "rows": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/SourceEvent"
+                          }
+                        },
+                        "total": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "page": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "observation"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "rows",
+                        "total",
+                        "page",
+                        "mode"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/crypto-sources/{connection}/events/{eventID}": {
+      "get": {
+        "description": "Independent stable detail, connection-scoped; cannot access another connection event.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          },
+          {
+            "name": "eventID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SourceEvent"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/crypto-sources/{connection}/sync": {
+      "post": {
+        "description": "MFA + sync grant; queues existing source; worker preserves rate-limit deadline/cursor. Idempotent queue state only.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/cregis/deposit": {
+      "post": {
+        "description": "WaaS signature and configured project required. Commit sanitized version/delivery count before ack; this HTTP handler never credits balances. Certified live worker resolves ownership and verifies finality before accounting; shadow remains observation-only.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pid",
+                  "cid",
+                  "sign",
+                  "nonce",
+                  "timestamp"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Durably received",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature/project/body"
+          },
+          "503": {
+            "description": "Not persisted; provider should retry"
+          }
+        }
+      }
+    },
+    "/webhooks/cregis/payout": {
+      "post": {
+        "description": "WaaS signature and configured project required. Commit sanitized version/delivery count before ack; this HTTP handler never credits balances. Certified live worker resolves ownership and verifies finality before accounting; shadow remains observation-only.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pid",
+                  "cid",
+                  "sign",
+                  "nonce",
+                  "timestamp"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Durably received",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature/project/body"
+          },
+          "503": {
+            "description": "Not persisted; provider should retry"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/cards/quotes": {
+      "post": {
+        "description": "Owned zero-opening card wallet transfer. Fresh authorization coverage, explicit fee and no overlapping card transfer required.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Quote"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "USDT",
+                      "USD"
+                    ]
+                  },
+                  "amountMinor": {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]{0,37})$"
+                  },
+                  "cardId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "wallet_to_card",
+                      "card_to_wallet"
+                    ]
+                  }
+                },
+                "required": [
+                  "currency",
+                  "amountMinor",
+                  "cardId",
+                  "direction"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/crypto/cards/orders": {
+      "post": {
+        "description": "Owned zero-opening card wallet transfer. Fresh authorization coverage, explicit fee and no overlapping card transfer required.",
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted result; not proof of real funds execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields/query/key"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or MFA rejected"
+          },
+          "404": {
+            "description": "Resource not found or unauthorized"
+          },
+          "409": {
+            "description": "Expired/consumed/repriced quote, stale revision, ineligible state"
+          },
+          "503": {
+            "description": "Disabled or dependency failure; retry original key after querying"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quoteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "quoteId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "FirebaseBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Money": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]{0,37})$"
+      },
+      "Settings": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "otcEnabled": {
+            "type": "boolean"
+          },
+          "withdrawEnabled": {
+            "type": "boolean"
+          },
+          "usdtToUsd": {
+            "type": "string"
+          },
+          "usdToUsdt": {
+            "type": "string"
+          },
+          "withdrawalFeeMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$",
+            "nullable": true
+          },
+          "networkFees": {
+            "type": "object",
+            "properties": {
+              "TRC20": {
+                "type": "string",
+                "nullable": true,
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "ERC20": {
+                "type": "string",
+                "nullable": true,
+                "pattern": "^(0|[1-9][0-9]*)$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "cardDepositFeeMinor": {
+            "type": "string",
+            "nullable": true
+          },
+          "cardWithdrawFeeMinor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "revision",
+          "otcEnabled",
+          "withdrawEnabled",
+          "usdtToUsd",
+          "usdToUsdt",
+          "withdrawalFeeMinor"
+        ],
+        "additionalProperties": false
+      },
+      "Quote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "otc",
+              "withdrawal",
+              "card_transfer"
+            ]
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USDT",
+              "USD"
+            ]
+          },
+          "toCurrency": {
+            "type": "string",
+            "enum": [
+              "USDT",
+              "USD"
+            ]
+          },
+          "amountMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "receiveMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "feeMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "rate": {
+            "type": "string"
+          },
+          "policyRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "network": {
+            "type": "string",
+            "enum": [
+              "TRC20",
+              "ERC20"
+            ]
+          },
+          "cardId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "wallet_to_card",
+              "card_to_wallet"
+            ]
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "customerId",
+          "currency",
+          "toCurrency",
+          "amountMinor",
+          "receiveMinor",
+          "feeMinor",
+          "rate",
+          "policyRevision",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "deposit",
+              "withdrawal",
+              "otc",
+              "card_transfer"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "reserving",
+              "pending_review",
+              "processing",
+              "releasing",
+              "completed",
+              "cancelled",
+              "rejected",
+              "failed",
+              "unknown"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USDT",
+              "USD"
+            ]
+          },
+          "toCurrency": {
+            "type": "string",
+            "enum": [
+              "USDT",
+              "USD"
+            ]
+          },
+          "amountMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "receiveMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "feeMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "address": {
+            "type": "string"
+          },
+          "approvalStatus": {
+            "type": "string"
+          },
+          "providerStatus": {
+            "type": "string"
+          },
+          "chainStatus": {
+            "type": "string"
+          },
+          "postingStatus": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string"
+          },
+          "txHash": {
+            "type": "string"
+          },
+          "evidenceRef": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/Quote"
+          },
+          "proof": {
+            "type": "object"
+          },
+          "contract": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string",
+            "enum": [
+              "TRC20",
+              "ERC20"
+            ]
+          },
+          "cardId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "wallet_to_card",
+              "card_to_wallet"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "kind",
+          "state",
+          "revision",
+          "currency",
+          "toCurrency",
+          "amountMinor",
+          "receiveMinor",
+          "feeMinor",
+          "approvalStatus",
+          "providerStatus",
+          "chainStatus",
+          "postingStatus",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Posting": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "step": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USDT",
+              "USD"
+            ]
+          },
+          "amountMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,37})$"
+          },
+          "state": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "transactionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "step",
+          "currency",
+          "amountMinor",
+          "state",
+          "reference",
+          "transactionId"
+        ],
+        "additionalProperties": false
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "action",
+          "data",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "Detail": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "shadow",
+              "live"
+            ]
+          },
+          "executionEligible": {
+            "type": "boolean"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "postings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Posting"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "executionEligible",
+          "order",
+          "events",
+          "postings"
+        ],
+        "additionalProperties": false
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "shadow",
+              "live"
+            ]
+          },
+          "executionEligible": {
+            "type": "boolean"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/Settings"
+          },
+          "ledger": {
+            "type": "object",
+            "description": "Namespace-scoped ledger snapshot; currencies segregated and escrow available=0. Per-operation capabilities and certification gate execution."
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string"
+                },
+                "network": {
+                  "type": "string"
+                },
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "synthetic",
+                    "observation",
+                    "live"
+                  ]
+                },
+                "effectiveAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "address",
+                "network",
+                "mode",
+                "effectiveAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "capabilities": {
+            "type": "object",
+            "properties": {
+              "currencies": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "USDT",
+                    "USD"
+                  ]
+                }
+              },
+              "network": {
+                "type": "string",
+                "enum": [
+                  "TRON"
+                ]
+              },
+              "realWrites": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "quoteSeconds": {
+                "type": "integer",
+                "enum": [
+                  300
+                ]
+              }
+            }
+          },
+          "pendingDepositsMinor": {
+            "type": "object",
+            "properties": {
+              "USDT": {
+                "$ref": "#/components/schemas/Money"
+              },
+              "USD": {
+                "$ref": "#/components/schemas/Money"
+              }
+            }
+          },
+          "networks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "network": {
+                  "type": "string",
+                  "enum": [
+                    "TRC20",
+                    "ERC20"
+                  ]
+                },
+                "depositEnabled": {
+                  "type": "boolean"
+                },
+                "withdrawEnabled": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "canOperate": {
+            "type": "boolean"
+          },
+          "addressJobs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "last4": {
+                  "type": "string"
+                },
+                "availableMinor": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "canOperate": {
+                  "type": "boolean"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "executionEligible",
+          "customerId",
+          "settings",
+          "ledger",
+          "orders",
+          "addresses",
+          "total",
+          "page"
+        ],
+        "additionalProperties": false
+      },
+      "SourceEvent": {
+        "type": "object",
+        "required": [
+          "id",
+          "externalId",
+          "kind",
+          "state",
+          "receivedAt",
+          "deliveries"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deliveries": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "txid": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Whitelisted source strings. Missing values stay absent; source IDs never JSON numbers. Not customer ledger data."
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

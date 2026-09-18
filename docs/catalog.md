@@ -24,6 +24,7 @@
 - [BIN catalogue release — 2026-09-18](../deploy/2026-09-18-bin-catalog-sync.md) — `deploy/2026-09-18-bin-catalog-sync.md`
 - [客户端开卡与八个 BIN 目录发布](../deploy/2026-09-18-client-issuing-release.md) — `deploy/2026-09-18-client-issuing-release.md`
 - [已完成改动统一发布清单](../deploy/2026-09-18-completed-work-release.md) — `deploy/2026-09-18-completed-work-release.md`
+- [资金中心四流程发布](../deploy/2026-09-18-funds-center-release.md) — `deploy/2026-09-18-funds-center-release.md`
 - [客户端开卡结构生产迁移 — 2026-09-18](../deploy/2026-09-18-issuing-checkout-migration.md) — `deploy/2026-09-18-issuing-checkout-migration.md`
 - [开卡生产连接准备（尚未部署）](../deploy/2026-09-18-issuing-preparation.md) — `deploy/2026-09-18-issuing-preparation.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
@@ -65,10 +66,12 @@
 - [卡片、渠道与交易业务逻辑](business/cards-and-transactions.md) — `docs/business/cards-and-transactions.md`
 - [FLOW-CLIENT-ISSUING-001：客户端开卡闭环](business/client-card-issuing.md) — `docs/business/client-card-issuing.md`
 - [连通性整改基线与首批清单](business/connectivity-baseline-2026-09-13.md) — `docs/business/connectivity-baseline-2026-09-13.md`
+- [Cregis 隔离充值、提现与 OTC](business/cregis-funds.md) — `docs/business/cregis-funds.md`
 - [FLOW-CARD-TEST-01 客户卡片测试快照](business/customer-card-binding.md) — `docs/business/customer-card-binding.md`
 - [业务闭环开发与验收标准](business/delivery-standard.md) — `docs/business/delivery-standard.md`
 - [已有后台功能恢复记录](business/existing-modules-restoration-2026-09-13.md) — `docs/business/existing-modules-restoration-2026-09-13.md`
 - [资金、定价与运营业务说明](business/funds-and-operations.md) — `docs/business/funds-and-operations.md`
+- [资金中心四流程与正式接入准备](business/funds-center.md) — `docs/business/funds-center.md`
 - [正式身份、客户主体与业务开通](business/identity-and-production.md) — `docs/business/identity-and-production.md`
 - [FLOW-TEST-FUNDS-01 正式登录后的测试资金流程](business/online-test-funds.md) — `docs/business/online-test-funds.md`
 - [FLOW-TEST-WALLET-01 线上测试余额](business/online-test-wallet.md) — `docs/business/online-test-wallet.md`

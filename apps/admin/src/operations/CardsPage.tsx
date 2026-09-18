@@ -44,6 +44,7 @@ function CardsContent({channels}:{channels:boolean}){
   <Typography color="text.secondary">{channels?'已授权连接及导入状态':'展示所选连接中全部已导入卡片，按服务端分页查询。'}</Typography>
   {error&&<Alert severity="error" action={<Button onClick={()=>setRefresh(n=>n+1)}>重试</Button>}>{error}</Alert>}
   {!busy&&!error&&!connections.length&&<Alert severity="info">当前没有已授权的渠道连接。</Alert>}
+  {channels&&<Button component={Link} to="/system/cregis">Cregis 来源观察与同步</Button>}
   {channels ? busy?<PageSkeleton/>:connections.map(c=><Paper variant="outlined" key={c.id} sx={{p:3}}><Stack spacing={1}><Typography variant="h6">{c.label}</Typography><Typography>最近采集：{utcTime(c.sourceAt)} UTC</Typography><Typography>最近导入：{utcTime(c.importedAt)} UTC</Typography><Typography color="text.secondary">手动导入；页面刷新不会采集上游。连接内的卡片和交易使用同一导入版本。</Typography><Stack direction="row" spacing={2}><Button component={Link} to={`/cards?connection=${encodeURIComponent(c.id)}`}>查看卡片</Button><Button component={Link} to={`/transactions?connection=${encodeURIComponent(c.id)}`}>查看交易</Button></Stack></Stack></Paper>):<>
    {connections.length>0&&<TextField select label="渠道连接" size="small" value={connection} onChange={e=>update({connection:e.target.value})}>{connections.map(c=><MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>)}</TextField>}
    {result&&<Alert severity="info">{result.coverageReason} 最近采集：{utcTime(result.sourceAt)} UTC · 导入：{utcTime(result.importedAt)} UTC</Alert>}

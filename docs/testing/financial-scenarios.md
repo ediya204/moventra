@@ -186,3 +186,7 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 ## FLOW-CLIENT-ISSUING-001
 
 开卡专项覆盖精度、声明、报价失效、并发预占、未知结果、退款、原卡补充首充、远端记账后本地提交失败和Worker重启。目录发布另验8个BIN费率10 USD/最低20 USD、冲突回滚、审计失败回滚及重复不变。测试与生产验收分别见[流程](../business/client-card-issuing.md)，不追认真实扣款发卡通过。
+
+## 四流程专项（2026-09-18）
+
+本地新增 `funds_flows_test.go`、`customer-funds.test.mjs`、Ethereum verifier 测试。覆盖双链地址按客户复用、切链移除旧二维码、开户状态、零期初、60 秒报价及网络/地址不可替换、重复回调、未知出金不重发、逐卡充提/占用/未决操作、消费退款去重及 stale 关闭。执行证据和明确未测项见[资金中心验收](../business/funds-center.md)。真实 Cregis 地址/出金、双链实际最终性、Slash 授权并发及对账不由合成测试替代。
