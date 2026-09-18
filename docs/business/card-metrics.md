@@ -51,4 +51,4 @@
 - 本机直连Render PostgreSQL被IP白名单拒绝；Render SSH公钥认证未通过。未改白名单、密钥或权限。已有Render一次性任务环境可用。
 - `api card-metrics-plan` 与 `api card-metrics-enroll` 尚未上线，故未生成真实逐卡manifest，也未回填真实历史。本次无生产迁移、部署、账本或真实金融写入。
 
-历史任务到达review后，可在纠正原因后执行`api card-metrics-retry EMAIL`，stdin传`{"runId":"任务UUID"}`。保留原游标；归属变更仍拒绝。若存在更新的同用途queued任务，唯一约束拒绝并发恢复；不要通过清空表强行重试。
+历史任务到达review后，可在纠正原因后执行`api card-metrics-retry EMAIL`，第三个参数传任务UUID，或stdin传`{"runId":"任务UUID"}`。保留原游标；归属变更仍拒绝。若存在更新的同用途queued任务，唯一约束拒绝并发恢复；不要通过清空表强行重试。

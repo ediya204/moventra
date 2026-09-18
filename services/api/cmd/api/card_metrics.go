@@ -16,7 +16,7 @@ import (
 )
 
 func cardMetricsCommand(ctx context.Context, db *pgxpool.Pool) error {
-	if len(os.Args) != 3 && !(len(os.Args) == 4 && os.Args[1] == "card-metrics-enroll") {
+	if len(os.Args) != 3 && !(len(os.Args) == 4 && (os.Args[1] == "card-metrics-enroll" || os.Args[1] == "card-metrics-retry")) {
 		return errors.New("usage: api card-metrics-plan|card-metrics-status|card-metrics-enroll|card-metrics-retry email [manifest-sha256]")
 	}
 	if os.Getenv("FIREBASE_AUTH_EMULATOR_HOST") != "" {
@@ -52,37 +52,42 @@ func cardMetricsCommand(ctx context.Context, db *pgxpool.Pool) error {
 			return e
 		}
 		defer tx.Rollback(ctx)
-		output := []map[string]any{}
+		encoder := json.NewEncoder(os.Stdout)
 		for _, c := range cards {
 			metrics, e := slashhook.ReadMetrics(ctx, tx, c.Connection, []string{c.Card})
 			if e != nil {
 				return e
 			}
-			rows, e := tx.Query(ctx, `SELECT purpose,state,pages,record_count,last_error,from_at,to_at FROM card_metric_runs WHERE connection_id=$1 AND external_card_id=$2 ORDER BY created_at`, c.Connection, c.Card)
+			rows, e := tx.Query(ctx, `SELECT id::text,purpose,state,pages,record_count,last_error,from_at,to_at FROM card_metric_runs WHERE connection_id=$1 AND external_card_id=$2 ORDER BY created_at`, c.Connection, c.Card)
 			if e != nil {
 				return e
 			}
 			runs := []map[string]any{}
 			for rows.Next() {
-				var purpose, state, last string
+				var id, purpose, state, last string
 				var pages, count int
 				var from, to time.Time
-				if e = rows.Scan(&purpose, &state, &pages, &count, &last, &from, &to); e != nil {
+				if e = rows.Scan(&id, &purpose, &state, &pages, &count, &last, &from, &to); e != nil {
 					rows.Close()
 					return e
 				}
-				runs = append(runs, map[string]any{"purpose": purpose, "state": state, "pages": pages, "records": count, "error": last, "from": from, "to": to})
+				runs = append(runs, map[string]any{"id": id, "purpose": purpose, "state": state, "pages": pages, "records": count, "error": last, "from": from, "to": to})
 			}
 			e = rows.Err()
 			rows.Close()
 			if e != nil {
 				return e
 			}
-			output = append(output, map[string]any{"connection": c.Connection, "card": c.Card, "metrics": metrics[c.Card], "runs": runs})
+			if e = encoder.Encode(map[string]any{"connection": c.Connection, "card": c.Card, "metrics": metrics[c.Card], "runs": runs}); e != nil {
+				return e
+			}
 		}
-		return json.NewEncoder(os.Stdout).Encode(output)
+		return nil
 	}
 	if os.Args[1] == "card-metrics-retry" {
+		if len(os.Args) == 4 {
+			return s.RetryMetricRun(ctx, user.UID, os.Args[3])
+		}
 		var input struct {
 			RunID string `json:"runId"`
 		}
