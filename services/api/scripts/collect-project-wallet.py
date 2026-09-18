@@ -111,7 +111,7 @@ def main():
     opener = urllib.request.build_opener(NoRedirect())
 
     def get(path, query):
-        req = urllib.request.Request('https://api.slash.com' + path + ('?' + urllib.parse.urlencode(query) if query else ''), headers={'X-API-Key': key, 'Accept': 'application/json'})
+        req = urllib.request.Request('https://api.slash.com' + path + ('?' + urllib.parse.urlencode(query) if query else ''), headers={'X-API-Key': key, 'Accept': 'application/json', 'User-Agent': 'moventra-readonly-projection/1.0'})
         with opener.open(req, timeout=20) as response:
             raw = response.read((4 << 20) + 1)
             if len(raw) > 4 << 20:
