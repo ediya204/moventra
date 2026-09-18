@@ -202,3 +202,5 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 2026-09-18 18:22：已发布[资金中心四流程](2026-09-18-funds-center-release.md)，正式资金保持未激活。
 
 2026-09-18 正式TRC20与OTC分能力激活见[本批记录](2026-09-18-production-funds-activation.md)，后台配置权限、出金及卡片能力边界分别记录。
+
+最新会话修复上线及换机交接见[2026-09-19发布记录](2026-09-19-session-and-handoff.md)。

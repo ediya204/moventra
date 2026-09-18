@@ -62,3 +62,5 @@ bash services/api/scripts/test-postgres.sh
 本仓库已恢复 `services/local-workspace` 的 Node/SQLite 隔离业务服务及 Python 采集工具。运行 `pnpm workspace:dev` 启动合成数据 API（8868）和后台（8850）；详情及环境限制见[服务 README](services/local-workspace/README.md)。私有配置、真实数据库、快照与凭据未迁入；旧 ADSFLOW 端口和数据不代表此项目环境。
 
 正式 Go `/admin-api/v1`、`/client-api/v1` 与旧本地 `/local-slash-demo` 契约分别维护。源码、自动化测试、浏览器验收、真实渠道验证与部署分别报告；文档更新不构成新的发布或授权。
+
+换电脑开发请从[换机交接](docs/harness/new-computer.md)开始；当前发布版本与待验收项已记录，无需迁移云端生产数据。

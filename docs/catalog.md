@@ -35,6 +35,7 @@
 - [生产资金展示发布（2026-09-18）](../deploy/2026-09-18-production-funds-view.md) — `deploy/2026-09-18-production-funds-view.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
 - [Moventra completed-session release — 2026-09-18](../deploy/2026-09-18-session-consolidation.md) — `deploy/2026-09-18-session-consolidation.md`
+- [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
 
 ## deploy/blnk
@@ -155,6 +156,7 @@
 
 - [Moventra Harness：工程协作入口](harness/README.md) — `docs/harness/README.md`
 - [Markdown 状态维护规则](harness/documentation.md) — `docs/harness/documentation.md`
+- [换电脑继续开发](harness/new-computer.md) — `docs/harness/new-computer.md`
 - [工程任务与交接模板](harness/task-template.md) — `docs/harness/task-template.md`
 
 ## docs/integrations

@@ -1,6 +1,6 @@
 # Moventra 当前功能与接入状态
 
-更新日期：2026-09-19。本次同步本地代码与文档到GitHub main，不执行部署。当前部署依据下方各批次记录：卡片采用操作/API与Webhook驱动；正式TRC20充值与OTC按独立能力启用。客户端刷新保持登录修复仍待部署。下列早期实施和验收记录保留当时范围，不代表当前全部能力。
+更新日期：2026-09-19。本次main前端已发布，交接见[换机说明](harness/new-computer.md)及[发布记录](../deploy/2026-09-19-session-and-handoff.md)。当前部署依据下方各批次记录：卡片采用操作/API与Webhook驱动；正式TRC20充值与OTC按独立能力启用。客户端刷新保持登录修复已部署，真实登录后刷新待验收。下列早期实施和验收记录保留当时范围，不代表当前全部能力。
 
 2026-09-18 开卡发布增量：17:47香港时间完成生产迁移014；17:59完成8个BIN上架与正式价格（开卡费10 USD、最低首充20 USD）；18:05 API代码92cad84上线，客户端与后台已发布。116项前端测试、17项官网测试、两端构建、隔离PG race及28项生产探测通过。真实执行仍关闭，供应商暂停；独立账本TLS连接与prepare只读Worker已部署验证，真实渠道验收仍未完成。见[发布记录](../deploy/2026-09-18-client-issuing-release.md)和[生产迁移记录](../deploy/2026-09-18-issuing-checkout-migration.md)。
 
@@ -31,7 +31,7 @@
 
 2026-09-18 Cregis 已确认采用 WaaS，新增签名/回调校验、只读流水客户端及独立核验命令；本地 TLS 模拟测试通过。用户确认凭据及 IP 白名单已配置。经用户授权，16:05:22 香港时间 API 提交 c5ff2c6 已在 Render 上线，云端镜像构建和两项健康检查通过；核验命令已打包，当时尚无真实渠道验证、HTTP 入口或来源存储；本地现已新增隔离 HTTP、来源存储和资金流程，尚未部署，见 [Cregis 接入](integrations/cregis.md)。此增量已部署 API，不改变下方前端会话修复未部署的状态。
 
-2026-09-18 刷新会话修复：客户端由内存模式改为 browserSessionPersistence，两端均在当前标签页刷新后恢复身份；恢复后仍需 Go 角色、账号状态、后台 MFA 及资源授权检查。客户端修复尚未部署；本次验证与流程卡见[会话记录](business/admin-session-persistence.md#flow-client-session-persistence客户端刷新恢复登录)，不覆盖已有发布结论。
+2026-09-18 刷新会话修复：客户端由内存模式改为 browserSessionPersistence，两端均在当前标签页刷新后恢复身份；恢复后仍需 Go 角色、账号状态、后台 MFA 及资源授权检查。客户端修复已于2026-09-19部署；本次验证与流程卡见[会话记录](business/admin-session-persistence.md#flow-client-session-persistence客户端刷新恢复登录)，不覆盖已有发布结论。
 
 ## 数据和运行口径
 
