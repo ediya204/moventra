@@ -31,7 +31,7 @@ func PoolConfig(raw, max string) (*pgxpool.Config, error) {
 
 // Ready verifies installed migrations, without applying any migration.
 func Ready(ctx context.Context, db *pgxpool.Pool, ledgerEnabled bool) error {
-	required := map[int]string{1: initial, 2: channelProjection, 3: onboarding, 4: userRoles, 5: userDirectoryAudit, 7: customerCardSnapshots}
+	required := map[int]string{1: initial, 2: channelProjection, 3: onboarding, 4: userRoles, 5: userDirectoryAudit, 7: customerCardSnapshots, 11: projectWallet}
 	if ledgerEnabled {
 		required[6] = blnkShadow
 	}

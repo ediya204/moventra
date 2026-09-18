@@ -85,12 +85,22 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	}
 	// Existing staff role and a separate explicit channel grant are both required.
 	const scope = `g.user_id=$1 AND EXISTS(SELECT 1 FROM staff_grants s WHERE s.user_id=g.user_id)`
+	walletScoped := false
+	if client {
+		if e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM project_wallet_customers WHERE customer_id=$1)`, customer).Scan(&walletScoped); e != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+	}
 	if connection == "" {
 		query := `SELECT c.id,c.label,c.revision,c.source_at::text,c.imported_at::text FROM channel_connections c JOIN channel_read_grants g ON g.connection_id=c.id WHERE ` + scope + ` ORDER BY c.id`
 		arg := p.ID
 		if client {
 			query = `SELECT c.id,c.label,b.revision,i.source_at::text,i.imported_at::text FROM customer_card_snapshots b JOIN channel_connections c ON c.id=b.connection_id JOIN channel_imports i ON i.connection_id=b.connection_id AND i.revision=b.revision WHERE b.customer_id=$1 ORDER BY c.id`
 			arg = customer
+			if walletScoped {
+				query = `SELECT c.id,w.label,c.revision,c.source_at::text,c.imported_at::text FROM project_wallet_customers u JOIN project_wallets w ON w.project_key=u.project_key JOIN channel_connections c ON c.id=w.connection_id WHERE u.customer_id=$1 ORDER BY c.id`
+			}
 		}
 		rows, e := tx.Query(r.Context(), query, arg)
 		if e != nil {
@@ -130,7 +140,9 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	}
 	var revision string
 	var sourceAt, importedAt time.Time
-	if client {
+	if client && walletScoped {
+		e = tx.QueryRow(r.Context(), `SELECT c.revision,c.source_at,c.imported_at FROM project_wallet_customers u JOIN project_wallets w ON w.project_key=u.project_key JOIN channel_connections c ON c.id=w.connection_id WHERE u.customer_id=$1 AND c.id=$2`, customer, connection).Scan(&revision, &sourceAt, &importedAt)
+	} else if client {
 		e = tx.QueryRow(r.Context(), `SELECT b.revision,i.source_at,i.imported_at FROM customer_card_snapshots b JOIN channel_imports i ON i.connection_id=b.connection_id AND i.revision=b.revision WHERE b.customer_id=$1 AND b.connection_id=$2`, customer, connection).Scan(&revision, &sourceAt, &importedAt)
 	} else {
 		e = tx.QueryRow(r.Context(), `SELECT c.revision,c.source_at,c.imported_at FROM channel_connections c JOIN channel_read_grants g ON g.connection_id=c.id WHERE `+scope+` AND c.id=$2`, p.ID, connection).Scan(&revision, &sourceAt, &importedAt)
@@ -161,11 +173,19 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	args := []any{connection, revision, kind, id, q.Get("keyword"), q.Get("detailedStatus"), from, to, q.Get("cardId"), q.Get("cardStatus")}
 	if client {
 		// Both cards and transactions are restricted before counting/pagination.
-		where += ` AND EXISTS(SELECT 1 FROM customer_card_bindings b WHERE b.customer_id=$11 AND b.connection_id=channel_records.connection_id AND b.revision=channel_records.revision AND b.external_card_id=CASE WHEN channel_records.kind='card' THEN channel_records.external_id ELSE channel_records.data->>'cardId' END)`
+		if walletScoped {
+			where += ` AND EXISTS(SELECT 1 FROM project_wallet_cards b JOIN project_wallets w ON w.connection_id=b.connection_id AND w.virtual_account_ref=b.virtual_account_ref WHERE b.customer_id=$11 AND b.connection_id=channel_records.connection_id AND b.external_card_id=CASE WHEN channel_records.kind='card' THEN channel_records.external_id ELSE channel_records.data->>'cardId' END AND channel_records.data->>'accountId'=w.account_ref AND channel_records.data->>'virtualAccountId'=w.virtual_account_ref)`
+		} else {
+			where += ` AND EXISTS(SELECT 1 FROM customer_card_bindings b WHERE b.customer_id=$11 AND b.connection_id=channel_records.connection_id AND b.revision=channel_records.revision AND b.external_card_id=CASE WHEN channel_records.kind='card' THEN channel_records.external_id ELSE channel_records.data->>'cardId' END)`
+		}
 		args = append(args, customer)
 		if q.Get("cardId") != "" {
 			var allowed bool
-			e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM customer_card_bindings WHERE customer_id=$1 AND connection_id=$2 AND revision=$3 AND external_card_id=$4)`, customer, connection, revision, q.Get("cardId")).Scan(&allowed)
+			if walletScoped {
+				e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM project_wallet_cards WHERE customer_id=$1 AND connection_id=$2 AND external_card_id=$3)`, customer, connection, q.Get("cardId")).Scan(&allowed)
+			} else {
+				e = tx.QueryRow(r.Context(), `SELECT EXISTS(SELECT 1 FROM customer_card_bindings WHERE customer_id=$1 AND connection_id=$2 AND revision=$3 AND external_card_id=$4)`, customer, connection, revision, q.Get("cardId")).Scan(&allowed)
+			}
 			if e != nil {
 				fail(w, 503, "temporarily_unavailable")
 				return
@@ -184,7 +204,14 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	if client {
 		offset = "$12"
 	}
-	rows, e := tx.Query(r.Context(), `SELECT data FROM channel_records WHERE `+where+` ORDER BY (data->>'date')::timestamptz DESC NULLS LAST,external_id LIMIT 20 OFFSET `+offset, append(args, page*20)...)
+	selection := "data"
+	if !client && kind == "card" {
+		selection = `data || jsonb_build_object('assignmentKind', CASE
+   WHEN EXISTS(SELECT 1 FROM project_wallet_cards a WHERE a.connection_id=channel_records.connection_id AND a.external_card_id=channel_records.external_id) THEN 'project_wallet'
+   WHEN EXISTS(SELECT 1 FROM customer_card_bindings a WHERE a.connection_id=channel_records.connection_id AND a.external_card_id=channel_records.external_id AND NOT EXISTS(SELECT 1 FROM project_wallet_customers p WHERE p.customer_id=a.customer_id)) THEN 'test_snapshot'
+   ELSE 'unassigned' END)`
+	}
+	rows, e := tx.Query(r.Context(), `SELECT `+selection+` FROM channel_records WHERE `+where+` ORDER BY (data->>'date')::timestamptz DESC NULLS LAST,external_id LIMIT 20 OFFSET `+offset, append(args, page*20)...)
 	if e != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return
@@ -238,10 +265,14 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	mode := "manual_import"
-	coverage := "已授权本地采集范围的手动导入；不是实时数据或完整渠道资金池。未绑定内部用户，不用于账务执行。"
+	coverage := "已授权本地采集范围的手动导入；不是实时数据或完整渠道资金池。内部卡片归属独立管理，不用于账务执行。"
 	if client {
 		mode = "test_snapshot"
 		coverage = "已明确分配给本账户的卡片测试快照，包含同批关联交易；不是实时数据、完整账单或资金所有权证明。"
+	}
+	if walletScoped {
+		mode = "assigned_wallet_projection"
+		coverage = "项目钱包内已明确归属本用户的卡片及对应交易；不含其他用户或其他钱包。仅已导入来源记录，不代表完整历史或个人可用资金。"
 	}
 	respond(w, 200, map[string]any{"data": map[string]any{"rows": data, "total": total, "page": page, "revision": revision, "sourceAt": sourceAt, "importedAt": importedAt, "complete": false, "syncMode": mode, "coverageReason": coverage}})
 }

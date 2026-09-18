@@ -27,6 +27,13 @@ func BindCardSnapshot(ctx context.Context, pool *pgxpool.Pool, uid, connection, 
 	if err != nil {
 		return 0, errors.New("active customer with personal subject required")
 	}
+	var walletConfigured bool
+	if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM project_wallets WHERE connection_id=$1)`, connection).Scan(&walletConfigured); err != nil {
+		return 0, err
+	}
+	if walletConfigured {
+		return 0, errors.New("project wallet requires explicit per-card assignment")
+	}
 	var current string
 	if err = tx.QueryRow(ctx, `SELECT revision FROM channel_connections WHERE id=$1 FOR UPDATE`, connection).Scan(&current); err != nil || current != revision {
 		return 0, errors.New("source revision changed or missing")

@@ -235,3 +235,9 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ### Slash 普通 Webhook（2026-09-18 试接入）
 
 `POST /webhooks/slash` 不使用客户端会话，使用 Slash 官方 RSA/SHA256 公钥验证原始请求体；数据库提交后返回 204。401/405/413/503 的条件见 [上线记录](../../deploy/slash-webhook-online-2026-09-18.md)。该端点只进入独立来源收件箱，不提供支付授权或客户查询接口。
+
+## 2026-09-18 项目钱包归属候选
+
+本地增量 011 为 APEXIS Op 项目共用钱包及逐卡归属增加配置；不属于客户余额。现有 `/client-api/v1/customers/{customerID}/card-projections` 路由兼容：未切换客户保留 test_snapshot，已切换客户返回 assigned_wallet_projection，按当前导入版本、明确 cardId 归属及父账户/virtualAccountId 同时隔离。未知钱包来源字段不授予读取权限，新卡不继承初始邮箱归属；共享钱包标识和余额不进入客户 DTO。列表、总数、详情遵循同一条件，版本冲突仍为 409。
+
+后台卡片 DTO 新增内部 assignmentKind（project_wallet / test_snapshot / unassigned），不暴露客户邮箱。生效范围和验证见 [项目钱包流程卡](../business/project-wallet.md)。未部署，未改线上数据。

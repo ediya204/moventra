@@ -115,3 +115,9 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 ## Slash 普通通知
 
 新增 `/webhooks/slash` 的验签收件箱及只读异步 GET。独立于账本和前端投影，操作、HTTP 契约、迁移和回退见 [上线记录](../../deploy/slash-webhook-online-2026-09-18.md)。密钥仅从服务端 `SLASH_API_KEY` 读取。
+
+## 项目主钱包与逐卡分配（本地候选，未部署）
+
+新增迁移 011；Ready 要求其 checksum。`api project-wallet-plan` 和 `api project-wallet-apply` 从 stdin 接受严格 JSON：`targetEmail`、`assignment`、`expectedPlan`。assignment 必填 connectionId/accountId/virtualAccountId/label/revision/cardIds/reason/evidenceRef。plan 不写库，输出 hash；apply 要求相同 hash。运行凭据为既有 Firebase、DATABASE_URL、PROJECTION_OPERATOR_UID、服务端 SLASH_API_KEY；每次仅 GET 核验指定 virtual account 与父账户及名称匹配且未关闭。不输出密钥和银行账号，不调用 Slash 写接口。
+
+首次将 APEXIS Op 配置为项目共用钱包时，仅把已审阅的当前卡 ID 清单分给指定用户。后续对其他用户再次运行固定清单分配，不设默认收卡用户；缺失来源 wallet 标识时拒绝。既有钱包禁止静默换连接。详情见 [FLOW-WALLET-001](../../docs/business/project-wallet.md)。现有测试资金开卡保持模拟，真实 Slash 开卡尚未接通。

@@ -30,7 +30,7 @@ var integer = regexp.MustCompile(`^(0|-?[1-9][0-9]{0,37})$`)
 var fields = map[string]bool{}
 
 func init() {
-	for _, k := range []string{"id", "accountId", "cardId", "cardName", "cardLast4", "name", "last4", "cardStatus", "createdAtUTC", "status", "detailedStatus", "date", "authorizedAt", "postedAt", "merchant", "categoryCode", "amountCents", "originalCurrency", "merchantData"} {
+	for _, k := range []string{"id", "accountId", "virtualAccountId", "cardId", "cardName", "cardLast4", "name", "last4", "cardStatus", "createdAtUTC", "status", "detailedStatus", "date", "authorizedAt", "postedAt", "merchant", "categoryCode", "amountCents", "originalCurrency", "merchantData"} {
 		fields[k] = true
 	}
 }
@@ -123,6 +123,9 @@ func Validate(b Bundle) error {
 				str, ok := v.(string)
 				if !ok || len(str) > 500 {
 					return fmt.Errorf("invalid string")
+				}
+				if k == "virtualAccountId" && !identifier.MatchString(str) {
+					return fmt.Errorf("invalid virtual account identity")
 				}
 				if k == "amountCents" && !integer.MatchString(str) {
 					return fmt.Errorf("invalid amount")

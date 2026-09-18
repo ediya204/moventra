@@ -56,7 +56,7 @@
     "/readyz": {
       "get": {
         "operationId": "readyz",
-        "description": "Checks required database migration checksums within 2 seconds: versions 1-5, plus 6 when ledger is enabled. Does not attest external dependency or business readiness.",
+        "description": "Checks required database migration checksums within 2 seconds: versions 1-5, 7 and 11, plus 6 when ledger is enabled. Does not attest external dependency or business readiness.",
         "security": [],
         "responses": {
           "200": {
@@ -1486,7 +1486,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card rows include assignmentKind=project_wallet|test_snapshot|unassigned, without exposing customer identity"
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -1609,7 +1609,7 @@
         ],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card rows include assignmentKind=project_wallet|test_snapshot|unassigned, without exposing customer identity"
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -1668,7 +1668,7 @@
         ],
         "responses": {
           "200": {
-            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason"
+            "description": "data contains authorized connections, or rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=manual_import/coverageReason. Admin card rows include assignmentKind=project_wallet|test_snapshot|unassigned, without exposing customer identity"
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -2564,7 +2564,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot/coverageReason. Customer DTO omits accountId and any unlisted source fields. Source amounts remain signed integer strings. New imports do not expand access."
+            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot or assigned_wallet_projection/coverageReason. Enrolled project-wallet customers read the current import revision, restricted by immutable per-card assignment AND exact source accountId/virtualAccountId. Legacy broad snapshots are superseded for enrolled customers. Customer DTO omits accountId, virtualAccountId and any unlisted source fields. Source amounts remain signed integer strings. New cards are never automatically assigned."
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -2696,7 +2696,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot/coverageReason. Customer DTO omits accountId and any unlisted source fields. Source amounts remain signed integer strings. New imports do not expand access."
+            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot or assigned_wallet_projection/coverageReason. Enrolled project-wallet customers read the current import revision, restricted by immutable per-card assignment AND exact source accountId/virtualAccountId. Legacy broad snapshots are superseded for enrolled customers. Customer DTO omits accountId, virtualAccountId and any unlisted source fields. Source amounts remain signed integer strings. New cards are never automatically assigned."
           },
           "400": {
             "description": "Invalid or unknown query parameter"
@@ -2764,7 +2764,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot/coverageReason. Customer DTO omits accountId and any unlisted source fields. Source amounts remain signed integer strings. New imports do not expand access."
+            "description": "Authorized snapshot connections or data.rows/total/page/revision/sourceAt/importedAt/complete=false/syncMode=test_snapshot or assigned_wallet_projection/coverageReason. Enrolled project-wallet customers read the current import revision, restricted by immutable per-card assignment AND exact source accountId/virtualAccountId. Legacy broad snapshots are superseded for enrolled customers. Customer DTO omits accountId, virtualAccountId and any unlisted source fields. Source amounts remain signed integer strings. New cards are never automatically assigned."
           },
           "400": {
             "description": "Invalid or unknown query parameter"

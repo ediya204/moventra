@@ -9,7 +9,7 @@ import {liveGet} from '../../../../packages/shared/src/auth/liveApi';
 import {PageSkeleton} from '../../../../packages/shared/src/components/AsyncState';
 import {utcTime} from '../components/cardTransactionFields';
 type Connection={id:string;label:string;revision:string|null;sourceAt:string|null;importedAt:string|null};
-type Card={id:string;cardName?:string;name?:string;last4?:string;cardStatus?:string;createdAtUTC?:string};
+type Card={assignmentKind?:string;id:string;cardName?:string;name?:string;last4?:string;cardStatus?:string;createdAtUTC?:string};
 type Result={rows:Card[];total:number;revision:string;sourceAt:string;importedAt:string;coverageReason:string};
 export default function CardsPage({channels=false}:{channels?:boolean}){
  const auth=useAuth();
@@ -35,7 +35,7 @@ function CardsContent({channels}:{channels:boolean}){
   {field:'last4',headerName:'卡片尾号',width:140,valueFormatter:(v?:string)=>v?`•••• ${v}`:'未采集'},
   {field:'cardStatus',headerName:'来源状态',width:130,valueFormatter:(v?:string)=>v||'未知'},
   {field:'createdAtUTC',headerName:'创建时间 · UTC',width:200,valueFormatter:utcTime},
-  {field:'owner',headerName:'内部用户',width:150,renderCell:()=> '未绑定'},
+  {field:'owner',headerName:'内部用户',width:150,renderCell:p=>p.row.assignmentKind==='project_wallet'?'已分配（项目钱包）':p.row.assignmentKind==='test_snapshot'?'已分配（测试快照）':p.row.assignmentKind==='unassigned'?'未分配':'归属未查询'},
   {field:'actions',headerName:'操作',width:120,sortable:false,renderCell:p=><Button component={Link} to={detail(p.row.id)}>查看详情</Button>},
  ];
  return <DashboardLayout production><Stack spacing={2.5}>

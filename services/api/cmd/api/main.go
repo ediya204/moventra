@@ -95,8 +95,9 @@ func run() error {
 		return database.MigrateTestWallet(ctx, pool)
 	}
 	testWalletCmd := len(os.Args) == 2 && (os.Args[1] == "test-wallet-plan" || os.Args[1] == "grant-test-wallet" || os.Args[1] == "test-funds-review-plan" || os.Args[1] == "enable-test-funds-reviews")
+	projectWalletCmd := len(os.Args) == 2 && (os.Args[1] == "project-wallet-plan" || os.Args[1] == "project-wallet-apply")
 	bindingCommand := len(os.Args) == 2 && (os.Args[1] == "card-bindings-plan" || os.Args[1] == "bind-card-snapshot")
-	if len(os.Args) > 1 && !bindingCommand && !testWalletCmd {
+	if len(os.Args) > 1 && !bindingCommand && !testWalletCmd && !projectWalletCmd {
 		if len(os.Args) != 2 || (os.Args[1] != "migrate" && os.Args[1] != "provision-user" && os.Args[1] != "provision-personal" && os.Args[1] != "provision-operator") {
 			return errors.New("usage: api [migrate|provision-user|provision-personal|provision-operator]")
 		}
@@ -128,6 +129,9 @@ func run() error {
 			return testFundsReviewCommand(ctx, pool, auth, os.Args[1] == "enable-test-funds-reviews")
 		}
 		return testWalletCommand(ctx, pool, auth, os.Args[1] == "grant-test-wallet")
+	}
+	if projectWalletCmd {
+		return projectWalletCommand(ctx, pool, auth, os.Args[1] == "project-wallet-apply")
 	}
 	if bindingCommand {
 		return cardBindings(ctx, pool, auth, os.Args[1] == "bind-card-snapshot")
