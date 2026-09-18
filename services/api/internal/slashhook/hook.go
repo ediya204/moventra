@@ -270,6 +270,9 @@ func (s *Service) Step(ctx context.Context) error {
 			db.Conn().Close(c)
 		}
 	}()
+	if err = scheduleCards(ctx, db); err != nil {
+		return err
+	}
 	var conn, id, kind, entity, acct string
 	var attempt int
 	err = db.QueryRow(ctx, `SELECT e.connection_id,e.event_id,e.kind,e.entity_id,c.account_ref,e.attempts FROM slash_hook_events e JOIN slash_hook_connections c ON c.id=e.connection_id WHERE c.enabled AND e.state='queued' AND e.next_attempt<=now() ORDER BY e.next_attempt,e.received_at LIMIT 1`).Scan(&conn, &id, &kind, &entity, &acct, &attempt)
@@ -333,6 +336,18 @@ func (s *Service) Step(ctx context.Context) error {
 	_, err = tx.Exec(ctx, `INSERT INTO slash_hook_observations(connection_id,event_id,kind,entity_id,payload) VALUES($1,$2,$3,$4,$5) ON CONFLICT(connection_id,event_id) DO NOTHING`, conn, id, kind, entity, payload)
 	if err != nil {
 		return err
+	}
+	if kind == "card" {
+		if err = publishCard(ctx, tx, conn, id, entity, acct, payload); err != nil {
+			if err.Error() != "resource_wallet_mismatch" && err.Error() != "resource_status_unknown" {
+				return err
+			}
+			_, err = tx.Exec(ctx, `UPDATE slash_hook_events SET state='review',last_error=$3 WHERE connection_id=$1 AND event_id=$2`, conn, id, err.Error())
+			if err != nil {
+				return err
+			}
+			return tx.Commit(ctx)
+		}
 	}
 	_, err = tx.Exec(ctx, `UPDATE slash_hook_events SET state='done',last_error='' WHERE connection_id=$1 AND event_id=$2`, conn, id)
 	if err != nil {

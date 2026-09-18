@@ -276,3 +276,7 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 订单 GET `/{admin|client}-api/v1/customers/{customerId}/manual-funds` 及 `/orders/{orderId}`；后台 POST `/orders` 和单号后的 approve/reject/cancel/confirm_payment/payment_failed/reconcile。USD金额使用最小单位字符串，创建带凭证引用，动作带 revision 与幂等键。冲正新建关联原单，不提供直接余额覆盖。后台要求MFA、独立read及对应create/review/execute授权；客户仅查询本人且裁剪内部字段。网关按站点、精确路径与方法放行，跨域POST拒绝。
 
 缺少016迁移/服务配置时此能力不可用；代码已发布，生产016迁移及资金授权未启用。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。
+
+## 卡片状态同步（2026-09-18，本地实现）
+
+GET 卡片列表/详情在正式项目钱包及运营授权下使用共同当前状态；DTO新增 `syncState`（synced/pending/stale/error）及可空 `checkedAt`。先应用状态再筛选、计数和分页，历史测试快照仍固定版本。POST `/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/sync` 与 `/admin-api/v1/channel-projections/{connection}/cards/{id}/sync` 仅安排只读渠道回查，202不代表已同步。沿用个人所有权或运营MFA+渠道授权；不存在/越权404，未启用409 `card_sync_disabled`。不提供任意渠道代理。详见[流程与验收](../business/card-state-sync.md)。

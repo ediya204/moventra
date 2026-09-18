@@ -1,3 +1,4 @@
+import { cardSyncLabel, type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
 import {channelOwnerLabel,type ChannelOwnership} from '../components/channelOwnership';
 import {useEffect,useState} from 'react';
 import {Link,Navigate,useSearchParams} from 'react-router-dom';
@@ -10,7 +11,7 @@ import {liveGet} from '../../../../packages/shared/src/auth/liveApi';
 import {PageSkeleton} from '../../../../packages/shared/src/components/AsyncState';
 import {utcTime} from '../components/cardTransactionFields';
 type Connection={id:string;label:string;revision:string|null;sourceAt:string|null;importedAt:string|null};
-type Card=ChannelOwnership&{id:string;cardName?:string;name?:string;last4?:string;cardStatus?:string;createdAtUTC?:string};
+type Card=CardSyncInfo&ChannelOwnership&{id:string;cardName?:string;name?:string;last4?:string;cardStatus?:string;createdAtUTC?:string};
 type Result={rows:Card[];total:number;revision:string;sourceAt:string;importedAt:string;coverageReason:string};
 export default function CardsPage({channels=false}:{channels?:boolean}){
  const auth=useAuth();
@@ -30,17 +31,19 @@ function CardsContent({channels}:{channels:boolean}){
  useEffect(()=>{if(channels||!connections.length||!connection)return;let active=true;setBusy(true);setResult(undefined);setError('');const q=new URLSearchParams({page:String(page),keyword,cardStatus,revision:connections.find(c=>c.id===connection)?.revision||''});
  liveGet<Result>(`/admin-api/v1/channel-projections/${encodeURIComponent(connection)}/cards?${q}`).then(data=>{if(active)setResult(data)}).catch(e=>{if(active)setError(showError(e))}).finally(()=>{if(active)setBusy(false)});return()=>{active=false}},[connection,connections,page,keyword,cardStatus,channels]);
  const update=(values:Record<string,string>)=>{const q=new URLSearchParams(params);q.set('page','0');for(const [k,v] of Object.entries(values))v?q.set(k,v):q.delete(k);setParams(q)};
+ useEffect(()=>{const timer=setInterval(()=>{if(document.visibilityState==='visible')setRefresh(n=>n+1)},15000);return()=>clearInterval(timer)},[]);
  const detail=(id:string)=>`/cards/${encodeURIComponent(id)}?${new URLSearchParams({connection,cardsPage:String(page),cardsKeyword:keyword,cardsStatus:cardStatus})}`;
  const columns:GridColDef<Card>[]=[
   {field:'cardName',headerName:'卡片名称',flex:1,minWidth:220,renderCell:p=><Button component={Link} to={detail(p.row.id)}>{p.row.cardName||p.row.name||'名称未采集'}</Button>},
   {field:'last4',headerName:'卡片尾号',width:140,valueFormatter:(v?:string)=>v?`•••• ${v}`:'未采集'},
-  {field:'cardStatus',headerName:'来源状态',width:130,valueFormatter:(v?:string)=>v||'未知'},
+  {field:'cardStatus',headerName:'渠道状态',width:130,valueFormatter:(v?:string)=>v||'未知'},
+  {field:'syncState',headerName:'同步状态 / 最近核验',width:280,renderCell:p=>cardSyncLabel(p.row)},
   {field:'createdAtUTC',headerName:'创建时间 · UTC',width:200,valueFormatter:utcTime},
   {field:'owner',headerName:'内部用户',minWidth:180,flex:1,renderCell:p=>channelOwnerLabel(p.row)},
   {field:'actions',headerName:'操作',width:120,sortable:false,renderCell:p=><Button component={Link} to={detail(p.row.id)}>查看详情</Button>},
  ];
  return <DashboardLayout production><Stack spacing={2.5}>
-  <Stack direction="row" justifyContent="space-between"><Typography variant="h4">{channels?'渠道与数据':'全部卡片'}</Typography><Button onClick={()=>setRefresh(n=>n+1)} disabled={busy}>刷新已导入数据</Button></Stack>
+  <Stack direction="row" justifyContent="space-between"><Typography variant="h4">{channels?'渠道与数据':'全部卡片'}</Typography><Button onClick={()=>setRefresh(n=>n+1)} disabled={busy}>刷新状态</Button></Stack>
   <Typography color="text.secondary">{channels?'已授权连接及导入状态':'展示所选连接中全部已导入卡片，按服务端分页查询。'}</Typography>
   {error&&<Alert severity="error" action={<Button onClick={()=>setRefresh(n=>n+1)}>重试</Button>}>{error}</Alert>}
   {!busy&&!error&&!connections.length&&<Alert severity="info">当前没有已授权的渠道连接。</Alert>}

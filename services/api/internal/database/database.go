@@ -51,6 +51,9 @@ var fundsFlows string
 //go:embed 016_manual_funds.sql
 var manualFunds string
 
+//go:embed 017_card_state_sync.sql
+var cardStateSync string
+
 // Migrate is explicit (never called automatically by the API process).
 // One transaction and advisory lock make concurrent invocations safe.
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
@@ -65,7 +68,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	if _, err = tx.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations(version integer PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
 		return err
 	}
-	for index, migration := range []string{initial, channelProjection, onboarding, userRoles, userDirectoryAudit, blnkShadow, customerCardSnapshots, onlineTestWallet, onlineTestFunds, slashWebhook, projectWallet, cardIssuing, cryptoFunds, issuingCheckout, fundsFlows, manualFunds} {
+	for index, migration := range []string{initial, channelProjection, onboarding, userRoles, userDirectoryAudit, blnkShadow, customerCardSnapshots, onlineTestWallet, onlineTestFunds, slashWebhook, projectWallet, cardIssuing, cryptoFunds, issuingCheckout, fundsFlows, manualFunds, cardStateSync} {
 		version := index + 1
 		checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(migration)))
 		var count int

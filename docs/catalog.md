@@ -64,6 +64,7 @@
 - [FLOW-CARD-DETAIL-02：客户端卡片详情规划](business/card-center-detail-plan-2026-09-18.md) — `docs/business/card-center-detail-plan-2026-09-18.md`
 - [docs/business/card-issuing-2026-09-18.md](business/card-issuing-2026-09-18.md) — `docs/business/card-issuing-2026-09-18.md`
 - [FLOW-CARD-OWNER-01：正式后台读取既有归属](business/card-owner-display.md) — `docs/business/card-owner-display.md`
+- [卡片当前状态同步](business/card-state-sync.md) — `docs/business/card-state-sync.md`
 - [卡片、渠道与交易业务逻辑](business/cards-and-transactions.md) — `docs/business/cards-and-transactions.md`
 - [FLOW-CLIENT-ISSUING-001：客户端开卡闭环](business/client-card-issuing.md) — `docs/business/client-card-issuing.md`
 - [连通性整改基线与首批清单](business/connectivity-baseline-2026-09-13.md) — `docs/business/connectivity-baseline-2026-09-13.md`

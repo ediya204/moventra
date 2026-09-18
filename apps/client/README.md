@@ -43,3 +43,7 @@ USDT充值页接入独立地址查询/首次申请接口，TRC20绑定复用、�
 资金中心新增 `/portal/funds/manual` 和 `/portal/funds/manual/orders/:orderId`，只读本人后台人工出入金订单；服务端裁剪内部凭证、备注与操作员ID。记录与数字货币充值区分，入账共用现有钱包。无客户人工加减余额入口。代码已发布，生产016迁移及资金授权未启用；[FLOW](../../docs/business/platform-advance.md)。
 
 USDT充值页接入独立地址查询/首次申请接口，TRC20绑定复用、二维码复制、渠道通知分页及详情；正式入账未开通时明确提示。见[地址接入](../../docs/business/deposit-address-integration.md)。
+
+## 卡片状态同步
+
+卡片列表/详情显示渠道最近核验状态与同步时间，详情支持只读回查请求；页面每15秒更新，隐藏标签页暂停。仅正式归属卡片可发起，旧测试快照保留。参见[流程](../../docs/business/card-state-sync.md)。

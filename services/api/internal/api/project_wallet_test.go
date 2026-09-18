@@ -159,6 +159,28 @@ func TestProjectWalletAssignments(t *testing.T) {
 	if w := request("bob", personal, "/wallet-source/cards"); w.Code != 404 {
 		t.Fatal("cross customer", w.Code)
 	}
+	// Shared current state filters before counting and keeps client scope intact.
+	if _, e = db.Exec(ctx, `INSERT INTO slash_hook_connections(id,account_ref,endpoint) VALUES('wallet-sync-hook','account','/webhooks/slash/wallet-test');
+ INSERT INTO card_sync_links(connection_id,hook_connection_id) VALUES('wallet-source','wallet-sync-hook');
+ INSERT INTO card_current_states(connection_id,external_card_id,account_ref,virtual_account_ref,status,source_event_id) VALUES('wallet-source','old-card','account','apexis','paused','test');`); e != nil {
+		t.Fatal(e)
+	}
+	defer db.Exec(ctx, `DELETE FROM slash_hook_connections WHERE id='wallet-sync-hook'`)
+	if rows("alice", personal, "cards?cardStatus=paused")["total"] != float64(1) || rows("alice", personal, "cards?cardStatus=active")["total"] != float64(0) {
+		t.Fatal("status filter ignored current state")
+	}
+	for _, test := range []struct {
+		uid, card string
+		code      int
+	}{{"alice", "old-card", 202}, {"bob", "old-card", 404}, {"alice", "outside-card", 404}} {
+		r := httptest.NewRequest("POST", "/client-api/v1/customers/"+personal+"/card-projections/wallet-source/cards/"+test.card+"/sync", strings.NewReader(`{"refresh":true}`))
+		r.Header.Set("Authorization", "Bearer "+test.uid)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != test.code {
+			t.Fatalf("sync auth %s %s: %d %s", test.uid, test.card, w.Code, w.Body.String())
+		}
+	}
 	// Importing a new card does not give it to the initial user; assign explicitly to Bob.
 	b.SourceAt = "2026-09-18T01:00:00Z"
 	b.Records = append(b.Records, card("new-card", "apexis"), trans("new-history", "new-card", "apexis"))

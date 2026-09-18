@@ -16,3 +16,12 @@ export function snapshotAmount(value?:string|null, currency='USD'):string {
  const negative=value.startsWith('-'), digits=(negative?value.slice(1):value).padStart(3,'0');
  return `${currency} ${negative?'−':''}${digits.slice(0,-2)}.${digits.slice(-2)}`;
 }
+
+export function isCardSyncPath(path:string):boolean {
+ return /^\/(?:client-api\/v1\/customers\/[0-9a-f-]{36}\/card-projections|admin-api\/v1\/channel-projections)\/[A-Za-z0-9_-]+\/cards\/[A-Za-z0-9_-]+\/sync$/.test(path);
+}
+export type CardSyncInfo={syncState?:string;checkedAt?:string};
+export function cardSyncLabel(row:CardSyncInfo):string {
+ const labels:Record<string,string>={synced:'已核验',pending:'同步中',stale:'状态已过期',error:'同步异常'};
+ return row.syncState ? (labels[row.syncState]||'待核实')+(row.checkedAt?' · '+new Date(row.checkedAt).toLocaleString('zh-CN'):' · 尚未核验') : '导入快照';
+}

@@ -1,10 +1,10 @@
 # Slash 接入规范
 
-> 当前本地实施见 [V1现状](../current-state.md)、[手动同步](../frontend/slash-manual-sync.md) 与 [卡交易状态](../frontend/transaction-status-colors.md)。来源真实数据只读；内部用户归属不来自 Slash。本文后续目标模型不代表正式 Go 已实现。5分钟轮询等历史记录已被手动同步决定取代。
+> 当前本地实施见 [V1现状](../current-state.md)、[手动同步](../frontend/slash-manual-sync.md) 与 [卡交易状态](../frontend/transaction-status-colors.md)。来源真实数据只读；内部用户归属不来自 Slash。本文后续目标模型不代表正式 Go 已实现。旧本地采集器采用手动同步；正式 Go 卡片当前状态另见[卡片同步](../business/card-state-sync.md)，采用通知回查、五分钟补查及手动核对。
 
 文档更新：2026-09-07。本次复查官方 Transaction/Balance 页面与已有来源约束，未调用租户 API。其余 SOURCE 与本租户 GET 记录沿用先前 2026-09-07 核验，不作为本次重新验证。真实 Webhook、生产接入与资金验收未执行。
 
-2026-09-18 新增 Go 普通 Webhook 收件箱与按通知触发的只读 GET，实施范围见 [上线操作记录](../../deploy/slash-webhook-online-2026-09-18.md)。它独立于账本及前端查询投影；旧本地采集器、SQLite 和全量轮询服务未纳入本次发布。部署及真实通知验收以操作记录为准。全量能力分类见 [文档索引](../README.md)。
+2026-09-18 新增 Go 普通 Webhook 收件箱与按通知触发的只读 GET，实施范围见 [上线操作记录](../../deploy/slash-webhook-online-2026-09-18.md)。原发布版本独立于账本及前端查询投影；本次新增017和明确连接映射后，可更新前后台共同读取的卡片当前状态，仍不写账本；旧本地采集器、SQLite 和全量轮询服务未纳入本次发布。部署及真实通知验收以操作记录为准。全量能力分类见 [文档索引](../README.md)。
 
 分类及当前实现边界见 [开发总纲](../DEVELOPMENT.md)。现有 Demo 字段明细见 [Slash 字段差异](../frontend/slash-field-gap.md)。
 
