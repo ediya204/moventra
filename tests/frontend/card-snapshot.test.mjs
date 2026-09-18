@@ -53,7 +53,7 @@ test('card page supports empty, retry, URL pagination and context-preserving det
  view=await mount('/portal/cards?connection=slash&page=1&keyword=card');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.match(fixture.requests[1].path,/cards\?page=1&revision=r1&keyword=card/);
  await act(async()=>{fixture.requests[1].reject(new Error('offline'));await flush()});assert.match(content(view.toJSON()),/读取失败/);
  const refresh=view.root.findAllByType('button').find(b=>b.props.children==='刷新状态');await act(async()=>{refresh.props.onClick();await flush()});await act(async()=>{fixture.requests[2].resolve(connections);await flush()});await act(async()=>{fixture.requests[3].resolve(page([{id:'c1',cardName:'Card one',last4:'1234'}]));await flush()});
- assert.match(content(view.toJSON()),/Card one/);const link=view.root.findAllByType('button').find(b=>b.props.children==='详情与交易');assert.match(link.props.to,/\/portal\/cards\/c1\?/);assert.match(new URL('https://test'+link.props.to).searchParams.get('back'),/page=1/);await act(()=>view.unmount());
+ assert.match(content(view.toJSON()),/Card one/);const link=view.root.findAllByType('button').find(b=>b.props.children==='详情');assert.match(link.props.to,/\/portal\/cards\/c1\?/);assert.match(new URL('https://test'+link.props.to).searchParams.get('back'),/page=1/);await act(()=>view.unmount());
 });
 test('direct card and transaction links load authoritative details and linked rows',async()=>{
  let view=await mount('/portal/cards/c1?connection=slash');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests[1].path,base+'/slash/cards/c1');assert.match(fixture.requests[2].path,/transactions\?cardId=c1/);
@@ -146,7 +146,7 @@ test('card center filters server-side across pages, preserves detail context and
  assert.ok(!fixture.requests[1].path.includes('cardSort'),'page sorting does not invent an API parameter');
  await act(async()=>{fixture.requests[1].resolve(page([{id:'z',name:'Zulu',cardStatus:'paused'},{id:'a',name:'Alpha',cardStatus:'paused'}]));await flush()});
  const text=content(view.toJSON());assert.ok(text.indexOf('Alpha')<text.indexOf('Zulu'));assert.match(text,/找到 25 张卡片 · 本页 2 张/);
- const detail=view.root.findAllByType('button').find(b=>b.props.children==='详情与交易');
+ const detail=view.root.findAllByType('button').find(b=>b.props.children==='详情');
  const back=new URL('https://test'+detail.props.to).searchParams.get('back');assert.match(back,/cardStatus=paused/);assert.match(back,/cardSort=name/);
  const status=view.root.findAll(n=>n.props.label==='卡片状态'&&n.props.onChange)[0];
  await act(async()=>{status.props.onChange({target:{value:'active'}});await flush()});

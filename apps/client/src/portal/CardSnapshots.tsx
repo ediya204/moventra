@@ -82,31 +82,31 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
  const cardList=<>
   <Stack direction={{xs:'column',sm:'row'}} justifyContent="space-between" gap={1}>
    <Typography variant="body2" role="status">找到 {result?.total} 张卡片 · 本页 {cardRows.length} 张</Typography>
-   <Typography variant="caption" color="text.secondary">筛选覆盖当前来源的已授权卡片 · 每页 20 张</Typography>
   </Stack>
   <TableContainer sx={{display:{xs:'none',md:'block'}}}>
    <Table aria-label="我的卡片列表" sx={{tableLayout:'fixed'}}>
-    <colgroup>{[26,12,14,16,20,12].map((width,index)=><col key={index} style={{width:`${width}%`}}/>)}</colgroup>
-    <TableHead><TableRow>{['卡片 / 后四位','状态','余额','近 30 天消费','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead>
+    <colgroup>{[23,9,12,13,16,17,10].map((width,index)=><col key={index} style={{width:`${width}%`}}/>)}</colgroup>
+    <TableHead><TableRow>{['卡片','后四位','状态','余额','近 30 天消费','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead>
     <TableBody>{cardRows.map(row=><TableRow key={row.id} hover>
-     <TableCell><Typography component={Link} to={link(`/portal/cards/${row.id}`)} fontWeight={600} color="text.primary" sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography><Typography variant="body2" color="text.secondary">{row.cardLast4||row.last4?`•••• ${row.cardLast4||row.last4}`:'尾号未知'}</Typography></TableCell>
+     <TableCell><Typography component={Link} to={link(`/portal/cards/${row.id}`)} fontWeight={600} color="text.primary" sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography></TableCell>
+     <TableCell>{row.cardLast4||row.last4?<Typography component={Link} to={link(`/portal/cards/${row.id}`)} variant="body2" color="primary.main" aria-label={`查看尾号 ${row.cardLast4||row.last4} 的卡片详情`} sx={{display:'inline-block',py:0.5,textDecoration:'underline',textUnderlineOffset:'3px',fontVariantNumeric:'tabular-nums'}}>{row.cardLast4||row.last4}</Typography>:<Typography variant="body2" color="text.secondary">尾号未知</Typography>}</TableCell>
      <TableCell><ChannelCardStatus status={row.cardStatus}/></TableCell>
      <TableCell><UnavailableCardMetric kind="balance"/></TableCell>
      <TableCell><UnavailableCardMetric kind="spending"/></TableCell>
      <TableCell sx={{overflowWrap:'anywhere'}}>{cardCreatedDate(row.createdAtUTC)}</TableCell>
-     <TableCell><Button component={Link} to={link(`/portal/cards/${row.id}`)} aria-label={`查看 ${cardName(row)} 的详情与交易`}>详情与交易</Button></TableCell>
+     <TableCell><Button component={Link} to={link(`/portal/cards/${row.id}`)} aria-label={`查看 ${cardName(row)} 的详情`}>详情</Button></TableCell>
     </TableRow>)}</TableBody>
    </Table>
   </TableContainer>
   <Stack spacing={1.5} sx={{display:{xs:'flex',md:'none'}}}>
    {cardRows.map(row=><Paper variant="outlined" key={row.id} sx={{p:2}}>
-    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}><Box sx={{minWidth:0}}><Typography fontWeight={600} sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography><Typography variant="body2" color="text.secondary">{row.cardLast4||row.last4?`•••• ${row.cardLast4||row.last4}`:'尾号未知'}</Typography></Box><ChannelCardStatus status={row.cardStatus}/></Stack>
+    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}><Box sx={{minWidth:0}}><Typography fontWeight={600} sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography>{row.cardLast4||row.last4?<Typography component={Link} to={link(`/portal/cards/${row.id}`)} variant="body2" color="primary.main" aria-label={`查看尾号 ${row.cardLast4||row.last4} 的卡片详情`} sx={{display:'inline-block',py:0.5,textDecoration:'underline',textUnderlineOffset:'3px',fontVariantNumeric:'tabular-nums'}}>{row.cardLast4||row.last4}</Typography>:<Typography variant="body2" color="text.secondary">尾号未知</Typography>}</Box><ChannelCardStatus status={row.cardStatus}/></Stack>
     <Box sx={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:2,py:2}}>
      <Box><Typography variant="caption" color="text.secondary" display="block">余额</Typography><UnavailableCardMetric kind="balance"/></Box>
      <Box><Typography variant="caption" color="text.secondary" display="block">近 30 天消费</Typography><UnavailableCardMetric kind="spending"/></Box>
     </Box>
     <Typography variant="caption" display="block" color="text.secondary">创建：{cardCreatedDate(row.createdAtUTC)}</Typography>
-    <Button component={Link} to={link(`/portal/cards/${row.id}`)} fullWidth variant="outlined" sx={{mt:2,minHeight:44}}>详情与交易</Button>
+    <Button component={Link} to={link(`/portal/cards/${row.id}`)} fullWidth variant="outlined" sx={{mt:2,minHeight:44}}>详情</Button>
    </Paper>)}
   </Stack>
   {!cardRows.length&&<Stack alignItems="center" spacing={1} sx={{py:5,textAlign:'center'}}><Typography variant="h6">{keyword||cardStatus?'没有符合条件的卡片':'当前页暂无卡片'}</Typography><Typography color="text.secondary" variant="body2">{keyword||cardStatus?'试试其他名称、后四位，或清空筛选条件。':'可以返回第一页，或刷新查看最新分配结果。'}</Typography><Button onClick={resetFilters}>{keyword||cardStatus?'清空筛选':'返回第一页'}</Button></Stack>}
@@ -128,7 +128,6 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
     {isCard&&!id&&<Button sx={{display:{md:'none'},alignSelf:'flex-start'}} aria-expanded={filtersOpen} aria-controls="card-list-options" onClick={()=>setFiltersOpen(value=>!value)}>{filtersOpen?'收起筛选与排序':'筛选与排序'}</Button>}
     <Box id="card-list-options" sx={{display:{xs:isCard&&!id&&!filtersOpen?'none':'flex',md:'flex'},flexDirection:{xs:'column',md:'row'},gap:1.5}}>
     {isCard&&!id&&<TextField select size="small" label="卡片状态" value={cardStatus} onChange={e=>change({cardStatus:e.target.value,page:'0'})} sx={{minWidth:{md:140}}}><MenuItem value="">全部状态</MenuItem>{Object.entries(cardStatusLabels).map(([value,label])=><MenuItem value={value} key={value}>{label}</MenuItem>)}{cardStatus&&!cardStatusLabels[cardStatus]&&<MenuItem value={cardStatus}>{cardStatus}</MenuItem>}</TextField>}
-    <TextField disabled={!!id} select size="small" label="数据来源" value={connection} onChange={e=>change({connection:e.target.value,page:'0'})} sx={{minWidth:{md:170},maxWidth:{md:240}}}>{connections.map(c=><MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>)}</TextField>
     {isCard&&!id&&<TextField select size="small" label="当前页排序" value={['name','newest'].includes(sort)?sort:'default'} onChange={e=>change({cardSort:e.target.value})} sx={{minWidth:{md:160}}}><MenuItem value="default">默认顺序</MenuItem><MenuItem value="name">名称 A–Z</MenuItem><MenuItem value="newest">创建时间从新到旧</MenuItem></TextField>}
     </Box>
    </Stack>
