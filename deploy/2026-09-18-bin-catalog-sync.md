@@ -15,3 +15,15 @@ Local verification in isolated worktree based on c283b71:
 - Real source manifest imported into restored local database: first run8 new drafts, second run0. No guessed prices, card network, or minimum funding.
 
 Production migration, release and browser verification results are recorded below as they complete. Rollback to previous app revision preserves catalogue/audit tables; no data deletion.
+
+## Production execution
+
+- GitHub main: d3a15c0056406823b8bb3ac5dfe1ed39e2c17ac5.
+- Migration: job-dambg06k1f9s73eupk1g completed012; old data invariant hashes unchanged.
+- Render API: dep-dambg9uk1f9s73euqmr0 live at that commit; healthz/readyz both200.
+- Import: job-dambhd6k1f9s73euv3lg completed:8 source products,8 new drafts, audited. Existing active operator received catalog read/write and pricing permissions only.
+- Cloudflare admin: f9073123-5d4b-4db5-8aa3-ec35fe7ea6b6; admin.moventra.me and existing alternate domain published.
+- Public product catalogue remains unpriced draft; supplier paused. No real Slash financial write, live Blnk configuration or issuing-worker deployment.
+- Post-import database verification: job-dambi0lbedkc73apee40 confirmed 8 source mappings/8 draft products, all fee/minimum fields unconfigured, all observed source statuses active; 1 import audit, 0 issuance orders, 0 deposit records, 0 financial grants.
+- Browser: opened production /card-bins in a new Chrome tab. Application rendered the normal login page; existing authentication is page-memory only. Authenticated list/detail/refresh acceptance awaits operator login+MFA and is not claimed passed.
+- Original dirty workspace remains preserved. The deployed implementation is in the isolated release worktree and GitHub main; do not deploy the old workspace's conflicting migration007.
