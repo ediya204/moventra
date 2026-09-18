@@ -69,11 +69,15 @@
 
 新增 /pricing、/pricing/products/:productId 与 /reports，分别复用既有 card-issuing 产品/价格接口和 ops/overview；不新增 API、迁移或授权。参数、数据范围和验证见[流程卡](admin-finance-migration.md)。
 
-## 客户端开卡路由
+## 客户端开卡增量（2026-09-18，应用已部署）
 
-正式 `/portal/cards/new` → `/portal/card-orders/:id` → `/portal/issued-cards/:id`，订单列表 `/portal/card-orders`；后台 `/card-bins/customers` 按customer/order读取同一记录。两端共享transport与精确同域网关，Go校验主体/运营MFA/授权。完整接口与异常恢复见[流程](client-card-issuing.md)。
+`/portal/cards/new` → `/portal/card-orders/:id` → `/portal/issued-cards/:id`，订单列表 `/portal/card-orders`；后台 `/card-bins/customers?customer=UUID&order=UUID&orderPage=1`。沿用 card-issuing 契约，新增只读产品详情、terms、cards列表/详情，提交强制版本化声明；金额/状态/权限和实际验证见 [开卡流程](client-card-issuing.md)。
 
-## 资金中心四流程（2026-09-18，本地未部署）
+## Cregis 隔离资金路由
+
+客户 `/portal/crypto` 与 `/portal/crypto/orders/:id`；后台 `/finance/crypto-flows`、`/finance/withdrawals`、`/finance/otc` 及对应 `/orders/:id?customer=:id`；来源 `/system/cregis?connection=:id&event=:uuid&page=0`。query 保留标签、状态和页码。来源详情独立鉴权查询；原测试资金与 USD 报表保持独立。见 [FLOW](cregis-funds.md)、[机器契约](../../services/api/docs/crypto.openapi.json)。
+
+## 资金中心四流程（2026-09-18，代码已部署）
 
 `/portal/funds` 总览；`/deposit`、`/fiat`、`/withdraw`、`/exchange` 四操作；`/history` 与 `/orders/:id` 完整历史和深链。`/portal/crypto` 兼容同一页面，旧测试历史保留 `/portal/test-funds/history`。调用独立 crypto API，不把 online_test 改成正式余额。开户完成后进入充值页才发地址请求。transport、网关、Go 路由均增加网络/逐卡报价、订单与最近 5 条；详见[FLOW](funds-center.md)。
 

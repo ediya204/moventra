@@ -32,7 +32,7 @@ const {AuthProvider,useAuth}=await import(uri(outputText));
 let state;
 function Probe(){state=useAuth();return null;}
 const flush=()=>new Promise(r=>setImmediate(r));
-test('admin session uses tab persistence while client remains memory-only', async()=>{
+test('admin and client sessions survive reloads with separate tab persistence', async()=>{
  const source=readFileSync(new URL('../../packages/shared/src/firebase.ts',import.meta.url),'utf8');
  for(const kind of ['admin','client']){
   const sdk=uri(`
@@ -47,7 +47,7 @@ test('admin session uses tab persistence while client remains memory-only', asyn
   const {getFirebaseAuth}=await import(uri(outputText));
   const auth=getFirebaseAuth();
   assert.equal(auth.app.name,`moventra-${kind}`);
-  assert.equal(auth.persistence.type,kind==='admin'?'SESSION':'NONE');
+  assert.equal(auth.persistence.type,'SESSION');
   assert.equal(getFirebaseAuth(),auth);
  }
 });
@@ -115,28 +115,40 @@ test('each build has a separate login URL and identity endpoint',async()=>{
   assert.equal(config.sessionPath,`/${kind}-api/v1/me`);
  }
 });
-test('client admission rejects administrators and preserves registration recovery',async()=>{
+test('restored client identity waits for admission, rejects admins, and supports logout and recovery',async()=>{
  const clientMocks=uri(Buffer.from(mocks.split(',')[1],'base64').toString().replace('isAdminSite=true','isAdminSite=false').replace('/admin-api/v1/me','/client-api/v1/me'));
  let {outputText}=ts.transpileModule(src,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}});
  outputText=outputText.replaceAll('import.meta.env.DEV','false').replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:clientMocks)}`);
  const client=await import(uri(outputText));
  let clientState;
  function ClientProbe(){clientState=client.useAuth();return null;}
- for(const scenario of ['customer','admin','registration']){
-  m.signouts=0;m.auth.currentUser=null;
+ for(const scenario of ['customer','admin','registration','disabled','outage']){
+  const user={email:'fixture@example.invalid',emailVerified:true};
+  m.signouts=0;m.auth.currentUser=user;
   let resolve,reject;m.pending=new Promise((a,b)=>{resolve=a;reject=b;});
   let view;await act(async()=>{view=Renderer.create(React.createElement(client.AuthProvider,null,React.createElement(ClientProbe)));});
-  const user={email:'fixture@example.invalid',emailVerified:true};m.auth.currentUser=user;
-  await act(async()=>m.listener(user));
+  assert.equal(clientState.ready,false);assert.equal(clientState.authenticated,false);
   await act(async()=>{
    if(scenario==='registration')reject({code:'registration_required',status:403});
+   else if(scenario==='disabled')reject({code:'user_disabled',status:403});
+   else if(scenario==='outage')reject({code:'api_unavailable',status:503});
    else resolve({role:scenario,customers:[],staffScopes:[],operator:scenario==='admin',mfaVerified:true});
    await flush();
   });
   assert.equal(clientState.authenticated,scenario==='customer');
+  assert.equal(clientState.ready,true);
   assert.equal(m.signouts,scenario==='admin'?1:0);
   if(scenario==='admin'){assert.equal(clientState.user,null);assert.equal(clientState.loginError.code,'customer_required');}
   if(scenario==='registration'){assert.equal(clientState.user,user);assert.equal(clientState.sessionError.code,'registration_required');}
+  if(scenario==='disabled')assert.equal(clientState.sessionError.code,'user_disabled');
+  if(scenario==='outage')assert.equal(clientState.sessionError.code,'api_unavailable');
+  if(scenario==='customer'){
+   await act(async()=>{clientState.signOut();await flush();});
+   assert.equal(m.auth.currentUser,null);assert.equal(clientState.authenticated,false);
+   await act(async()=>view.unmount());
+   await act(async()=>{view=Renderer.create(React.createElement(client.AuthProvider,null,React.createElement(ClientProbe)));await flush();});
+   assert.equal(clientState.ready,true);assert.equal(clientState.user,null);assert.equal(clientState.authenticated,false);
+  }
   await act(async()=>view.unmount());
  }
 });

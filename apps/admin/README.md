@@ -64,11 +64,15 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 
 正式 /pricing 与 /pricing/products/:productId 接通既有卡产品价格接口，支持客户/组覆盖及恢复继承；/reports 提供已授权 USD 交易投影明细和 CSV。数字货币流水、OTC 与出金审批尚未完成，不改变测试资金边界。见[流程卡](../../docs/business/admin-finance-migration.md)。
 
-## 开卡订单与客户钱包
+## 客户开卡处理（2026-09-18，应用已部署，真实执行关闭）
 
-BIN 管理客户页 `/card-bins/customers?customer=UUID&order=UUID` 可查询开卡钱包、订单阶段及不可变同意证据，沿用运营 MFA、逐客户授权和入账双人复核。与客户端读取同一订单；见[开卡流程](../../docs/business/client-card-issuing.md)。
+`/card-bins/customers?customer=UUID&order=UUID&orderPage=1` 新增钱包、分页订单、订单详情和声明证据；与客户端查询同一业务对象，保留独立权限、MFA和到账双人复核。见 [开卡闭环](../../docs/business/client-card-issuing.md)。
 
-2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。
+## Cregis 隔离运营
+
+已接 `/finance/crypto-flows`、`/finance/withdrawals`、`/finance/otc` 客户授权订单及详情；OTC 配置双向价、提现费和开关。`/system/cregis` 为连接授权来源观察。运营需要 MFA 和独立动作权限。见 [流程与证据](../../docs/business/cregis-funds.md)。
+
+资金运营页新增 TRC20/ERC20 提款费和卡充提费用配置，null 与显式零区分；正式资金仍要求独立权限及验收激活。见[资金中心](../../docs/business/funds-center.md)。
 
 ## 余额查询（2026-09-18，代码已发布）
 

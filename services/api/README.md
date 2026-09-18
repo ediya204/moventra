@@ -133,20 +133,25 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 
 正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../../docs/business/card-owner-display.md)。
 
-## 客户端开卡运行与定向迁移
+## 客户端开卡闭环（2026-09-18，应用已部署，真实执行关闭）
 
-API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任务，默认 ISSUING_MODE 关闭。live 要求独立 TLS Blnk、运营验收清单和对应供应商服务端凭据，不可把本地测试结论填成生产认证。新增迁移014；本发布不包含并行013，迁移器使用显式编号。`scripts/issuing-checkout-sql.py` 只生成014，`scripts/test-issuing-checkout-migration.py` 与 `scripts/test-issuing-catalog-release.py` 验证本机随机隔离库。见[流程](../../docs/business/client-card-issuing.md)及[生产迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。
+新增迁移014及客户端声明提交、产品详情、条款、订单证据和新卡查询；Ready新增014校验。API初始化 issuing，但 ISSUING_MODE 默认 disabled；独立 `cmd/issuing-worker` 执行持久化任务，不与 shadow worker 混用。`local` 模式仅接受本机 moventra_test_ 数据库、回环 Blnk及模拟 Slash，需 ISSUING_BLNK_URL/KEY、ISSUING_FIXTURE_URL、ISSUING_FIXTURE_SUPPLIER_ID。live模式仍需既有独立TLS账本与认证清单，本批不启用。专项命令 `bash scripts/test-issuing.sh`，浏览器测试与已验证边界见 [流程卡](../../docs/business/client-card-issuing.md)。
 
-## 开卡只读准备模式（2026-09-18已部署）
+## Cregis 隔离资金 Worker
 
-`ISSUING_MODE=prepare`需有效HTTPS账本URL、密钥和可选专用CA（ISSUING_BLNK_CA_PEM）。API保持开卡不可执行；issuing-worker每分钟仅做认证GET与只读数据库查询。live仍要求真实验收清单。独立Worker使用`Dockerfile.issuing-worker`。`Dockerfile.blnk-tls`在原固定Blnk镜像内增加5443私有TLS入口，证书私钥只进服务端环境，见[生产准备](../../deploy/2026-09-18-issuing-preparation.md)。
+013 迁移新增订单、报价、审计、来源、地址、同步及账本关联；仅本地 shadow 配置开放资金能力。`go run ./cmd/crypto-worker run` 恢复订单；`sync` 只读观察；`run-with-readonly-source` 组合执行。回调观察需显式 CREGIS_SOURCE_ENABLED=true，不自动入客户账。见 [运行与验收](../../docs/business/cregis-funds.md)、[OpenAPI](docs/crypto.openapi.json)。此节记录隔离实现；后续生产启用范围见[激活记录](../../deploy/2026-09-18-production-funds-activation.md)。
+
+## 开卡 014 定向生产迁移（2026-09-18）
+
+已授权的生产执行与备份证据见[迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。`python3 scripts/issuing-checkout-sql.py` 仅生成 014 SQL，不连接数据库；脚本核对依赖校验值、使用事务与锁超时，不应用 006/013/015，不启用开卡执行。先完成备份恢复验证，再通过 `psql -X -v ON_ERROR_STOP=1 -f <reviewed.sql>` 运行。回归使用 `python3 scripts/test-issuing-checkout-migration.py`，只创建并删除本机 `/tmp` socket 的随机测试库。不要为本次迁移运行全量 `api migrate`。
+
 ## 资金中心接入准备（未激活）
 
 新增 015 迁移及双链/卡片资金 Worker 增量，配置、零期初登记、恢复边界与验收清单见[资金中心运行说明](../../docs/business/funds-center.md)。默认仍不启用 live；本批没有执行生产迁移或渠道金融写入。`crypto-worker enroll-zero-card` 为受信运维入口，不是公共 API；拒绝非零或已消费的存量卡。
 
-## 地址独立模式
+## 开卡只读准备模式（2026-09-18已部署）
 
-新增不执行资金的DEPOSIT_ADDRESS_MODE=observation，使用既有资金表与独立回调；显式迁移与导入命令见[地址接入](../../docs/business/deposit-address-integration.md)。不以地址开通代表正式账本激活。
+`ISSUING_MODE=prepare`需有效HTTPS账本URL、密钥和可选专用CA（ISSUING_BLNK_CA_PEM）。API保持开卡不可执行；issuing-worker每分钟仅做认证GET与只读数据库查询。live仍要求真实验收清单。独立Worker使用`Dockerfile.issuing-worker`。`Dockerfile.blnk-tls`在原固定Blnk镜像内增加5443私有TLS入口，证书私钥只进服务端环境，见[生产准备](../../deploy/2026-09-18-issuing-preparation.md)。
 
 ## 余额查询与人工资金（2026-09-18，代码已发布，真实执行未启用）
 
@@ -155,6 +160,10 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 复用ledger配置；shadow仅隔离验证，live额外要求`MANUAL_FUNDS_ENABLED=true`且不绕开已有live验收/Cregis/期初依赖。独立`go run ./cmd/manual-funds-worker drain`或`run`恢复持久订单，镜像包含二进制但不自动启动；不调用银行、Slash或链上付款。线下付款需人员另行付款并提交结果凭证。参见[机器契约](docs/manual-funds.openapi.json)及[完整流程/测试/交接](../../docs/business/platform-advance.md)。
 
 TRC20限额充值使用`api prepare-deposit-pilot`核验零期初，再开启`DEPOSIT_PILOT_MODE=enabled`；API内部每15秒执行指定客户/地址的最终性及入账任务，无出金writer。配置、限额、恢复及关闭见[地址流程](../../docs/business/deposit-address-integration.md)。不设置全量资金认证标志，不自动执行数据库迁移。
+
+## 地址独立模式
+
+新增不执行资金的DEPOSIT_ADDRESS_MODE=observation，使用既有资金表与独立回调；显式迁移与导入命令见[地址接入](../../docs/business/deposit-address-integration.md)。不以地址开通代表正式账本激活。
 
 ## 卡片状态同步
 

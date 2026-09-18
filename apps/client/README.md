@@ -30,13 +30,15 @@
 
 正式登录资金中心 `/portal/funds` 已接服务端线上测试资金：USDT/法币充值、报价兑换、提现申请、状态记录和稳定订单详情。需要个人账户已审批启用及独立测试额度；全部属于模拟流程。待确认写请求在当前标签页保存幂等键，网络异常后重试同一请求。见 [流程卡](../../docs/business/online-test-funds.md)。
 
-## 客户端开卡
+## 客户端开卡（2026-09-18，应用已部署，真实执行关闭）
 
-正式入口 `/portal/cards/new`，订单 `/portal/card-orders` 与 `/portal/card-orders/:id`，新卡详情 `/portal/issued-cards/:id`。费用、最低首充、声明、独立 USD 钱包与失败恢复见[开卡流程](../../docs/business/client-card-issuing.md)。生产是否可支付由服务端资格和执行能力决定。
+正式 `/portal/cards/new` 已接 BIN、USD 开卡钱包、报价和声明支付；`/portal/card-orders` 及详情支持持久化恢复，新卡详情为 `/portal/issued-cards/:id`。本地真实 Blnk + 模拟 Slash 的隔离闭环已验收，不使用线上测试额度，不代表真实金融服务启用。见 [FLOW-CLIENT-ISSUING-001](../../docs/business/client-card-issuing.md)。
 
-2026-09-18 资金中心四流程已发布：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。
+## Cregis 隔离资金
 
-USDT充值页接入独立地址查询/首次申请接口，TRC20绑定复用、二维码复制、渠道通知分页及详情；正式入账未开通时明确提示。见[地址接入](../../docs/business/deposit-address-integration.md)。
+`/portal/crypto` 接入共享 CryptoFunds，充值/提现/OTC/订单详情读取独立资金 API；生产 `/portal/funds` 已切换正式资金视图，旧测试入口不再展示。USDT 与 USD 分币种展示，模拟地址不生成二维码。见 [资金流程](../../docs/business/cregis-funds.md)。
+
+四流程资金页面已替换 `/portal/funds`，旧测试数据保留但生产入口已移除；首次进入充值页才申请 Cregis 地址。具体路由、近期记录及正式启用边界见[资金中心](../../docs/business/funds-center.md)，代码发布见[发布记录](../../deploy/2026-09-18-funds-center-release.md)，正式TRC20充值与OTC已分能力启用，提款及卡充提仍关闭；见[激活记录](../../deploy/2026-09-18-production-funds-activation.md)。
 
 ## 人工资金记录（2026-09-18，代码已发布）
 
@@ -53,3 +55,7 @@ USDT充值页接入独立地址查询/首次申请接口，TRC20绑定复用、�
 ## 正式资金分能力接入（2026-09-18）
 
 生产充值不显示试点限额；OTC/提款/卡充提按具体能力和客户资格控制，未核验渠道显示具体原因。
+
+## 刷新保持登录（2026-09-18，本地未部署）
+
+客户端 Firebase 身份改为当前标签页会话保存，刷新业务页后自动恢复，并重新请求服务端身份与权限；主动退出清除会话。关闭标签页后不承诺继续登录。流程和验证边界见[会话记录](../../docs/business/admin-session-persistence.md#flow-client-session-persistence客户端刷新恢复登录)。

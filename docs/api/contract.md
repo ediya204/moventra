@@ -257,17 +257,17 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 
 归属联合验收补充：连接读取权限不自动授予客户身份读取；需要该客户 accounts:read，缺失或撤销时只返回 restricted，不泄露 customerId/userId/name。
 
-## 客户端开卡确认契约
+## 2026-09-18：客户端开卡声明与新卡查询（应用已部署，真实发卡关闭）
 
-`card-issuing` 新增 GET products/{id}、terms、cards、cards/{id}；报价绑定 termsVersion，POST orders 必须提交 quoteId、termsVersion、lawfulUse=true、acceptedTerms=true，并携带原始 Idempotency-Key。服务端拒绝可信费用字段，声明/订单原子持久化。详情含同意证据和阶段事件；历史证据为空。金额为USD最小单位字符串，未知余额为null而非零。详见[机器契约](../../services/api/docs/issuing.openapi.json)与[流程](../business/client-card-issuing.md)。
+card-issuing 新增 GET products/{id}、terms、cards、cards/{id}；报价增加 termsVersion；POST orders 必须同时提交 lawfulUse=true、acceptedTerms=true 和有效条款版本。订单详情增加不可变同意证据和处理事件；历史无证据为 null。卡分户余额不是来源可用余额。机器定义见 [issuing.openapi.json](../../services/api/docs/issuing.openapi.json)，流程与兼容见 [开卡闭环](../business/client-card-issuing.md)。
+
+## Cregis 隔离资金契约（2026-09-18）
+
+新增独立 `/client-api/v1/customers/{customerID}/crypto` 和运营路径；quotes/orders、cancel、settings、approve/reject/recover 及来源连接/events/detail/sync 由 [机器契约](../../services/api/docs/crypto.openapi.json) 定义。金额整数字符串，USDT 6 位、USD 2 位；报价 60 秒，政策版本 CAS。幂等 UUID、主体授权及运营 MFA 在 Go 强制；前端/网关同步白名单。详情含订单、审计及 Blnk reference。原隔离闭环历史见[隔离记录](../business/cregis-funds.md)，现行四流程见下节。
 
 ## 四流程增量（2026-09-18，本地接入准备）
 
 现行 crypto 契约扩展 `POST addresses`（currency/network，开户完成后进入充值页触发）、`withdrawals/quotes`（network/address/amountMinor）、`cards/quotes` 和 `cards/orders`（cardId/direction）。提款订单必须匹配报价网络及完整地址。GET 支持 kind/status/cardId、limit=5 或 20，时间倒序；返回 networks/cards/addressJobs/canOperate，mode 为 shadow 或 live。正式模式仍受独立启用条件约束，不能仅凭 mode 或 executionEligible 判定全部能力已验收。详细字段见[机器契约](../../services/api/docs/crypto.openapi.json)与[流程卡](../business/funds-center.md)。
-
-## 地址独立接入增量
-
-新增GET/POST `/client-api/v1/customers/{customerID}/deposit-addresses`；GET支持page或event，POST仅TRC20与UUID幂等头。回调`/webhooks/cregis/address-deposit`仅持久记录，不增加余额。见[契约及流程](../business/deposit-address-integration.md)。
 
 ## 余额查询与人工出入金（2026-09-18，代码已发布）
 
@@ -278,6 +278,10 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 缺少016迁移/服务配置时此能力不可用；代码已发布，生产016迁移及资金授权未启用。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。
 
 地址GET限定验收增量：mode可为deposit_pilot；postingEnabled反映指定客户额度、处理任务健康及账本一致性，不能用它推断提款/兑换已启用。pilot返回capMinor、remainingMinor、walletMinor（仅核对一致时）、reconciliation；全部金额为USDT六位精度的最小单位整数字符串。events新增state、posting、error、orderId，只有posting=posted表示入账。跨客户调用无变化，非验收客户无余额/额度信息。详见[地址流程](../business/deposit-address-integration.md)。
+
+## 地址独立接入增量
+
+新增GET/POST `/client-api/v1/customers/{customerID}/deposit-addresses`；GET支持page或event，POST仅TRC20与UUID幂等头。回调`/webhooks/cregis/address-deposit`仅持久记录，不增加余额。见[契约及流程](../business/deposit-address-integration.md)。
 
 ## 卡片状态同步（2026-09-18，已发布）
 

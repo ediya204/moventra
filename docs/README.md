@@ -19,8 +19,10 @@
 - [后台归属及随机卡名代码发布](../deploy/2026-09-18-session-consolidation.md)
 - [BIN 目录发布与发卡关闭边界](../deploy/2026-09-18-bin-catalog-sync.md)
 - [普通 Webhook 上线与来源观察](../deploy/slash-webhook-online-2026-09-18.md)
+- [Cregis 隔离充值、提现与 OTC](business/cregis-funds.md)
 - [线上测试资金](business/online-test-funds.md)
 - [项目钱包及逐卡分配](business/project-wallet.md)
+- [余额查询与人工出入金（代码已发布，执行未启用）](business/platform-advance.md)
 - [卡片详情规划（DESIGN）](business/card-center-detail-plan-2026-09-18.md)
 - [Slash 白名单环境与复用规则](integrations/slash-allowlist.md)
 
@@ -130,9 +132,9 @@
 - [Slash / Blnk 调查与实施方案](integrations/slash-blnk-plan-2026-09-18.md)
 - [Slash 来源持久化设计](integrations/slash-persistence-design-2026-09-18.md)
 
-- [客户端开卡闭环](business/client-card-issuing.md)：BIN、声明、钱包、订单及新卡，生产开放边界单独记录。
+- [客户端开卡完整链条](business/client-card-issuing.md)：USD钱包、声明、订单、新卡及本地隔离验收；应用已部署，真实发卡仍关闭。
 
-2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](business/funds-center.md)。
+- [资金中心四流程与真实接入准备](business/funds-center.md)：开户后按需 Cregis 地址、双链、逐卡充提、OTC、零期初及启用验收。
 
 - [客户充值地址标准接入](business/deposit-address-integration.md)：地址复用、回调和入账边界。
 

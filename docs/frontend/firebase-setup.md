@@ -17,7 +17,7 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 
 渠道页面与独立权限已随 `0d5158d` 上传；`2918584` 追加的[发布记录](../releases/channel-projection-2026-09-07.md)确认 Render 与两端 Worker 发布，后台入口和资源一致。运营用户本人登录后的数据读取、Logo 与详情验收仍未完成，本轮文档没有重复验证。
 
-两端是独立构建和独立命名 SDK 实例；共享 Firebase 身份项目，不是独立用户库、tenant 或 token audience。后台采用 browserSessionPersistence，在当前标签页刷新后恢复身份，关闭标签页后结束会话；客户端继续使用内存会话，刷新需要重新登录。后台恢复身份后仍等待 Go 校验角色、账号状态及 MFA，业务接口继续逐请求校验资源权限。此调整为 2026-09-18 本地修改，尚未部署；验收见 [后台刷新会话](../business/admin-session-persistence.md)。
+两端是独立构建和独立命名 SDK 实例；共享 Firebase 身份项目，不是独立用户库、tenant 或 token audience。两端均采用 browserSessionPersistence，在当前标签页刷新后恢复身份，关闭标签页后结束会话（浏览器恢复标签页可能恢复存储，不等同服务端撤销）。恢复身份后仍等待 Go 校验角色、账号状态及后台 MFA，业务接口继续逐请求校验资源权限。此调整为 2026-09-18 本地修改，尚未部署；验收见 [后台刷新会话](../business/admin-session-persistence.md)。
 
 ## 认证与授权顺序
 
