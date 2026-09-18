@@ -311,4 +311,4 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 
 ## 2026-09-19 卡片历史与指标
 
-本地候选：渠道卡行增加metrics（金额字符串/null、时间窗口、覆盖及同步状态），交易列表支持metric=spending，逐卡metrics-sync仅排队只读补查。详见[卡指标合同](../business/card-metrics.md)。未部署。
+已上线：渠道卡行增加metrics（金额字符串/null、时间窗口、覆盖及同步状态），交易列表支持metric=spending，逐卡metrics-sync仅排队只读补查。详见[卡指标合同](../business/card-metrics.md)和[发布记录](../../deploy/2026-09-19-card-metrics-release.md)。

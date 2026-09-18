@@ -183,4 +183,4 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 
 ## 2026-09-19 卡片历史与指标
 
-新增本地候选：card-metrics-plan/enroll、migrate-card-metrics及只读回填任务/交易指标投影。未生产迁移部署，见[流程与命令](../../docs/business/card-metrics.md)。
+已上线：card-metrics-plan/enroll/status/retry、migrate-card-metrics及只读回填任务/交易指标投影。020已定向迁移，CARD_METRICS_ENABLED=true，指定23张卡初始化完成；见[流程与命令](../../docs/business/card-metrics.md)。
