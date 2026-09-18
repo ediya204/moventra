@@ -111,3 +111,7 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 客户及后台分别访问 `/client-api/v1/customers/{id}/test-funds`、`/admin-api/v1/customers/{id}/test-funds`；订单详情 `/orders/{orderId}`；POST `/commands` 必须带 UUID `Idempotency-Key`。后台还要求 MFA 和逐客户 `online_test_funds_review_grants`。固定测试报价、金额精度、状态与幂等契约见流程卡和 OpenAPI。
 
 对已有线上测试账户启用既有开户审核人：先使用 `TEST_WALLET_EMAIL` 执行 `test-funds-review-plan`，核对唯一的 `eligibleReviewerIds`，再设置 `TEST_FUNDS_REVIEWER_ID`、`CONFIRM_ONLINE_TEST_ONLY=yes` 执行 `enable-test-funds-reviews`。此命令不会新增真实资金权限，也不会开通客户服务。
+
+## Slash 普通通知
+
+新增 `/webhooks/slash` 的验签收件箱及只读异步 GET。独立于账本和前端投影，操作、HTTP 契约、迁移和回退见 [上线记录](../../deploy/slash-webhook-online-2026-09-18.md)。密钥仅从服务端 `SLASH_API_KEY` 读取。

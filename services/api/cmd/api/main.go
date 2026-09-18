@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"moventra.local/api/internal/projection"
+	"moventra.local/api/internal/slashhook"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,6 +41,23 @@ func run() error {
 	defer pool.Close()
 	if err = pool.Ping(ctx); err != nil {
 		return errors.New("database unavailable")
+	}
+	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "slash-webhook-") {
+		hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
+		switch os.Args[1] {
+		case "slash-webhook-migrate":
+			return database.MigrateSlashWebhook(ctx, pool)
+		case "slash-webhook-init":
+			return hook.Init(ctx)
+		case "slash-webhook-status":
+			status, e := hook.Status(ctx)
+			if e != nil {
+				return e
+			}
+			return json.NewEncoder(os.Stdout).Encode(status)
+		default:
+			return errors.New("unknown_slash_webhook_command")
+		}
 	}
 	if len(os.Args) == 2 && os.Args[1] == "import-channel" {
 		var bundle projection.Bundle
@@ -167,9 +185,14 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	server := http.Server{Addr: ":" + port, Handler: (&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger}).Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
+	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
+	handler := hook.Handler((&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger}).Handler())
+	server := http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()
+	if os.Getenv("SLASH_API_KEY") != "" {
+		go hook.Run(stop)
+	}
 	result := make(chan error, 1)
 	go func() { result <- server.ListenAndServe() }()
 	slog.Info("api listening", "port", port)

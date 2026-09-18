@@ -170,3 +170,7 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 ## FLOW-TEST-FUNDS-01 自动化验收
 
 `services/api/internal/api/test_funds_test.go` 使用隔离 PostgreSQL schema，实际 HTTP handler + 事务覆盖两端权限、MFA、充值两阶段确认、精确报价、兑换消费一次、提现预占/审批/未知/失败释放/模拟结算、暂停后取消、并发超支、同键重试、审计失败回滚及不可变事件。`tests/frontend/online-funds.test.mjs` 挂载实际生产组件，覆盖超时后刷新恢复同一幂等键、成功深链及网关方法/跨站边界。真实渠道测试不适用，线上测试余额不得执行真实付款。
+
+### Slash 普通通知试接入
+
+2026-09-18 新增只读收件箱回归：并发重复 eventId 只产生一个事件和一个观察，重复投递保留审计；篡改签名拒绝；429 后跨重启恢复；数据库提交失败不返回 2xx；停用连接拒绝。来源观察不触发资金记账，不据此声明实际入账或余额正确。实现与真实投递验收分别见 [上线记录](../../deploy/slash-webhook-online-2026-09-18.md)。

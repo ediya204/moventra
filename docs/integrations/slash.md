@@ -4,7 +4,7 @@
 
 文档更新：2026-09-07。本次复查官方 Transaction/Balance 页面与已有来源约束，未调用租户 API。其余 SOURCE 与本租户 GET 记录沿用先前 2026-09-07 核验，不作为本次重新验证。真实 Webhook、生产接入与资金验收未执行。
 
-当前仓库仅保留相关前端/类型和设计文档；旧本地采集器、SQLite 和轮询服务未纳入 main。Go 未接入 Slash，旧进程是否持续运行未复查。全量能力分类见 [文档索引](../README.md)。
+2026-09-18 新增 Go 普通 Webhook 收件箱与按通知触发的只读 GET，实施范围见 [上线操作记录](../../deploy/slash-webhook-online-2026-09-18.md)。它独立于账本及前端查询投影；旧本地采集器、SQLite 和全量轮询服务未纳入本次发布。部署及真实通知验收以操作记录为准。全量能力分类见 [文档索引](../README.md)。
 
 分类及当前实现边界见 [开发总纲](../DEVELOPMENT.md)。现有 Demo 字段明细见 [Slash 字段差异](../frontend/slash-field-gap.md)。
 

@@ -231,3 +231,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 `POST .../commands` 严格 JSON，必带 UUID `Idempotency-Key`。请求字段 action/currency/amountMinor/quoteId/orderId/revision/recipientLabel/note；动作字段含义与金额规则见 [流程卡](../business/online-test-funds.md)。客户端允许deposit/quote/exchange/withdraw/cancel；运营允许detect/approve/reject/unknown/complete/fail，并必须填写note。幂等键绑定客户+操作者+完整请求；重复返回原结果，异载荷409。未知结果复用原键，不重新建单；409报价失效、余额不足、版本冲突均不变动余额。后台MFA与逐客户测试审核授权不继承为真实资金权限。
 
 旧 `test-wallet` 的 `amountMinor` 现在为当前可用测试余额（包含009变动及预占），`grants` 仍是原始不可变额度记录。真实账户与卡片投影未合并入测试余额。
+
+### Slash 普通 Webhook（2026-09-18 试接入）
+
+`POST /webhooks/slash` 不使用客户端会话，使用 Slash 官方 RSA/SHA256 公钥验证原始请求体；数据库提交后返回 204。401/405/413/503 的条件见 [上线记录](../../deploy/slash-webhook-online-2026-09-18.md)。该端点只进入独立来源收件箱，不提供支付授权或客户查询接口。
