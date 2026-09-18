@@ -1,6 +1,6 @@
 # FLOW-CLIENT-ISSUING-001：客户端开卡闭环
 
-日期：2026-09-18。LOCAL，本地隔离闭环；未发布、未执行真实 Slash 金融写接口。基线为 main `1ed842a` 加本次未提交增量。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，并行数字货币模块改动保留。
+日期：2026-09-18。隔离资金闭环已验收；生产目录与应用发布进度见[发布记录](../../deploy/2026-09-18-client-issuing-release.md)，真实执行未开放。实现基线为 main `1ed842a`，发布代码 `92cad84`。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，独立发布保留并行数字货币模块改动。
 
 ## 范围、差异与决策
 
@@ -37,14 +37,14 @@ POST orders 使用 quoteId、termsVersion、lawfulUse、acceptedTerms 及 Idempo
 
 当前声明为版本化应用政策 `issuing-2026-09-18-v1`，不是新增法务合规认证。正式条款和商业参数由运营/法务在真实上线阶段确认，确认人待分配；不阻塞隔离实现。
 
-## 验证与证据
+## 首轮隔离验证与证据（保留当时范围）
 
 - 前端专项：金额精度、网关/transport一致性、声明门槛、修改金额重置、超时后重新挂载恢复相同请求、登录主体隔离、后台目录操作。
 - PostgreSQL专项：缺声明/旧条款/伪造费用拒绝，同意证据不可变、幂等、两端订单相同、客户卡详情隔离；现有资金测试覆盖组价/专属价/免费价、并发预占、防超支、未知结果找回、首充失败退款及原卡补充首充、远端预占后本地回滚恢复和审计失败。
 - 本地真实 Blnk Core v0.15.4（源码 f3067eb56a573055ce86c3328566145b467f393b）使用独立 PostgreSQL 和 Redis；不复用浏览器测试账本运行专项测试，固定测试客户 ID 不能跨测试库共用 Blnk 实例。
 - 浏览器专项使用真实正式页面组件、shared transport、真实 Go HTTP handler、独立 PostgreSQL、本地 Blnk、模拟 Slash HTTP 和独立 issuing-worker；认证只注入测试身份，不代表真实 Firebase 登录验收。
 - 浏览器实测：钱包1000 USD，开卡费5、首充20，完成后钱包975、卡分户20；客户端/后台订单完全相同；Worker预占后重启仍完成；详情刷新、390px手机无横向溢出通过。
-- 本次没有执行生产迁移、实际渠道发卡、真实资金动作、推送或部署。独立本地二进制验证不替代 Docker 镜像运行验收。
+- 该轮隔离验证没有执行生产迁移、实际渠道发卡、真实资金动作、推送或部署。独立本地二进制验证不替代 Docker 镜像运行验收。
 
 复现入口：`bash services/api/scripts/test-issuing.sh`；设置 BLNK_TEST_URL/BLNK_TEST_KEY 时使用新的本地真实 Blnk 实例，否则使用有状态 HTTP fixture。前端专项为 `node --test tests/frontend/issuing.test.mjs tests/frontend/issuing-checkout.test.mjs tests/frontend/issuing-admin-ui.test.mjs`。
 
@@ -54,6 +54,6 @@ POST orders 使用 quoteId、termsVersion、lawfulUse、acceptedTerms 及 Idempo
 
 ## 交付与回退
 
-能力等级：隔离闭环。设计、本地实现、专项自动化、上述浏览器范围通过；真实渠道与应用部署未执行；随后获授权的生产结构迁移 014 已完成，见[生产迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。全仓检查结果及并行改动的失败单独记录，不能用本次专项通过追认其他模块。
+能力等级：隔离闭环，生产真实执行仍关闭。设计、本地实现、专项自动化和上述隔离浏览器范围通过。随后获授权的生产014迁移与8个BIN目录配置已完成，统一开卡费10 USD、最低首充20 USD；发布候选116项前端测试及两端构建通过。应用部署状态见[发布记录](../../deploy/2026-09-18-client-issuing-release.md)，迁移证据见[生产迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。先前全仓并行改动的失败保留为历史证据，未将测试费用5 USD当作正式价格。
 
 回退时先禁用执行入口并保留订单、账本和同意证据，不删除在途事项；前端可关闭开卡入口，查询和核查保留。生产激活仍需独立账本、供应商验证清单、零限制/累计限制/未知恢复/对账验证及明确授权。

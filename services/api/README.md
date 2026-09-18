@@ -1,6 +1,6 @@
 # Moventra Go API
 
-> 2026-09-18 静态校对：能力及发布边界见[当前状态](../../docs/current-state.md)。下方带日期的增量段落保留当时实施状态；最新后台归属及随机卡名代码已发布，详见[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)。本次未重新运行测试或线上验收。
+> 2026-09-18：客户端开卡应用与八个BIN目录已发布，真实金融执行仍关闭。当前能力及验证范围见[当前状态](../../docs/current-state.md)和[本次发布记录](../../deploy/2026-09-18-client-issuing-release.md)。下方带日期的历史段落保留当时实施状态。
 
 更新日期：2026-09-07。独立 Go 模块 `moventra.local/api`，面向客户端与运营后台，部署于 Render。本服务提供身份授权、客户与渠道投影查询、开户、线上测试资金、BIN 目录和普通 Slash 通知来源观察。通知消费及受控来源核验包含 Slash 只读 GET；不开放真实资金执行。完整范围见 [业务与路由](../../docs/business/routes-and-api.md)。
 
