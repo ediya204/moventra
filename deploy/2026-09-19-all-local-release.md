@@ -18,4 +18,17 @@
 
 ## 发布与回退
 
-目标：GitHub ediya204/moventra main；Render moventra-api及现有issuing-worker；Cloudflare moventra-web与moventra-admin。部署不改变生产开关或数据库结构。最终提交、平台版本与线上静态资源一致性另行补充。若回退，恢复本批之前各服务的已记录版本；保留生产数据与来源历史。
+目标：GitHub ediya204/moventra main；Render moventra-api及现有issuing-worker；Cloudflare moventra-web与moventra-admin。部署不改变生产开关或数据库结构。最终提交、平台版本与线上静态资源一致性见下节。若回退，恢复本批之前各服务的已记录版本；保留生产数据与来源历史。
+
+
+## 平台执行证据
+
+- 运行源码：`8cfc17649b1b9406fce4ae45d40f23db0a224f8d`，已推送GitHub main。
+- 客户端Worker：`4d694e4f-8d06-4b77-84ca-6f01725837d2`；后台Worker：`6bd384f0-eec1-4664-950b-e25b02dd6dd9`。使用Wrangler 4.129.0、既有配置与keep-vars；两端dry-run通过。
+- 线上客户端29份、后台44份JS/CSS均与最终本地构建SHA-256一致。两个登录页HTTP200并经浏览器实际渲染，未认证身份接口401；未执行真实登录后的全业务验收。
+- Render API部署：`dep-damobtijnfac73ah0cr0`，2026-09-18 18:43:44 UTC live，运行同一源码。
+- Render issuing-worker部署：`dep-damobtlbedkc73f68vm0`，2026-09-18 18:42:53 UTC live，运行同一源码。
+- 回退基线：API `dcaac3ffde7f7582ed683dad5e5a0bdbbcbfe8af`；客户端 `cbc00d28-288d-4a13-b901-1899e95ce553`，后台 `fc43a21f-1515-410b-b145-3920d6c6fe17`。回退前核对后续发布是否已更新平台。
+- 另一个任务在提交后新增6份统一资金记录草稿，未验证、未接线；全部保留本地且不在本次运行提交中。该任务已由协调任务暂停。
+
+API上线后再次检查readyz200，两端未认证me401；部署后error级日志查询无返回记录。未做真实登录后业务、真实PAN/CVV、真实资金或消息投递验收。没有生产数据库迁移或功能开关调整。
