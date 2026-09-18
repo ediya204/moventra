@@ -304,3 +304,7 @@ crypto快照capabilities新增otcEnabled/cardTransfersEnabled；前端同时检�
 客户单卡详情新增`fundingCardId`（精确映射或null）与`cvvAvailable`，均由服务端授权判定。资金卡读取新增`heldMinor`（未近期核验为null）与`inTransitMinor`（核对未知为null），在途关联完整账本escrow及原卡片订单，不取最近页求和。crypto列表新增`from`、`to`（UTC订单创建时间，左闭右开）和`direction`（wallet_to_card/card_to_wallet）筛选，计数与分页使用相同条件。新开卡详情可返回唯一已验证`projection`链接，不按尾号猜测。
 
 CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应独立、禁止缓存和持久化，不加入普通卡片DTO。详见[CVV合同](../frontend/client-cvv.md)及[卡片流程](../business/customer-card-binding.md#flow-card-detail-001卡片详情与充提2026-09-19)。
+
+### 2026-09-19 客户卡交易筛选与导出（本地前端）
+
+复用现有 card-projections 查询参数：keyword、detailedStatus（单值）、from（含）与 to（不含）、page、revision。界面日期为 UTC 日历日期，结束日期转换为次日零点；列表与导出共用参数生成器。导出从第 0 页顺序查询、固定 revision，每页 20 条，上限 5,000 条，不新增导出 API 或权限，不跨连接聚合；错误不下载部分数据。见[流程](../frontend/client-workspace-layout.md)。

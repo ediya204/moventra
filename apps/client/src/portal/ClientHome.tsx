@@ -411,7 +411,6 @@ export default function ClientHome() {
               {pathname.startsWith('/portal/funds/manual')&&<FundsNavigation basePath="/portal/funds" section="manual"/>}
               {pathname.startsWith('/portal/funds/manual')&&customer&&<ManualFunds key={customer.id+pathname} customerId={customer.id} basePath="/portal/funds/manual" orderId={pathname.split('/orders/')[1]}/>}
               {pathname.startsWith("/portal/funds") && !pathname.startsWith('/portal/funds/manual') && customer && <CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/funds" orderId={pathname.split('/orders/')[1]}/> }
-              {pathname === "/portal/transactions" && customer && <ProductionWallet key={`transactions:${customer.id}`} customerId={customer.id} reload={reload} showWallet={false}/>}
               {pathname === "/portal/messages" && <Paper variant="outlined" sx={{p:{xs:3,md:5}}}><Stack alignItems="center" spacing={2} sx={{maxWidth:520,mx:'auto',textAlign:'center'}}>
                 <Box sx={{color:'primary.main'}}><Icon icon="solar:bell-linear" width={36}/></Box>
                 <Typography variant="h6">消息服务尚未开放</Typography><Typography color="text.secondary" variant="body2">当前可在交易记录与开卡订单中查询办理进度。这里尚未提供消息列表或已读状态。</Typography>

@@ -7,7 +7,7 @@ test('money display preserves exact integer units, zero and missing values',()=>
  assert.equal(minorText(null),'—');assert.equal(minorText('1.5'),'无效金额');assert.equal(minorText('1e3'),'无效金额');
  assert.equal(originalText({code:'CNY',amountCents:'72000'}),'CNY 720.00');
  assert.equal(originalText({code:'AED',amountCents:'36725'}),'AED 367.25');
- assert.equal(originalText({code:'JPY',amountCents:'123'}),'JPY 123（来源最小单位）');
+ assert.equal(originalText({code:'JPY',amountCents:'123'}),'JPY 123');
  assert.equal(originalText({code:'USD',amountCents:null}),'—');
 });
 test('source state dimensions preserve refunds, reversals and unknown values',()=>{

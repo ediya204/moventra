@@ -39,6 +39,7 @@
 - [卡片详情与CVV发布（2026-09-19）](../deploy/2026-09-19-card-detail-cvv-release.md) — `deploy/2026-09-19-card-detail-cvv-release.md`
 - [卡片列表精简发布（2026-09-19）](../deploy/2026-09-19-card-list-refinement-release.md) — `deploy/2026-09-19-card-list-refinement-release.md`
 - [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
+- [2026-09-19 交易页面发布](../deploy/2026-09-19-transaction-ui-release.md) — `deploy/2026-09-19-transaction-ui-release.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
 
 ## deploy/blnk

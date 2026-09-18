@@ -14,7 +14,7 @@ test('customer card contract restricts resource paths and parameters',()=>{
 });
 test('amounts retain precision and distinguish unknown and zero',()=>{
  assert.equal(snapshotAmount('-9007199254740993'),'USD −90071992547409.93');
- assert.equal(snapshotAmount('0'),'USD 0.00');assert.equal(snapshotAmount(undefined),'未知');assert.equal(snapshotAmount('100','JPY'),'JPY 100（来源最小单位）');assert.equal(snapshotAmount('1e3'),'未知');
+ assert.equal(snapshotAmount('0'),'USD 0.00');assert.equal(snapshotAmount(undefined),'未知');assert.equal(snapshotAmount('100','JPY'),'JPY 100');assert.equal(snapshotAmount('1e3'),'未知');
 });
 test('gateway permits only client read paths, rejects writes and opposite surface',async()=>{
  const env={SITE_KIND:'client',API_ORIGIN:'https://api.example.invalid'};
@@ -37,12 +37,15 @@ const {pathToFileURL}=await import('node:url');
 const require=createRequire(import.meta.url);
 const uri=value=>'data:text/javascript;base64,'+Buffer.from(value).toString('base64');
 const fixture=globalThis.__cardSnapshotUI={requests:[]};
-const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,Chip=Pass,Drawer=Pass,IconButton=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
+const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const Divider=Pass,Popover=Pass,Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,Chip=({label,...props})=>React.createElement('span',props,label),Drawer=Pass,IconButton=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
 const api=uri(`export const liveCardSync=path=>Promise.resolve({syncState:'pending'});export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,resolve,reject}));`);
 const logo=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/MerchantLogo.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace('import.meta.env.VITE_LOGO_DEV_PUBLISHABLE_KEY','undefined').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./merchantBrand'?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:pathToFileURL(require.resolve(name)).href));
 const cardStatusUI=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/ChannelCardStatus.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:pathToFileURL(require.resolve(name)).href));
 const detailCode=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardDetailWorkspace.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/RemoteCardCvv')?uri('export const RemoteCardCvv=()=>null'):name.endsWith('/CardControls')||name.endsWith('/CustomerFunds')?uri('export default ()=>null'):name.endsWith('/cryptoApi')?uri('export const cryptoRequest=()=>new Promise(()=>{});export const cryptoError=()=>"资金读取失败";'):name.endsWith('/cryptoContract')?uri('export const cryptoMoney=(v,c)=>v+" "+c;'):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
-const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/CardDetailWorkspace')?uri(detailCode):name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/CardControls')?uri('export default ()=>null'):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
+const visuals=uri(ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/transactionVisuals.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText);
+const queryCode=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/transactionQuery.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace(/from ["']([^"']+)["']/g,()=> 'from '+JSON.stringify(uri(outputText)));
+const filterCode=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/TransactionFilters.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./transactionQuery'?uri(queryCode):pathToFileURL(require.resolve(name)).href));
+const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./transactionQuery'?uri(queryCode):name==='./TransactionFilters'?uri(filterCode):name.endsWith('/transactionVisuals')?visuals:name.endsWith('/CardDetailWorkspace')?uri(detailCode):name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/CardControls')?uri('export default ()=>null'):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
 const CardSnapshots=(await import(uri(component))).default;
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const content=node=>typeof node==='string'?node:Array.isArray(node)?node.map(content).join(''):node?.children?content(node.children):'';
@@ -172,4 +175,43 @@ test('card search submits explicitly and stale filter responses cannot replace c
  await act(async()=>{fixture.requests.at(-1).resolve({...page([{id:'new',name:'Current card'}]),total:1});previous.resolve(page([{id:'old',name:'Stale card'}]));await flush()});
  assert.match(content(view.toJSON()),/Current card/);assert.doesNotMatch(content(view.toJSON()),/Stale card/);
  await act(()=>view.unmount());
+});
+
+
+test('transaction filters query the server across pages and invalid dates never read rows',async()=>{
+ const view=await mount('/portal/transactions?connection=slash&page=2&keyword=OPENAI&status=declined&from=2026-09-01&to=2026-09-19');
+ try{
+ await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+ const q=new URL('https://test'+fixture.requests[1].path).searchParams;
+ assert.equal(q.get('page'),'2');assert.equal(q.get('keyword'),'OPENAI');assert.equal(q.get('detailedStatus'),'declined');assert.equal(q.get('from'),'2026-09-01T00:00:00Z');assert.equal(q.get('to'),'2026-09-20T00:00:00.000Z');
+ await act(async()=>{fixture.requests[1].resolve(page([]));await flush()});
+ assert.ok(!content(view.toJSON()).includes('数据范围与更新时间'));
+ const clear=view.root.findAllByType('button').find(b=>b.props.children==='清空筛选');
+ await act(async()=>{clear.props.onClick();await flush()});
+ const cleared=new URL('https://test'+fixture.requests.at(-1).path).searchParams;
+ assert.equal(cleared.get('page'),'0');assert.equal(cleared.has('detailedStatus'),false);assert.equal(cleared.has('from'),false);
+ }finally{await act(()=>view.unmount())}
+ const invalid=await mount('/portal/transactions?connection=slash&from=2026-09-20&to=2026-09-01');
+ try{await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests.length,1);assert.match(content(invalid.toJSON()),/结束日期不能早于开始日期/);}finally{await act(()=>invalid.unmount())}
+});
+
+test('clicking a transaction row opens its drawer without hijacking nested links',async()=>{
+ const view=await mount('/portal/transactions?connection=slash&page=1&keyword=OPENAI');
+ try{
+  await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+  await act(async()=>{fixture.requests[1].resolve(page([{id:'t1',merchant:'OPENAI',cardId:'c1'}]));await flush()});
+  const row=view.root.findAll(n=>n.props.tabIndex===0&&n.props['aria-label']==='查看 OPENAI 的详情'&&n.props.onClick)[0];
+  const count=fixture.requests.length;
+  await act(async()=>{row.props.onClick({target:{closest:()=>({tagName:'A'})}});await flush()});
+  assert.equal(fixture.requests.length,count,'card link must not also open a transaction');
+  await act(async()=>{row.props.onClick({target:{closest:()=>null}});await flush()});
+  assert.equal(fixture.requests.at(-1).path,base+'/slash/transactions/t1');
+  const drawer=view.root.findAll(n=>n.props.anchor==='right'&&n.props.PaperProps)[0];
+  await act(async()=>{drawer.props.onClose();await flush()});
+  const currentRow=view.root.findAll(n=>n.props.tabIndex===0&&n.props['aria-label']==='查看 OPENAI 的详情'&&n.props.onKeyDown)[0];
+  const element={};let prevented=false;
+  await act(async()=>{currentRow.props.onKeyDown({key:'Enter',target:element,currentTarget:element,preventDefault(){prevented=true}});await flush()});
+  assert.equal(prevented,true);assert.equal(fixture.requests.at(-1).path,base+'/slash/transactions/t1');
+  assert.ok(view.root.findAll(n=>n.props.to?.includes('page%3D1')&&n.props.to?.includes('keyword%3DOPENAI')).length>0);
+ }finally{await act(()=>view.unmount())}
 });

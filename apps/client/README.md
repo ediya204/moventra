@@ -10,7 +10,7 @@
 
 `/register` 仅做表单预览和校验；通过 Firebase 验证的会话遇到 `403 registration_required` 才通过资料补全调用 Go 注册，常见于首次 Google 登录。注册创建登录用户，不自动开通个人主体、企业、资金账户或运营权限。企业模型保留在后端，当前前端为 V1 个人范围。
 
-本地首页展示正式钱包和最近5笔资金订单，交易与账单页以卡片交易查询及近期资金订单为主，不重复展示钱包，通过资金记录入口查询全部；基础账户与基础交易仅保留在 `/portal/accounts`，默认前50条且没有分页界面。首页卡片按来源显示服务端总数并预览前5张。2026-09-19本批尚未部署，见[首页流程](../../docs/business/funds-center.md#flow-client-overview-001生产首页数据一致性2026-09-19本地修复)。客户卡片通过独立 card-projections 契约读取显式分配范围，不能访问后台 channel-projections；卡片列表按服务端分页，不能与基础账户/交易默认前 50 条的限制混用。完整说明见 [身份与业务开通](../../docs/business/identity-and-production.md)。
+本地首页展示正式钱包和最近5笔资金订单，交易与账单页仅展示卡片交易，提供描述、UTC 日期、单选状态筛选和当前筛选 CSV 导出，资金记录通过独立入口查询；基础账户与基础交易仅保留在 `/portal/accounts`，默认前50条且没有分页界面。首页卡片按来源显示服务端总数并预览前5张。2026-09-19本批尚未部署，见[首页流程](../../docs/business/funds-center.md#flow-client-overview-001生产首页数据一致性2026-09-19本地修复)。客户卡片通过独立 card-projections 契约读取显式分配范围，不能访问后台 channel-projections；卡片列表按服务端分页，不能与基础账户/交易默认前 50 条的限制混用。完整说明见 [身份与业务开通](../../docs/business/identity-and-production.md)。
 
 开发 Demo 路由仅在 DEV 且显式 Demo 配置下可用；对应隔离 Node/SQLite 服务已恢复，使用 `pnpm workspace:dev` 运行合成数据；仅启动前端不提供业务后端或私有数据。生产不打包 Portal 原型。
 

@@ -1,3 +1,4 @@
+import {TransactionStatusChip} from '../components/TransactionStatusChip';
 import {channelOwnerLabel,type ChannelOwnership} from '../components/channelOwnership';
 import {MerchantLogo,LogoAttribution} from '../../../../packages/shared/src/components/MerchantLogo';
 import { useState, type ReactNode } from "react";
@@ -9,7 +10,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Divider,
   Drawer,
   IconButton,
@@ -27,9 +27,6 @@ import {
 import {
   minorText,
   originalText,
-  postingLabels,
-  detailLabels,
-  sourceLabel,
   utcTime,
 } from "../components/cardTransactionFields";
 
@@ -256,17 +253,7 @@ export default function TransactionDrawer({
                   <MenuItem value="UTC">UTC</MenuItem>
                   <MenuItem value="local">本地</MenuItem>
                 </TextField>
-                <Chip
-                  size="small"
-                  label={sourceLabel(t.status, postingLabels)}
-                  color={
-                    t.status === "pending"
-                      ? "warning"
-                      : t.status === "failed"
-                        ? "error"
-                        : "default"
-                  }
-                />
+                <TransactionStatusChip status={t.status} detailedStatus={t.detailedStatus} showSource={false}/>
               </Stack>
               <Typography variant="caption" color="text.secondary">
                 {t.status === "posted" ? "入账日期" : "来源日期"} ·{" "}
@@ -375,7 +362,7 @@ export default function TransactionDrawer({
                         : "— 入账状态未知"}
                 </Field>
                 <Field label="详细状态">
-                  {sourceLabel(t.detailedStatus, detailLabels)}
+                  <TransactionStatusChip status={t.status} detailedStatus={t.detailedStatus} showSource={false}/>
                 </Field>
                 <Field label="商户原始描述 / description">
                   {t.merchantData === undefined ? t.merchant : t.merchantData?.description}
