@@ -149,9 +149,10 @@ type Input struct {
 	Settings  *Settings `json:"settings,omitempty"`
 }
 type Service struct {
-	Pilot  *DepositPilot
-	Ledger *ledger.Service
-	Live   *LiveRuntime
+	Production *ProductionRuntime
+	Pilot      *DepositPilot
+	Ledger     *ledger.Service
+	Live       *LiveRuntime
 }
 
 func New(l *ledger.Service) (*Service, error) {

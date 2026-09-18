@@ -2531,23 +2531,31 @@
                   ]
                 }
               },
-              "network": {
-                "type": "string",
-                "enum": [
-                  "TRON"
-                ]
-              },
               "realWrites": {
                 "type": "boolean",
-                "enum": [
-                  false
-                ]
+                "description": "Per-business and network eligibility must also be checked."
               },
               "quoteSeconds": {
                 "type": "integer",
                 "enum": [
-                  300
+                  60
                 ]
+              },
+              "networks": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "TRC20",
+                    "ERC20"
+                  ]
+                }
+              },
+              "otcEnabled": {
+                "type": "boolean"
+              },
+              "cardTransfersEnabled": {
+                "type": "boolean"
               }
             }
           },

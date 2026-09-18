@@ -29,8 +29,9 @@ func (f *Fault) Error() string            { return f.Code }
 func fault(code string, status int) error { return &Fault{code, status} }
 
 type Service struct {
-	DB     *pgxpool.Pool
-	Ledger *ledger.Service
+	ReadOnly bool
+	DB       *pgxpool.Pool
+	Ledger   *ledger.Service
 }
 
 func (s *Service) NS() string {
@@ -40,7 +41,7 @@ func (s *Service) NS() string {
 	return s.Ledger.Namespace
 }
 func (s *Service) Enabled() bool {
-	return s.Ledger != nil && (!s.Ledger.IsLive() || os.Getenv("MANUAL_FUNDS_ENABLED") == "true")
+	return !s.ReadOnly && s.Ledger != nil && (!s.Ledger.IsLive() || os.Getenv("MANUAL_FUNDS_ENABLED") == "true")
 }
 func (s *Service) Mode() string {
 	if s.Ledger == nil {

@@ -74,3 +74,22 @@ FLOW-FUNDS-PRODUCTION-VIEW：用户要求线上只展示正式资金。首页移
 客户端及运营导航不再展示测试资金入口，旧客户链接跳转正式资金中心、旧后台链接跳转余额查询。生产API与两端网关设`FUNDS_DISPLAY_MODE=production`，拒绝test-wallet/test-funds读写；生产读服务拒绝shadow账本。旧测试数据、额度及订单不删除、不迁入，保留于原独立范围供隔离测试环境查询。
 
 异常恢复沿用真实订单、Blnk引用、原幂等与渠道核验规则。页面只查询，不创建账户或补余额；回退页面展示也不得迁移测试余额。自动化覆盖正式余额、未知USD不伪装0、shadow响应拒绝、跨客户读取、正式只读时写操作拒绝以及网关/源站同时屏蔽测试API。本批已发布；真实客户浏览器会话未验收，自动化与部署证据见[生产展示发布](../../deploy/2026-09-18-production-funds-view.md)。
+
+## FLOW-FUNDS-PRODUCTION-ACTIVATION（2026-09-18）
+
+| 项目 | 本批内容 |
+| --- | --- |
+| 目标/基线 | d4aec90增量，隔离工作树，保留原目录并行卡片改动；正式TRC20与OTC接入 |
+| 用户决策 | OTC两方向0.99，提款/卡充提费用0且后台可改；取消1 USDT验收上限 |
+| 页面关系 | 客户funds/deposit、exchange、history及稳定订单详情；后台crypto费率页和balances余额页 |
+| 业务身份/来源 | 原live_moventra_funds、Cregis客户地址、真实0.1 USDT最终入账订单；不重置、不导入测试额度 |
+| 接口链 | 共享crypto transport→网关→cryptoAPI→ProductionFunds→原通知/TRON最终性/Blnk及journal；地址绑定接口不变 |
+| 状态及操作 | worker健康后OTC可操作，充值最终核验后入账，无试点上限；提款/卡充提仍须各自渠道验收 |
+| 跨端/恢复 | 现有轮询、稳定订单URL、持久幂等；旧受限通知重新核验，重复事件不重复入账 |
+| 权限 | 客户所有权与开户/service检查，后台MFA及read/configure；manual查询独立授权，无默认扩权 |
+| 验收 | 隔离PG覆盖超过1USDT、重复通知、双向0.99、同键重试、配置不重置、MFA/越权及其他能力拒绝；前端生产无额度文案 |
+| 待定决策 | 运营配置账号待用户指定；ERC20供应商支持、真实出金及卡余额/占用/消费退款验收待完成 |
+
+独立FUNDS_PRODUCTION_MODE=prepare/enabled与pilot/full ledger互斥。要求原真实最终入账订单及零期初审计，复用私有TLS连接；不伪造双链或卡片认证清单。configure-production-funds仅一次设置用户指定政策并审计，启动不覆盖后台更改。此profile无出金/Slash writer，原独立Cregis地址申请保留。
+
+正式余额查询从已接通live账本读取，manual ReadOnly保证查询不开放人工写入。显式migrate-manual-funds仅安装016，校验前置版本，不创建余额或授权。133项前端及Go隔离PG race通过；真实渠道与部署另外记录。

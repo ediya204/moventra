@@ -218,3 +218,7 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 ### F-PRODUCTION-VIEW
 
 正式读取原限定充值余额与订单；跨客户404；只读时提款POST拒绝；生产旧测试API返回404且不触达上游；首页仅展示live钱包，USD账户缺失显示未开通，shadow响应拒绝。历史测试金额保留且不进入新账本；本批不执行迁移或资金写入。覆盖见deposit_pilot_test.go、customer-funds.test.mjs和gateway.test.mjs。
+
+## 正式资金分能力接入（2026-09-18）
+
+F-PRODUCTION-ACTIVATION：隔离PG验证超原限额事件恢复、2 USDT入账、重试不重复、0.99双向兑换精度/分录及同键同ID、MFA/越权、只读余额不可人工写入、重跑配置不覆盖后台价格。生产无额度文案测试通过；没有额外真实转账。

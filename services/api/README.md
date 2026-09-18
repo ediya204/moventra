@@ -161,3 +161,7 @@ TRC20限额充值使用`api prepare-deposit-pilot`核验零期初，再开启`DE
 新增017只读状态模型，API启动校验017；显式运行 `api migrate-card-state-sync` 仅应用本迁移。通过 `CARD_SYNC_CONNECTION` 与 `CARD_SYNC_HOOK_CONNECTION` 指定已有连接，运行 `api slash-webhook-enable-card-sync`，实际核验Slash账户及项目钱包匹配后启用。现有Slash worker接收通知并回查；每5秒处理一条，已正式归属卡片超过5分钟后入队补查，积压可能增加延迟，10分钟未核验标为过期。禁用映射恢复原导入显示。详见[流程与限制](../../docs/business/card-state-sync.md)。
 
 `FUNDS_DISPLAY_MODE=production`关闭test-wallet/test-funds读取及写入；crypto GET可读取限定充值的正式账本，POST仍受独立启用限制。此展示切换不执行迁移、不创建期初金额、不修改充值额度。见[生产展示](../../docs/business/funds-center.md)。
+
+## 正式资金分能力接入（2026-09-18）
+
+FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终入账订单、FUNDS_PRODUCTION_DEPOSIT_FEE_MINOR=0；关闭DEPOSIT_PILOT_MODE，复用原TLS账本配置。configure-production-funds只设置一次初始政策；migrate-manual-funds仅016，不授予权限。profile不持有出金/卡片writer。

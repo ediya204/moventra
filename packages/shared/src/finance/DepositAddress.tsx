@@ -4,7 +4,7 @@ import {Link,useLocation} from 'react-router-dom';
 import {QRCodeSVG} from 'qrcode.react';
 import {cryptoRequest,cryptoError} from '../auth/cryptoApi';
 type Event={id:string;amount:string;txHash:string;providerStatus:string;receivedAt:string;state:string;posting:string;error?:string;orderId?:string};
-type Snapshot={address:{network:string;address:string;state:string};events:Event[];postingEnabled:boolean;mode:'observation'|'deposit_pilot';pilot?:{capMinor?:string;remainingMinor?:string;walletMinor?:string;reconciliation?:string}};
+type Snapshot={address:{network:string;address:string;state:string};events:Event[];postingEnabled:boolean;mode:'observation'|'deposit_pilot'|'production';pilot?:{capMinor?:string;remainingMinor?:string;walletMinor?:string;reconciliation?:string}};
 const usdt=(minor:string)=>{const n=BigInt(minor);return `${n/1000000n}.${(n%1000000n).toString().padStart(6,'0')}`};
 export default function DepositAddress({customerId,basePath}:{customerId:string;basePath:string}){
  const [network,setNetwork]=useState('TRC20'),[data,setData]=useState<Snapshot|null>(null),[error,setError]=useState(''),[copied,setCopied]=useState(false),[tick,setTick]=useState(0);
@@ -18,7 +18,7 @@ export default function DepositAddress({customerId,basePath}:{customerId:string;
  const address=network==='TRC20'&&data?.address.state==='completed'?data.address.address:'';
  const nav=[['','总览'],['deposit','USDT 充值'],['fiat','法币充提'],['withdraw','USDT 提款'],['exchange','OTC'],['history','交易记录']];
  return <Stack spacing={3}><Typography variant="h4">资金中心</Typography><Stack direction="row" flexWrap="wrap" useFlexGap spacing={1}>{nav.map(([path,title])=><Button component={Link} key={path} to={basePath+(path?'/'+path:'')} variant={path==='deposit'?'contained':'outlined'}>{title}</Button>)}<Button onClick={()=>setTick(x=>x+1)}>刷新</Button></Stack>
- <Paper variant="outlined" sx={{p:{xs:2,md:3}}}><Stack spacing={3}><Typography variant="h5">USDT 充值</Typography>{data?.postingEnabled?<Alert severity="info">TRC20 充值已开通，当前剩余额度 {usdt(data.pilot?.remainingMinor||'0')} USDT。仅在链上最终确认且记账完成后到账，请勿超额转入。</Alert>:<Alert severity="info">{data?.mode==='deposit_pilot'?'当前暂不接收新的转入，请等待核验或额度确认。':'当前提供地址及渠道记录查询。到账核验与自动入账尚未启用，请勿转入资金。'}</Alert>}
+ <Paper variant="outlined" sx={{p:{xs:2,md:3}}}><Stack spacing={3}><Typography variant="h5">USDT 充值</Typography>{data?.postingEnabled?<Alert severity="info">{data.mode==='production'?'TRC20 正式充值已开通。链上最终确认且记账完成后自动到账。':`TRC20 充值已开通，当前剩余额度 ${usdt(data.pilot?.remainingMinor||'0')} USDT。仅在链上最终确认且记账完成后到账，请勿超额转入。`}</Alert>:<Alert severity="info">{data?.mode==='production'?'充值核验服务正在恢复，请稍后刷新查看。':data?.mode==='deposit_pilot'?'当前暂不接收新的转入，请等待核验或额度确认。':'当前提供地址及渠道记录查询。到账核验与自动入账尚未启用，请勿转入资金。'}</Alert>}
  {data?.pilot?.walletMinor!==undefined&&<Typography>USDT 钱包已入账余额：{usdt(data.pilot.walletMinor)} USDT</Typography>}
  <Stack direction={{xs:'column',sm:'row'}} spacing={2}><TextField label="币种" value="USDT" disabled fullWidth/><TextField select label="网络" value={network} onChange={e=>{setData(null);setCopied(false);setNetwork(e.target.value)}} fullWidth><MenuItem value="TRC20">TRON · TRC20</MenuItem><MenuItem value="ERC20">Ethereum · ERC20（尚未开通）</MenuItem></TextField></Stack>
  {error&&<Alert severity="error">{error}</Alert>}
