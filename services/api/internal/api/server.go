@@ -22,13 +22,14 @@ import (
 )
 
 type Server struct {
-	DepositPilot *cryptofunds.Service
-	Deposits     *depositaddress.Service
-	DB           *pgxpool.Pool
-	Verifier     Verifier
-	Directory    UserDirectory
-	Issuing      *issuing.Service
-	Ledger       *ledger.Service
+	ProductionFunds *cryptofunds.Service
+	DepositPilot    *cryptofunds.Service
+	Deposits        *depositaddress.Service
+	DB              *pgxpool.Pool
+	Verifier        Verifier
+	Directory       UserDirectory
+	Issuing         *issuing.Service
+	Ledger          *ledger.Service
 }
 type principal struct {
 	ID       string

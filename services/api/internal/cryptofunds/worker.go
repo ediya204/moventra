@@ -71,6 +71,9 @@ func (s *Service) Process(ctx context.Context, customer, id string) error {
 	if e != nil {
 		return e
 	}
+	if s.Production != nil && o.Kind != "deposit" && o.Kind != "otc" {
+		return errors.New("production_capability_not_enabled")
+	}
 	if s.Pilot != nil {
 		if customer != s.Pilot.Customer || o.Kind != "deposit" || o.Network != "TRC20" || o.Address != s.Pilot.Address || o.Currency != "USDT" || o.Fee != "0" || (o.State != "processing" && o.State != "completed") {
 			return errors.New("deposit_pilot_scope_rejected")

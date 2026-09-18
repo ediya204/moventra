@@ -173,7 +173,7 @@ func (l *LiveRuntime) coin(ctx context.Context, n NetworkConfig, payout bool) er
 	return conflict("provider_coin_not_enabled")
 }
 func (s *Service) CreateAddresses(ctx context.Context) error {
-	if s.Live == nil {
+	if s.Live == nil || s.Live.Writer == nil {
 		return nil
 	}
 	rows, e := s.Ledger.DB.Query(ctx, `SELECT j.customer_id::text,j.network,j.id::text FROM funds_address_jobs j JOIN customers c ON c.id=j.customer_id WHERE j.namespace=$1 AND j.state='queued' AND c.onboarding_status='approved' AND c.service_status='active' ORDER BY j.updated_at LIMIT 10`, s.NS())

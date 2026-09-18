@@ -286,3 +286,7 @@ GET 卡片列表/详情在正式项目钱包及运营授权下使用共同当前
 卡片状态命令：POST 同一详情路径 `/actions`，仅接收 `{action:activate|pause|close,expectedStatus:active|paused|inactive,confirmClose:boolean}` 与UUID `Idempotency-Key`。close要求confirmClose=true，closed不允许恢复；禁止透传其他Slash字段。首次202、相同请求200只表示命令已接收，confirmed才是读取渠道已达目标。DTO增加controlsEnabled和cardAction（id/state/targetStatus/error）。客户限本人正式归属卡；后台限admin+MFA+渠道授权+该客户accounts:read，连接必须显式开启controls_enabled。409表示功能未启用、同卡未决命令或幂等冲突；越权404/403。仅Slash适配器PATCH status，其他渠道不继承Slash机制。
 
 生产展示增量：GET crypto及orders允许复用已配置的限定充值正式账本，继承所有权/MFA/独立查询授权；不依赖全量金融执行认证来读取既有余额。该只读能力返回mode=live，executionEligible/realWrites/canOperate=false，POST仍503 crypto_disabled。FUNDS_DISPLAY_MODE=production时test-wallet/test-funds及scopes在网关和源站404，shadow资金服务不可读取。接口路径和金额精度不变。
+
+## 正式资金分能力接入（2026-09-18）
+
+crypto快照capabilities新增otcEnabled/cardTransfersEnabled；前端同时检查客户资格与业务/网络能力。地址mode=production没有试点限额，postingEnabled取worker健康状态。正式余额查询不等于manual enabled=true。

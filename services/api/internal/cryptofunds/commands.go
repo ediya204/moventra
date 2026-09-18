@@ -14,6 +14,14 @@ import (
 // Execute is called inside the same transaction as authorization and audit.
 // It queues all balance mutations; no network operation happens on this path.
 func (s *Service) Execute(ctx context.Context, tx pgx.Tx, customer, actor, key string, admin bool, in Input) (json.RawMessage, error) {
+	if s.Production != nil {
+		if !s.ProductionReady() {
+			return nil, conflict("funds_recovering")
+		}
+		if !admin && in.Action != "otc_quote" && in.Action != "otc_order" {
+			return nil, conflict("capability_not_enabled")
+		}
+	}
 	if _, e := uuid.Parse(key); e != nil {
 		return nil, invalid("idempotency_key_required")
 	}

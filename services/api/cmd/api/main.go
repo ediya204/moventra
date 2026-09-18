@@ -49,6 +49,19 @@ func run() error {
 	if len(os.Args) == 2 && os.Args[1] == "migrate-card-controls" {
 		return database.MigrateCardControls(ctx, pool)
 	}
+	if len(os.Args) == 2 && os.Args[1] == "configure-production-funds" {
+		svc, e := cryptofunds.ProductionFromEnv(pool)
+		if e != nil {
+			return e
+		}
+		if svc == nil {
+			return errors.New("production_configuration_required")
+		}
+		return svc.ConfigureProduction(ctx)
+	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-manual-funds" {
+		return database.MigrateManualFunds(ctx, pool)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-card-state-sync" {
 		return database.MigrateCardStateSync(ctx, pool)
 	}
@@ -254,8 +267,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	production, err := cryptofunds.ProductionFromEnv(pool)
+	if err != nil {
+		return err
+	}
 	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
-	handler := hook.Handler((&api.Server{DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
+	handler := hook.Handler((&api.Server{ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
 	if os.Getenv("CREGIS_SOURCE_ENABLED") == "true" {
 		funding, e := cryptofunds.New(shadowLedger)
 		if e != nil {
@@ -271,6 +288,9 @@ func run() error {
 	server := http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()
+	if production != nil && os.Getenv("FUNDS_PRODUCTION_MODE") == "enabled" {
+		go production.RunProduction(stop)
+	}
 	if pilot != nil && os.Getenv("DEPOSIT_PILOT_MODE") == "enabled" {
 		go pilot.RunDepositPilot(stop)
 	}

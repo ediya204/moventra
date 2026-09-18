@@ -13,6 +13,17 @@ import (
 	"time"
 )
 
+// Formal balance reads do not activate manual money movement.
+func (s *Server) manualService() *manualfunds.Service {
+	svc := &manualfunds.Service{DB: s.DB, Ledger: s.Ledger}
+	if svc.Ledger == nil {
+		if funding, e := s.fundsReadService(); e == nil {
+			svc.Ledger = funding.Ledger
+			svc.ReadOnly = true
+		}
+	}
+	return svc
+}
 func manualFail(w http.ResponseWriter, e error) {
 	var f *manualfunds.Fault
 	if errors.As(e, &f) {
@@ -83,7 +94,7 @@ func (s *Server) manualAPI(w http.ResponseWriter, r *http.Request) {
 		manualFail(w, e)
 		return
 	}
-	svc := &manualfunds.Service{DB: s.DB, Ledger: s.Ledger}
+	svc := s.manualService()
 	var in manualfunds.Input
 	permission := "read"
 	if write {
@@ -262,7 +273,7 @@ func (s *Server) balancesAPI(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "invalid_query")
 		return
 	}
-	svc := &manualfunds.Service{DB: s.DB, Ledger: s.Ledger}
+	svc := s.manualService()
 	tx, e := s.DB.BeginTx(r.Context(), pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
 	if e != nil {
 		manualFail(w, e)
@@ -359,7 +370,7 @@ func (s *Server) balancesAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	// SQL aggregation covers every filtered user, not only the current page.
 	totals := map[string]any{"walletMinor": nil, "heldMinor": nil, "cardsMinor": nil, "totalMinor": nil, "coverage": "ledger_disabled"}
-	if s.Ledger != nil {
+	if svc.Ledger != nil {
 		for i := range out {
 			b := &out[i]
 			if b.CustomerID == "" {
@@ -410,7 +421,7 @@ func (s *Server) balancesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 		result["orders"] = orders
 		result["orderTotal"] = count
-		if s.Ledger != nil {
+		if svc.Ledger != nil {
 			if err := manualLedgerRows(r, tx, svc.NS(), c, currency, page, result); err != nil {
 				manualFail(w, err)
 				return

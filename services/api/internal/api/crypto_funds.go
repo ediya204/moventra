@@ -37,6 +37,9 @@ func (s *Server) cryptoRoutes(mux *http.ServeMux) {
 
 // The pilot's ledger may be queried independently of financial execution.
 func (s *Server) fundsReadService() (*cryptofunds.Service, error) {
+	if s.ProductionFunds != nil {
+		return s.ProductionFunds, nil
+	}
 	svc, e := cryptofunds.New(s.Ledger)
 	if e != nil && s.DepositPilot != nil && s.DepositPilot.Ledger.IsLive() {
 		return s.DepositPilot, nil
@@ -376,7 +379,7 @@ func (s *Server) cryptoAPI(w http.ResponseWriter, r *http.Request) {
 			cryptoFail(w, err)
 			return
 		}
-		out = map[string]any{"cards": cards, "addressJobs": jobs, "networks": svc.Capabilities(config), "canOperate": canOperate && !readOnly, "capabilities": map[string]any{"currencies": []string{"USDT", "USD"}, "networks": []string{"TRC20", "ERC20"}, "realWrites": svc.Live != nil && !readOnly, "quoteSeconds": 60}, "pendingDepositsMinor": map[string]string{"USDT": pendingDeposit, "USD": "0"}, "mode": svc.Mode(), "executionEligible": svc.Live != nil && !readOnly, "customerId": customer, "settings": config, "ledger": snapshot, "orders": orders, "addresses": addresses, "total": total, "page": page}
+		out = map[string]any{"cards": cards, "addressJobs": jobs, "networks": svc.Capabilities(config), "canOperate": canOperate && !readOnly && (svc.Production == nil || svc.ProductionReady()), "capabilities": map[string]any{"currencies": []string{"USDT", "USD"}, "networks": []string{"TRC20", "ERC20"}, "realWrites": svc.Live != nil && !readOnly, "quoteSeconds": 60, "otcEnabled": config.OTCEnabled && !readOnly, "cardTransfersEnabled": svc.Live != nil && svc.Live.Cards != nil && !readOnly}, "pendingDepositsMinor": map[string]string{"USDT": pendingDeposit, "USD": "0"}, "mode": svc.Mode(), "executionEligible": svc.Live != nil && !readOnly, "customerId": customer, "settings": config, "ledger": snapshot, "orders": orders, "addresses": addresses, "total": total, "page": page}
 	}
 	if e == nil && !write {
 		e = svc.Audit(r.Context(), tx, customer, "", p.ID, "read", map[string]string{"path": rest})

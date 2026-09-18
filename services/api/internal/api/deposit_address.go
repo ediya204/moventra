@@ -99,5 +99,10 @@ func (s *Server) depositAddress(w http.ResponseWriter, r *http.Request) {
 	if pilot.Cap != "" {
 		mode = "deposit_pilot"
 	}
-	respond(w, 200, map[string]any{"data": map[string]any{"address": a, "events": events, "postingEnabled": pilot.Enabled, "mode": mode, "pilot": pilot}})
+	postingEnabled := pilot.Enabled
+	if s.ProductionFunds != nil {
+		mode = "production"
+		postingEnabled = s.ProductionFunds.ProductionReady()
+	}
+	respond(w, 200, map[string]any{"data": map[string]any{"address": a, "events": events, "postingEnabled": postingEnabled, "mode": mode, "pilot": pilot}})
 }

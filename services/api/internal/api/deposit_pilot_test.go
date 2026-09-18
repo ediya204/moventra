@@ -192,4 +192,94 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 	if e != nil || len(detail) != 1 || detail[0].Posting != "posted" {
 		t.Fatal("late event detail regressed", detail, e)
 	}
+	// Switch the verified live ledger to production without resetting its balance.
+	s.Pilot = nil
+	s.Production = &cryptofunds.ProductionRuntime{}
+	var anchor string
+	if e = db.QueryRow(ctx, `SELECT id::text FROM crypto_orders WHERE state='completed' LIMIT 1`).Scan(&anchor); e != nil {
+		t.Fatal(e)
+	}
+	t.Setenv("FUNDS_PRODUCTION_EVIDENCE", anchor)
+	if e = s.ConfigureProduction(ctx); e != nil {
+		t.Fatal(e)
+	}
+	if e = s.RunProductionOnce(ctx); e != nil {
+		t.Fatal(e)
+	}
+	// The previously capped 0.6 event now settles; a 2 USDT transfer is accepted.
+	add(strings.Repeat("7", 64), "2", address, "195", token, "1")
+	if e = s.RunProductionOnce(ctx); e != nil {
+		t.Fatal(e)
+	}
+	snap, e := l.Snapshot(ctx, personal)
+	if e != nil || snap.Totals["USDT"] != "3600000" {
+		t.Fatal(snap, e)
+	}
+	if e = s.RunProductionOnce(ctx); e != nil {
+		t.Fatal(e)
+	}
+	snap, e = l.Snapshot(ctx, personal)
+	if e != nil || snap.Totals["USDT"] != "3600000" {
+		t.Fatal("replayed production deposit", snap, e)
+	}
+	handler = (&Server{DB: db, Verifier: fakeVerifier{}, Directory: &fakeDirectory{}, ProductionFunds: s}).Handler()
+	check("GET", "/admin-api/v1/balances?currency=USDT", "staff", 403)
+	exec(`INSERT INTO manual_funds_grants(user_id,scope,permission) VALUES('00000000-0000-0000-0000-000000000003',$1,'read')`, personal)
+	body = check("GET", "/admin-api/v1/balances/"+personal+"?currency=USDT", "staff", 200)
+	if !strings.Contains(body, `"walletMinor":"3600000"`) || !strings.Contains(body, `"enabled":false`) || !strings.Contains(body, `"mode":"live"`) {
+		t.Fatal(body)
+	}
+	check("GET", "/admin-api/v1/balances?currency=USDT", "staff-no-mfa", 403)
+	check("GET", "/client-api/v1/customers/"+personal+"/crypto", "bob", 404)
+	request := func(path string, in any, key string, want int) json.RawMessage {
+		t.Helper()
+		b, _ := json.Marshal(in)
+		r := httptest.NewRequest("POST", "/client-api/v1/customers/"+personal+"/crypto/"+path, strings.NewReader(string(b)))
+		r.Header.Set("Authorization", "Bearer alice")
+		r.Header.Set("Content-Type", "application/json")
+		r.Header.Set("Idempotency-Key", key)
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+		if w.Code != want {
+			t.Fatalf("%s %d %s", path, w.Code, w.Body)
+		}
+		var out struct{ Data json.RawMessage }
+		json.Unmarshal(w.Body.Bytes(), &out)
+		return out.Data
+	}
+	for _, leg := range []struct{ currency, amount, receive string }{{"USDT", "1000000", "99"}, {"USD", "99", "980100"}} {
+		raw := request("otc/quotes", map[string]string{"currency": leg.currency, "amountMinor": leg.amount}, uuid.NewString(), 200)
+		var q cryptofunds.Quote
+		if json.Unmarshal(raw, &q) != nil || q.Receive != leg.receive || q.Rate != "0.99" {
+			t.Fatal(string(raw))
+		}
+		key := uuid.NewString()
+		raw = request("otc/orders", map[string]string{"quoteId": q.ID}, key, 200)
+		again := request("otc/orders", map[string]string{"quoteId": q.ID}, key, 200)
+		var firstOrder, secondOrder cryptofunds.Order
+		json.Unmarshal(raw, &firstOrder)
+		json.Unmarshal(again, &secondOrder)
+		if firstOrder.ID == "" || firstOrder.ID != secondOrder.ID {
+			t.Fatal("duplicate OTC order")
+		}
+		if e = s.RunProductionOnce(ctx); e != nil {
+			t.Fatal(e)
+		}
+	}
+	snap, e = l.Snapshot(ctx, personal)
+	if e != nil || snap.Totals["USDT"] != "3580100" || snap.Totals["USD"] != "0" {
+		t.Fatal("production OTC legs", snap, e)
+	}
+	request("withdrawals/quotes", map[string]string{"currency": "USDT", "amountMinor": "1"}, uuid.NewString(), 409)
+	request("cards/quotes", map[string]string{"currency": "USD", "amountMinor": "1"}, uuid.NewString(), 409)
+	// Re-running activation must preserve subsequent admin terms and all balances.
+	exec(`UPDATE crypto_settings SET data=jsonb_set(data,'{usdtToUsd}','"0.98"') WHERE namespace=$1`, ns)
+	if e = s.ConfigureProduction(ctx); e != nil {
+		t.Fatal(e)
+	}
+	var price string
+	if e = db.QueryRow(ctx, `SELECT data->>'usdtToUsd' FROM crypto_settings WHERE namespace=$1`, ns).Scan(&price); e != nil || price != "0.98" {
+		t.Fatal(price, e)
+	}
+
 }
