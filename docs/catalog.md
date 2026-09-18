@@ -144,6 +144,7 @@
 ## docs/integrations
 
 - [Blnk 用户钱包与多卡分户接入](integrations/blnk.md) — `docs/integrations/blnk.md`
+- [Cregis 接入：协议基础与待接线范围](integrations/cregis.md) — `docs/integrations/cregis.md`
 - [Slash 白名单问题：处理状态与复用规则](integrations/slash-allowlist.md) — `docs/integrations/slash-allowlist.md`
 - [Slash × Moventra × Blnk 集成调查与实施方案](integrations/slash-blnk-plan-2026-09-18.md) — `docs/integrations/slash-blnk-plan-2026-09-18.md`
 - [Slash Webhook、API 来源持久化与 Blnk 可靠衔接](integrations/slash-persistence-design-2026-09-18.md) — `docs/integrations/slash-persistence-design-2026-09-18.md`
