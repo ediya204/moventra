@@ -35,6 +35,7 @@
 - [生产资金展示发布（2026-09-18）](../deploy/2026-09-18-production-funds-view.md) — `deploy/2026-09-18-production-funds-view.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
 - [Moventra completed-session release — 2026-09-18](../deploy/2026-09-18-session-consolidation.md) — `deploy/2026-09-18-session-consolidation.md`
+- [卡片中心布局与状态发布](../deploy/2026-09-19-card-center-release.md) — `deploy/2026-09-19-card-center-release.md`
 - [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
 

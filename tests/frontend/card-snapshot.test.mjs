@@ -40,7 +40,8 @@ const fixture=globalThis.__cardSnapshotUI={requests:[]};
 const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,Chip=Pass,Drawer=Pass,IconButton=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
 const api=uri(`export const liveCardSync=path=>Promise.resolve({syncState:'pending'});export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,resolve,reject}));`);
 const logo=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/MerchantLogo.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace('import.meta.env.VITE_LOGO_DEV_PUBLISHABLE_KEY','undefined').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./merchantBrand'?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:pathToFileURL(require.resolve(name)).href));
-const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/CardControls')?uri('export default ()=>null'):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
+const cardStatusUI=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/ChannelCardStatus.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:pathToFileURL(require.resolve(name)).href));
+const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/CardControls')?uri('export default ()=>null'):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
 const CardSnapshots=(await import(uri(component))).default;
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const content=node=>typeof node==='string'?node:Array.isArray(node)?node.map(content).join(''):node?.children?content(node.children):'';
@@ -136,4 +137,37 @@ test('sync command has an exact path and honest freshness labels',async()=>{
  assert.equal((await handle(request('GET'),env,upstream)).status,405);
  assert.equal((await handle(request('POST','https://other.test'),env,upstream)).status,403);
  assert.equal((await handle(request(),{...env,SITE_KIND:'admin'},upstream)).status,404);assert.equal(calls,1);
+});
+
+test('card center filters server-side across pages, preserves detail context and resets filters',async()=>{
+ const view=await mount('/portal/cards?connection=slash&page=1&keyword=team&cardStatus=paused&cardSort=name');
+ await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+ assert.match(fixture.requests[1].path,/page=1&revision=r1&keyword=team&cardStatus=paused/);
+ assert.ok(!fixture.requests[1].path.includes('cardSort'),'page sorting does not invent an API parameter');
+ await act(async()=>{fixture.requests[1].resolve(page([{id:'z',name:'Zulu',cardStatus:'paused'},{id:'a',name:'Alpha',cardStatus:'paused'}]));await flush()});
+ const text=content(view.toJSON());assert.ok(text.indexOf('Alpha')<text.indexOf('Zulu'));assert.match(text,/找到 25 张卡片 · 本页 2 张/);
+ const detail=view.root.findAllByType('button').find(b=>b.props.children==='详情与交易');
+ const back=new URL('https://test'+detail.props.to).searchParams.get('back');assert.match(back,/cardStatus=paused/);assert.match(back,/cardSort=name/);
+ const status=view.root.findAll(n=>n.props.label==='卡片状态'&&n.props.onChange)[0];
+ await act(async()=>{status.props.onChange({target:{value:'active'}});await flush()});
+ assert.match(fixture.requests.at(-1).path,/page=0&revision=r1&keyword=team&cardStatus=active/);
+ await act(async()=>{fixture.requests.at(-1).resolve({...page([]),total:0});await flush()});assert.match(content(view.toJSON()),/没有符合条件的卡片/);
+ const reset=view.root.findAllByType('button').find(b=>b.props.children==='清空筛选');
+ await act(async()=>{reset.props.onClick();await flush()});
+ assert.ok(fixture.requests.at(-1).path.endsWith('cards?page=0&revision=r1'));
+ await act(()=>view.unmount());
+});
+
+test('card search submits explicitly and stale filter responses cannot replace current results',async()=>{
+ const view=await mount('/portal/cards?connection=slash');
+ await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+ const previous=fixture.requests[1];
+ const search=view.root.findAll(n=>n.props.label==='搜索卡名、尾号或卡片 ID'&&n.props.onChange)[0];
+ const count=fixture.requests.length;
+ await act(()=>search.props.onChange({target:{value:' 2047 '}}));assert.equal(fixture.requests.length,count);
+ await act(async()=>{view.root.findByType('form').props.onSubmit({preventDefault(){}});await flush()});
+ assert.match(fixture.requests.at(-1).path,/keyword=2047/);
+ await act(async()=>{fixture.requests.at(-1).resolve({...page([{id:'new',name:'Current card'}]),total:1});previous.resolve(page([{id:'old',name:'Stale card'}]));await flush()});
+ assert.match(content(view.toJSON()),/Current card/);assert.doesNotMatch(content(view.toJSON()),/Stale card/);
+ await act(()=>view.unmount());
 });

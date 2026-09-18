@@ -83,7 +83,7 @@ export default function CardIssuing({
   const id = pathname.split("/").at(-1)!;
   return (
     <Stack spacing={3}>
-      <Stack direction="row" gap={1} flexWrap="wrap">
+      {pathname !== "/portal/cards" && <Stack direction="row" gap={1} flexWrap="wrap">
         <Button component={Link} to="/portal/cards/new" variant="contained">
           开卡
         </Button>
@@ -93,7 +93,7 @@ export default function CardIssuing({
         <Button component={Link} to="/portal/cards">
           卡片中心
         </Button>
-      </Stack>
+      </Stack>}
       {pathname === "/portal/cards/new" ? (
         <Checkout
           key={customerId}
