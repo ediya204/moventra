@@ -173,3 +173,39 @@ func FixtureAddress(identity string) string {
 	}
 	return s
 }
+
+// CheckReady checks a fresh solidified head without fetching or sending funds.
+func (c *Client) CheckReady(ctx context.Context) error {
+	req, e := http.NewRequestWithContext(ctx, "POST", c.URL+"/walletsolidity/getnowblock", strings.NewReader("{}"))
+	if e != nil {
+		return ErrEvidence
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if c.Key != "" {
+		req.Header.Set("TRON-PRO-API-KEY", c.Key)
+	}
+	res, e := c.HTTP.Do(req)
+	if e != nil {
+		return ErrEvidence
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return ErrEvidence
+	}
+	var head struct {
+		Header struct {
+			Data struct {
+				Timestamp int64 `json:"timestamp"`
+				Number    int64 `json:"number"`
+			} `json:"raw_data"`
+		} `json:"block_header"`
+	}
+	if json.NewDecoder(io.LimitReader(res.Body, 4<<20)).Decode(&head) != nil || head.Header.Data.Number <= 0 {
+		return ErrEvidence
+	}
+	age := time.Since(time.UnixMilli(head.Header.Data.Timestamp))
+	if age < -time.Minute || age > 10*time.Minute {
+		return ErrEvidence
+	}
+	return nil
+}

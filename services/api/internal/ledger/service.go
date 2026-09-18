@@ -169,6 +169,9 @@ func (s *Service) Provision(ctx context.Context, r AccountSpec) (Account, error)
 	if a.BalanceID != "" && a.BalanceID != b.ID {
 		return a, ErrConflict
 	}
+	if s.IsLive() && a.BalanceID == "" && (b.Amount == nil || b.InflightDebit == nil || b.Amount.Sign() != 0 || b.InflightDebit.Sign() != 0) {
+		return a, errors.New("live_account_opening_must_be_zero")
+	}
 	a.BalanceID = b.ID
 	_, err = tx.Exec(ctx, `UPDATE ledger_accounts SET blnk_balance_id=$1 WHERE id=$2`, b.ID, a.ID)
 	if err != nil {

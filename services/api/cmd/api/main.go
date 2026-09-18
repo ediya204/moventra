@@ -52,6 +52,19 @@ func run() error {
 		}
 		return database.MigrateDepositAddresses(ctx, pool)
 	}
+	if len(os.Args) == 2 && os.Args[1] == "prepare-deposit-pilot" {
+		if os.Getenv("DEPOSIT_PILOT_MODE") != "prepare" {
+			return errors.New("deposit_pilot_prepare_mode_required")
+		}
+		svc, e := cryptofunds.DepositPilotFromEnv(pool)
+		if e != nil {
+			return e
+		}
+		if svc == nil {
+			return errors.New("deposit_pilot_configuration_required")
+		}
+		return svc.PrepareDepositPilot(ctx)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "import-deposit-address" {
 		svc, e := depositaddress.FromEnv(pool)
 		if e != nil {
@@ -227,8 +240,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	pilot, err := cryptofunds.DepositPilotFromEnv(pool)
+	if err != nil {
+		return err
+	}
 	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
-	handler := hook.Handler((&api.Server{Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
+	handler := hook.Handler((&api.Server{DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
 	if os.Getenv("CREGIS_SOURCE_ENABLED") == "true" {
 		funding, e := cryptofunds.New(shadowLedger)
 		if e != nil {
@@ -244,6 +261,9 @@ func run() error {
 	server := http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()
+	if pilot != nil && os.Getenv("DEPOSIT_PILOT_MODE") == "enabled" {
+		go pilot.RunDepositPilot(stop)
+	}
 	if os.Getenv("SLASH_API_KEY") != "" {
 		go hook.Run(stop)
 	}

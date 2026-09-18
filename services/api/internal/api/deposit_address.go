@@ -90,5 +90,14 @@ func (s *Server) depositAddress(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "crypto_unavailable")
 		return
 	}
-	respond(w, 200, map[string]any{"data": map[string]any{"address": a, "events": events, "postingEnabled": false, "mode": "observation"}})
+	pilot, e := s.DepositPilot.DepositPilotStatus(r.Context(), customer)
+	if e != nil {
+		fail(w, 503, "crypto_unavailable")
+		return
+	}
+	mode := "observation"
+	if pilot.Cap != "" {
+		mode = "deposit_pilot"
+	}
+	respond(w, 200, map[string]any{"data": map[string]any{"address": a, "events": events, "postingEnabled": pilot.Enabled, "mode": mode, "pilot": pilot}})
 }

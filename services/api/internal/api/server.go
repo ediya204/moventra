@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"moventra.local/api/internal/cryptofunds"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,12 +21,13 @@ import (
 )
 
 type Server struct {
-	Deposits  *depositaddress.Service
-	DB        *pgxpool.Pool
-	Verifier  Verifier
-	Directory UserDirectory
-	Issuing   *issuing.Service
-	Ledger    *ledger.Service
+	DepositPilot *cryptofunds.Service
+	Deposits     *depositaddress.Service
+	DB           *pgxpool.Pool
+	Verifier     Verifier
+	Directory    UserDirectory
+	Issuing      *issuing.Service
+	Ledger       *ledger.Service
 }
 type principal struct {
 	ID       string

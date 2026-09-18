@@ -71,6 +71,14 @@ func (s *Service) Process(ctx context.Context, customer, id string) error {
 	if e != nil {
 		return e
 	}
+	if s.Pilot != nil {
+		if customer != s.Pilot.Customer || o.Kind != "deposit" || o.Network != "TRC20" || o.Address != s.Pilot.Address || o.Currency != "USDT" || o.Fee != "0" || (o.State != "processing" && o.State != "completed") {
+			return errors.New("deposit_pilot_scope_rejected")
+		}
+		if e = s.pilotCapacity(ctx, tx, "0"); e != nil {
+			return e
+		}
+	}
 	if o.Kind == "card_transfer" {
 		return s.processCard(ctx, tx, o)
 	}

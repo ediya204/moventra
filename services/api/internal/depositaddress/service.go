@@ -225,6 +225,10 @@ func (s *Service) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Event struct {
+	State          string    `json:"state"`
+	Posting        string    `json:"posting"`
+	Error          string    `json:"error,omitempty"`
+	OrderID        string    `json:"orderId,omitempty"`
 	ID             string    `json:"id"`
 	Amount         string    `json:"amount"`
 	TxHash         string    `json:"txHash"`
@@ -233,7 +237,7 @@ type Event struct {
 }
 
 func (s *Service) Events(ctx context.Context, customer string, page int, event string) ([]Event, error) {
-	rows, e := s.DB.Query(ctx, `SELECT id::text,payload->>'amount',COALESCE(payload->>'txid',''),payload->>'status',received_at FROM (SELECT DISTINCT ON(e.external_id) e.* FROM crypto_events e JOIN crypto_addresses a ON a.namespace=e.namespace AND a.connection_id=e.connection_id AND a.project_id=e.project_id AND a.address=e.payload->>'address' AND a.network='TRC20' AND a.mode='live' WHERE e.namespace=$1 AND a.customer_id=$2 AND e.project_id=$3 AND e.kind='deposit' AND e.payload->>'chain_id'='195' AND e.payload->>'token_id'=$4 AND ($6='' OR e.id::text=$6) ORDER BY e.external_id,e.received_at DESC,e.id DESC) recent ORDER BY received_at DESC,id DESC LIMIT 5 OFFSET $5`, s.Namespace, customer, s.Project, Token, page*5, event)
+	rows, e := s.DB.Query(ctx, `SELECT recent.id::text,recent.payload->>'amount',COALESCE(recent.payload->>'txid',''),recent.payload->>'status',recent.received_at,recent.state,COALESCE(o.data->>'postingStatus','not_posted'),recent.error,COALESCE(o.id::text,'') FROM (SELECT DISTINCT ON(e.external_id) e.* FROM crypto_events e JOIN crypto_addresses a ON a.namespace=e.namespace AND a.connection_id=e.connection_id AND a.project_id=e.project_id AND a.address=e.payload->>'address' AND a.network='TRC20' AND a.mode='live' WHERE e.namespace=$1 AND a.customer_id=$2 AND e.project_id=$3 AND e.kind='deposit' AND e.payload->>'chain_id'='195' AND e.payload->>'token_id'=$4 AND ($6='' OR e.id::text=$6) ORDER BY e.external_id,e.received_at DESC,e.id DESC) recent LEFT JOIN crypto_orders o ON o.id=recent.order_id AND o.namespace=recent.namespace AND o.customer_id=$2 ORDER BY recent.received_at DESC,recent.id DESC LIMIT 5 OFFSET $5`, s.Namespace, customer, s.Project, Token, page*5, event)
 	if e != nil {
 		return nil, e
 	}
@@ -241,7 +245,7 @@ func (s *Service) Events(ctx context.Context, customer string, page int, event s
 	out := []Event{}
 	for rows.Next() {
 		var v Event
-		if e = rows.Scan(&v.ID, &v.Amount, &v.TxHash, &v.ProviderStatus, &v.ReceivedAt); e != nil {
+		if e = rows.Scan(&v.ID, &v.Amount, &v.TxHash, &v.ProviderStatus, &v.ReceivedAt, &v.State, &v.Posting, &v.Error, &v.OrderID); e != nil {
 			return nil, e
 		}
 		out = append(out, v)
