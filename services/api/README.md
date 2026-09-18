@@ -153,3 +153,5 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 新增016迁移（订单、幂等命令、独立权限、不可变审计），API不自动迁移，readiness未强制新增依赖。`manual_funds_grants`默认为空，逐客户或全局read/create/review/execute须受控配置，现有admin身份不自动获得资金权限。不得在生产盲跑全量迁移。
 
 复用ledger配置；shadow仅隔离验证，live额外要求`MANUAL_FUNDS_ENABLED=true`且不绕开已有live验收/Cregis/期初依赖。独立`go run ./cmd/manual-funds-worker drain`或`run`恢复持久订单，镜像包含二进制但不自动启动；不调用银行、Slash或链上付款。线下付款需人员另行付款并提交结果凭证。参见[机器契约](docs/manual-funds.openapi.json)及[完整流程/测试/交接](../../docs/business/platform-advance.md)。
+
+TRC20限额充值候选使用`api prepare-deposit-pilot`核验零期初，再开启`DEPOSIT_PILOT_MODE=enabled`；API内部每15秒执行指定客户/地址的最终性及入账任务，无出金writer。配置、限额、恢复及关闭见[地址流程](../../docs/business/deposit-address-integration.md)。不设置全量资金认证标志，不自动执行数据库迁移。

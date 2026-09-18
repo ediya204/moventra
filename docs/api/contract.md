@@ -276,3 +276,5 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 订单 GET `/{admin|client}-api/v1/customers/{customerId}/manual-funds` 及 `/orders/{orderId}`；后台 POST `/orders` 和单号后的 approve/reject/cancel/confirm_payment/payment_failed/reconcile。USD金额使用最小单位字符串，创建带凭证引用，动作带 revision 与幂等键。冲正新建关联原单，不提供直接余额覆盖。后台要求MFA、独立read及对应create/review/execute授权；客户仅查询本人且裁剪内部字段。网关按站点、精确路径与方法放行，跨域POST拒绝。
 
 缺少016迁移/服务配置时此能力不可用；代码已发布，生产016迁移及资金授权未启用。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。
+
+地址GET限定验收增量：mode可为deposit_pilot；postingEnabled反映指定客户额度、处理任务健康及账本一致性，不能用它推断提款/兑换已启用。pilot返回capMinor、remainingMinor、walletMinor（仅核对一致时）、reconciliation；全部金额为USDT六位精度的最小单位整数字符串。events新增state、posting、error、orderId，只有posting=posted表示入账。跨客户调用无变化，非验收客户无余额/额度信息。详见[地址流程](../business/deposit-address-integration.md)。

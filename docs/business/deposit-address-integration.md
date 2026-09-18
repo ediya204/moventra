@@ -27,3 +27,29 @@ GET默认返回最近5条本人地址充值通知；page按5条分页，event为
 未完成：真实充值、链上最终性、自动入账、真实浏览器剪贴板及链上转账验收。页面明确显示此状态；不得用合成回调制造真实交易记录。
 
 依据：[Cregis创建地址](https://developers.cregis.com/en/reference/waas-api/createAddress/)、[更新回调](https://developers.cregis.com/en/reference/waas-api/updateAddress/)。
+
+## TRC20 限额入账验收（2026-09-18，候选）
+
+FLOW-FUNDS-DEPOSIT-PILOT 衔接前述地址观察流程。用户已明确本次真实充值上限 **1 USDT**，实际转入由用户完成；完整资金启用认证仍未完成，不设置全量 FUNDS_LIVE_ACTIVATION。
+
+| 项目 | 本批范围 |
+| --- | --- |
+| 目标及范围 | 已开户指定客户、已绑定TRC20地址，渠道通知到链上最终确认、Blnk记账和客户详情恢复；累计不超过1000000最小单位 |
+| 基线 | 标准地址45a0d67，合并余额查询60d3295；独立候选分支，不覆盖原工作区 |
+| 页面关系 | `/portal/funds/deposit` → `?event=<id>` → 返回充值；沿用5秒轮询，切换网络清空地址及状态 |
+| 业务身份 | namespace/customer/connection/project/address；经济幂等键为network/token/txHash/transferIndex，沿用crypto_postings和ledger引用 |
+| 数据依据 | Cregis验签通知持久化；TRON solidity节点核验成功收据、USDT合约、收款地址、金额及唯一Transfer；Blnk与本地journal核对后显示钱包余额 |
+| 接口链 | 既有cryptoRequest → 同域白名单 → deposit-addresses handler →本人授权→地址、通知关联订单、限定账本状态；不新增浏览器执行接口 |
+| 状态及操作 | received→verified→processing→posted；无最终性不入账，累计超限保留错误及通知；账本响应未知按同一引用恢复，额度包括待记账订单，不重复扣额度 |
+| 跨端变化 | 客户最近记录及详情显示链确认/记账结果，当前钱包余额只在本地journal与Blnk一致时显示；后台余额查询使用既有权限，不开放人工批准此自动充值 |
+| 权限 | 固定客户与固定地址，开启开户资格检查；无Cregis出金writer，无卡接口，ERC20/OTC/提款不因验收开启；换客户ID继续拒绝 |
+| 验收 | 隔离PostgreSQL并发、多CID同交易、0.6+0.6超限、0.6+0.4达上限、错误网络/代币/地址/未最终确认、Blnk响应丢失恢复；真实到账待用户转入 |
+| 待定决策 | 无需提高限额；全量正式资金和其他能力保持各自验收门槛 |
+
+配置：`DEPOSIT_PILOT_MODE=prepare|enabled`，`DEPOSIT_PILOT_CUSTOMER/ADDRESS/CAP_MINOR/EVIDENCE`固定授权范围；上限代码强制≤1000000。`DEPOSIT_PILOT_DEPOSIT_FEE_MINOR=0`必须显式配置，本批免费；其他费用不推定为零。`DEPOSIT_PILOT_TRON_URL=https://api.trongrid.io`限定TRON主网，`TRON_NODE_KEY`可选。`DEPOSIT_PILOT_BLNK_URL/KEY/CA_PEM`使用服务端私网TLS连接，保留证书校验，不迁移测试额度。
+
+先在prepare模式执行`api prepare-deposit-pilot`：核验已绑定地址、客户资格、主网最终确认节点和Blnk身份；创建钱包/对手账户，未绑定的正式账户必须零余额；核对无历史订单和账本操作后记录不可变授权指纹。enabled只接受匹配的零期初审计记录。API进程内限定任务每15秒处理，仅处理授权地址的TRC20通知和指定客户deposit订单；正常HTTP关闭时停止任务。关闭方式为清空DEPOSIT_PILOT_MODE并重新部署，通知继续持久化。未完成订单及占用额度保留，重启复用，不清余额。
+
+GET新增mode=deposit_pilot、postingEnabled和pilot（capMinor、remainingMinor、walletMinor、reconciliation）。超过额度、账本不一致或任务健康检查过期时postingEnabled=false，页面提示勿继续转入；额度是允许自动入账的上限，无法阻止第三方向链地址转入。其他客户仍为observation。事件新增state、posting、error、orderId；只有posting=posted显示已入账。
+
+节点依据：[TRON最终确认接口](https://developers.tron.network/reference/gettransactioninfobyid-1)、[交易所/钱包接入](https://developers.tron.network/docs/exchangewallet-integrate-with-the-tron-network)。部署及真实到账证据单独记录，不能用隔离测试替代。
