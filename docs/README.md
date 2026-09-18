@@ -139,3 +139,5 @@
 - [余额查询与人工出入金](business/platform-advance.md)：人工订单、独立审核与资金预占，真实资金启用边界独立验证。
 
 - [TRC20限额充值真实入账验收](../deploy/2026-09-18-deposit-pilot.md)：指定客户累计最多1 USDT，已完成0.1 USDT闭环及重启核对。
+
+- [卡片当前状态同步](business/card-state-sync.md)：通知回查、定时补查、手动核对及两端共同状态；[上线证据](../deploy/2026-09-18-card-state-sync.md)。

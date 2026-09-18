@@ -23,6 +23,7 @@
 - [资金运营概览发布记录](../deploy/2026-09-07-operations-overview.md) — `deploy/2026-09-07-operations-overview.md`
 - [余额查询与人工资金代码发布](../deploy/2026-09-18-balance-query-release.md) — `deploy/2026-09-18-balance-query-release.md`
 - [BIN catalogue release — 2026-09-18](../deploy/2026-09-18-bin-catalog-sync.md) — `deploy/2026-09-18-bin-catalog-sync.md`
+- [卡片当前状态同步发布](../deploy/2026-09-18-card-state-sync.md) — `deploy/2026-09-18-card-state-sync.md`
 - [客户端开卡与八个 BIN 目录发布](../deploy/2026-09-18-client-issuing-release.md) — `deploy/2026-09-18-client-issuing-release.md`
 - [已完成改动统一发布清单](../deploy/2026-09-18-completed-work-release.md) — `deploy/2026-09-18-completed-work-release.md`
 - [TRC20 限额充值自动入账发布与验收](../deploy/2026-09-18-deposit-pilot.md) — `deploy/2026-09-18-deposit-pilot.md`

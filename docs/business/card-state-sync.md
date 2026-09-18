@@ -16,7 +16,7 @@
 
 - 设计：已确认；官方卡片 GET 与 Webhook 文档本次复核。
 - 本地实现：017、当前状态读模型、事件回查发布、定时补查、手动同步及两端显示已完成。
-- 自动化：随机本地PostgreSQL全包race通过；129项前端/网关测试通过；两端typecheck/build及Wrangler dry-run通过。真实Firebase/Blnk及登录浏览器业务验收未运行。
+- 自动化：随机本地PostgreSQL全包race通过；130项前端/网关测试通过；两端typecheck/build及Wrangler dry-run通过。真实Firebase/Blnk及登录浏览器业务验收未运行。
 - 真实只读预检：job-daml4lmk1f9s739fdqk0 于15:01 UTC确认指定连接账户/项目钱包与trial_20260918匹配，23张正式归属卡，1467个通知已处理，无待处理积压。尚未将此预检视为实时状态发布验收。
-- 部署：待执行。
+- 部署：API最终cfdd45f及两端Worker已上线；已启用23张正式归属卡并全部完成真实GET。14 active、9 paused，无失败。完整版本、限制及回退见[发布记录](../../deploy/2026-09-18-card-state-sync.md)。
 - 回退：旧导入保留；停用 card_sync_links 可回退导入显示，事件仍可继续保存。部署 API 前必须显式安装017；不自动执行其他迁移。
