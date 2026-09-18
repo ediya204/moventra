@@ -10,9 +10,12 @@
 
 - 设计：用户确认；官方PATCH status及Webhook重复/乱序规则已核验。
 - 本地：018、持久命令、幂等及同卡互斥、执行前归属核验、未知响应只GET恢复、两端确认弹窗与处理中展示。
-- 自动化：133项前端/网关测试通过；两端typecheck/build、Go vet、随机隔离PostgreSQL全包race通过。真实登录浏览器及真实PATCH未测试；发布版本待补录。
+- 自动化：发布合并版本4211d05的136项前端/网关测试、两端typecheck/build、Go vet、随机隔离PostgreSQL全包race通过；两端Wrangler dry-run通过。真实登录浏览器及真实PATCH未测试。
 - 真实渠道：15:29 UTC生产只读预检确认既有连接/通知账户/项目钱包匹配、23张正式归属卡；尚未以此证明真实PATCH成功。
-- 部署：待执行。018必须先安装；controls_enabled默认关闭，部署后仅对既有项目连接核验启用。
+- 部署：018已安装（job-damlj6ajnfac73b4t8ag），checksum 67a02e1e8e2801abda5fdcecdadb67b3d8fb174d9bab32f1c764d42537879457。API4211d05于15:36 UTC上线，后续资金任务859dda3包含相同卡片代码，最终dep-damlle1q582s738pu8v0于15:38:41 UTC live。
+- 前端：客户端版本3e0d49f0-430f-4a4f-b865-55033b247c32，后台ab9be9a6-18a2-417f-a771-e4bea0c6ef7c，构建源4211d05。正式域名资源逐字节匹配构建产物；healthz/readyz 200，未登录actions 401，跨端404。
+- 操作能力：job-damll1ijnfac73b53ssg真实GET核验账户成功后仅开启slash-apexis-op-trial，23张正式归属卡。
+- 最终只读核验：job-damlqth42hec739k879g于15:49:17 UTC确认23张synced、14 active/9 paused、card_control_commands为0。旧周期事件总数137、最后15:36:57 UTC、queued为0；与15:37:46基线一致，超过12分钟没有新增周期任务。旧版本发布交替时产生的记录保留，未删除来源历史。
 
 ## 恢复和回退
 
