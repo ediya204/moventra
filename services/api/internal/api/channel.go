@@ -168,6 +168,10 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	if resource == "cards" {
 		kind = "card"
 	}
+	prefix := ""
+	if !client || walletScoped {
+		prefix = "WITH channel_records AS (SELECT * FROM channel_current_records) "
+	}
 	data := []json.RawMessage{}
 	var total int
 	where := `connection_id=$1 AND revision=$2 AND kind=$3 AND ($4='' OR external_id=$4) AND ($5='' OR data->>'merchant' ILIKE '%'||$5||'%' OR data->>'cardLast4'=$5 OR external_id=$5 OR ($3='card' AND (data->>'cardName' ILIKE '%'||$5||'%' OR data->>'name' ILIKE '%'||$5||'%' OR data->>'last4'=$5))) AND ($6='' OR data->>'detailedStatus'=$6) AND ($7::timestamptz IS NULL OR (data->>'date')::timestamptz >= $7) AND ($8::timestamptz IS NULL OR (data->>'date')::timestamptz < $8) AND ($9='' OR data->>'cardId'=$9) AND ($10='' OR data->>'cardStatus'=$10)`
@@ -204,7 +208,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	if e = tx.QueryRow(r.Context(), `SELECT count(*) FROM channel_records WHERE `+where, args...).Scan(&total); e != nil {
+	if e = tx.QueryRow(r.Context(), prefix+`SELECT count(*) FROM channel_records WHERE `+where, args...).Scan(&total); e != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return
 	}
@@ -229,7 +233,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	if !client {
 		queryArgs = append(queryArgs, p.ID)
 	}
-	rows, e := tx.Query(r.Context(), query, queryArgs...)
+	rows, e := tx.Query(r.Context(), prefix+query, queryArgs...)
 	if e != nil {
 		fail(w, 503, "temporarily_unavailable")
 		return
@@ -246,7 +250,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			safe := map[string]json.RawMessage{}
-			for _, key := range []string{"id", "cardId", "cardName", "cardLast4", "name", "last4", "cardStatus", "createdAtUTC", "status", "detailedStatus", "date", "authorizedAt", "postedAt", "merchant", "categoryCode", "amountCents", "originalCurrency", "merchantData"} {
+			for _, key := range []string{"id", "cardId", "cardName", "cardLast4", "name", "last4", "cardStatus", "createdAtUTC", "checkedAt", "syncState", "status", "detailedStatus", "date", "authorizedAt", "postedAt", "merchant", "categoryCode", "amountCents", "originalCurrency", "merchantData"} {
 				if value, ok := input[key]; ok {
 					safe[key] = value
 				}
@@ -270,6 +274,37 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		fail(w, 404, "not_found")
 		return
 	}
+	if r.Method == "POST" {
+		if resource != "cards" || id == "" || (client && !walletScoped) {
+			fail(w, 404, "not_found")
+			return
+		}
+		var hook string
+		e = tx.QueryRow(r.Context(), `SELECT l.hook_connection_id FROM card_sync_links l JOIN slash_hook_connections h ON h.id=l.hook_connection_id AND h.enabled JOIN channel_connections c ON c.id=l.connection_id AND c.account_ref=h.account_ref WHERE l.connection_id=$1 AND l.enabled`, connection).Scan(&hook)
+		if e == pgx.ErrNoRows {
+			fail(w, 409, "card_sync_disabled")
+			return
+		}
+		if e != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+		_, e = tx.Exec(r.Context(), `INSERT INTO slash_hook_events(connection_id,event_id,event_type,entity_id,event_at,kind,state)
+   SELECT $1,'manual:'||$2||':'||floor(extract(epoch FROM now())/30)::text,'internal.card.refresh',$2,now(),'card','queued'
+   WHERE NOT EXISTS(SELECT 1 FROM slash_hook_events WHERE connection_id=$1 AND entity_id=$2 AND kind='card' AND state='queued')
+   ON CONFLICT(connection_id,event_id) DO NOTHING`, hook, id)
+		if e != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+		_, e = tx.Exec(r.Context(), `INSERT INTO channel_read_audit(connection_id,actor_id,action,revision) VALUES($1,$2,'card:sync:request',$3)`, connection, p.ID, revision)
+		if e != nil || tx.Commit(r.Context()) != nil {
+			fail(w, 503, "temporarily_unavailable")
+			return
+		}
+		respond(w, 202, map[string]any{"data": map[string]any{"syncState": "pending"}})
+		return
+	}
 	action := "projection:" + resource + ":read"
 	if client {
 		action = "card-snapshot:" + resource + ":read"
@@ -291,6 +326,9 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	if walletScoped {
 		mode = "assigned_wallet_projection"
 		coverage = "项目钱包内已明确归属本用户的卡片及对应交易；不含其他用户或其他钱包。仅已导入来源记录，不代表完整历史或个人可用资金。"
+	}
+	if kind == "card" && (!client || walletScoped) {
+		coverage += " 已启用同步的卡片由渠道通知和定时回查更新状态；每卡标示核验时间，交易仍按原导入范围。"
 	}
 	respond(w, 200, map[string]any{"data": map[string]any{"rows": data, "total": total, "page": page, "revision": revision, "sourceAt": sourceAt, "importedAt": importedAt, "complete": false, "syncMode": mode, "coverageReason": coverage}})
 }

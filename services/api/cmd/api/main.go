@@ -46,6 +46,9 @@ func run() error {
 	if err = pool.Ping(ctx); err != nil {
 		return errors.New("database unavailable")
 	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-card-state-sync" {
+		return database.MigrateCardStateSync(ctx, pool)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-deposit-addresses" {
 		if os.Getenv("CONFIRM_DEPOSIT_SCHEMA") != "yes" {
 			return errors.New("explicit_deposit_schema_confirmation_required")
@@ -92,6 +95,8 @@ func run() error {
 			return database.MigrateSlashWebhook(ctx, pool)
 		case "slash-webhook-init":
 			return hook.Init(ctx)
+		case "slash-webhook-enable-card-sync":
+			return hook.EnableCardSync(ctx, os.Getenv("CARD_SYNC_CONNECTION"), os.Getenv("CARD_SYNC_HOOK_CONNECTION"))
 		case "slash-webhook-status":
 			status, e := hook.Status(ctx)
 			if e != nil {

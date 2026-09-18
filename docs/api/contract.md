@@ -278,3 +278,7 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 缺少016迁移/服务配置时此能力不可用；代码已发布，生产016迁移及资金授权未启用。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。
 
 地址GET限定验收增量：mode可为deposit_pilot；postingEnabled反映指定客户额度、处理任务健康及账本一致性，不能用它推断提款/兑换已启用。pilot返回capMinor、remainingMinor、walletMinor（仅核对一致时）、reconciliation；全部金额为USDT六位精度的最小单位整数字符串。events新增state、posting、error、orderId，只有posting=posted表示入账。跨客户调用无变化，非验收客户无余额/额度信息。详见[地址流程](../business/deposit-address-integration.md)。
+
+## 卡片状态同步（2026-09-18，本地实现）
+
+GET 卡片列表/详情在正式项目钱包及运营授权下使用共同当前状态；DTO新增 `syncState`（synced/pending/stale/error）及可空 `checkedAt`。先应用状态再筛选、计数和分页，历史测试快照仍固定版本。POST `/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/sync` 与 `/admin-api/v1/channel-projections/{connection}/cards/{id}/sync` 仅安排只读渠道回查，202不代表已同步。沿用个人所有权或运营MFA+渠道授权；不存在/越权404，未启用409 `card_sync_disabled`。不提供任意渠道代理。详见[流程与验收](../business/card-state-sync.md)。

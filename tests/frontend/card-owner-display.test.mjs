@@ -15,7 +15,7 @@ export const Alert=Pass,Box=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Typography=
 export const Button=({children,onClick,disabled,to})=>React.createElement('button',{onClick,disabled,'data-to':to},children);
 export const TextField=()=>null,PageSkeleton=()=>React.createElement('span',null,'loading'),MerchantCell=()=>null,LogoAttribution=()=>null,TransactionStatusChip=()=>null;
 export const useAuth=()=>({ready:true,authenticated:true,user:{uid:'staff'},session:{operator:true,mfaVerified:true}});
-export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__ownerDisplay.requests.push({path,resolve,reject}));
+export const liveCardSync=async()=>({syncState:'pending'});export const cardSyncLabel=()=> '导入快照';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__ownerDisplay.requests.push({path,resolve,reject}));
 export const zhCN={components:{MuiDataGrid:{defaultProps:{localeText:{}}}}};
 export const DataGrid=({rows,columns})=>React.createElement('div',null,rows.map(row=>React.createElement('section',{key:row.id},columns.map(c=>React.createElement('span',{key:c.field},c.renderCell?c.renderCell({row}):c.valueFormatter?c.valueFormatter(row[c.field]):row[c.field])))));
 export const transactionRowClass=()=>'',transactionRowStyles={},utcTime=v=>v,minorText=v=>v,originalText=v=>v,slashTransactionFilters=[];
@@ -44,12 +44,12 @@ test('real card list and deep-linked detail render the same stored owner and rec
   await respondPending('/admin-api/v1/channel-projections', [connection]);
   await respondPending('/scope/cards',page([assigned]));
   assert.match(content(view.toJSON()),/Alice/);assert.doesNotMatch(content(view.toJSON()),/未绑定|已分配（项目钱包）/);
-  const refresh=view.root.findAllByType('button').find(b=>b.props.children==='刷新已导入数据');
+  const refresh=view.root.findAllByType('button').find(b=>b.props.children==='刷新状态');
   await act(async()=>{refresh.props.onClick();await flush()});
   await respondPending('/admin-api/v1/channel-projections',[connection]);
   await act(async()=>{for(const r of fixture.requests.filter(r=>!r.done&&r.path.includes('/scope/cards'))){r.done=true;r.reject(new Error('offline'))}await flush()});
   assert.match(content(view.toJSON()),/读取失败/);assert.doesNotMatch(content(view.toJSON()),/Alice|未绑定/);
-  const retry=view.root.findAllByType('button').find(b=>b.props.children==='刷新已导入数据');
+  const retry=view.root.findAllByType('button').find(b=>b.props.children==='刷新状态');
   await act(async()=>{retry.props.onClick();await flush()});
   await respondPending('/admin-api/v1/channel-projections',[connection]);
   await respondPending('/scope/cards',page([{...assigned,internal:{...assigned.internal,customerName:'Alice updated'}}]));

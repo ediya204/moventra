@@ -30,6 +30,9 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (overview && env.SITE_KIND !== 'admin') return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
   const identity = /^\/(api|client-api|admin-api)\/v1\/me$/.test(url.pathname);
+  const cardSync = new RegExp(`^/(?:client-api/v1/customers/${id}/card-projections|admin-api/v1/channel-projections)/[A-Za-z0-9_-]+/cards/[A-Za-z0-9_-]+/sync$`).test(url.pathname);
+  if (cardSync && (request.method !== 'POST' || url.search)) return error(405,'method_not_allowed');
+  if (cardSync && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403,'cross_origin_forbidden');
   const cardSnapshots = new RegExp(`^/client-api/v1/customers/${id}/card-projections(?:/[A-Za-z0-9_-]+/(?:cards|transactions)(?:/[A-Za-z0-9_-]+)?)?$`).test(url.pathname);
   const testWallet = new RegExp(`^/client-api/v1/customers/${id}/test-wallet$`).test(url.pathname);
   const fundsWrite = new RegExp(`^/(client|admin)-api/v1/customers/${id}/test-funds/commands$`).test(url.pathname);
@@ -41,9 +44,9 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (manual && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
   const crypto = cryptoRoute(request.method, url.pathname+url.search);
   if (crypto && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
-  const readable = manual || crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const readable = cardSync || manual || crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
-  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (manual || crypto || issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
+  if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (cardSync || manual || crypto || issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 
   let origin;
   try { origin = new URL(env.API_ORIGIN); } catch { return error(503, 'api_not_configured'); }

@@ -22,7 +22,7 @@ export const PageSkeleton=()=>null,MerchantCell=Pass,LogoAttribution=()=>null,Br
 export const zhCN={components:{MuiDataGrid:{defaultProps:{localeText:{}}}}};
 export const minorText=String,originalText=String,utcTime=String,slashTransactionFilters=[],transactionRowClass=()=>'',transactionRowStyles={};
 export const useAuth=()=>({ready:true,authenticated:true,user:{uid:'fixture'},session:{operator:true,mfaVerified:true},signOut:()=>{throw Error('unexpected sign out')}});
-export const liveGet=async path=>{m.calls.push(path);if(path==='/admin-api/v1/channel-projections')return [{id:'conn_fixture',label:'Fixture',revision:'v1',sourceAt:''}];if(path.includes('/cards/'))return {rows:[{id:'card_fixture',cardName:'Fixture Card',last4:'0012'}]};return {rows:[{id:'tx_fixture',cardId:'card_fixture',cardName:'Fixture Card',cardLast4:'0012',merchant:'Fixture Merchant'}],total:1};};
+export const liveCardSync=async()=>({syncState:'pending'});export const cardSyncLabel=()=> '导入快照';export const liveGet=async path=>{m.calls.push(path);if(path==='/admin-api/v1/channel-projections')return [{id:'conn_fixture',label:'Fixture',revision:'v1',sourceAt:''}];if(path.includes('/cards/'))return {rows:[{id:'card_fixture',cardName:'Fixture Card',last4:'0012'}]};return {rows:[{id:'tx_fixture',cardId:'card_fixture',cardName:'Fixture Card',cardLast4:'0012',merchant:'Fixture Merchant'}],total:1};};
 export const DataGrid=props=>{m.grid=props;return null};
 export default function Drawer(props){m.drawer=props;return null;}
 `);

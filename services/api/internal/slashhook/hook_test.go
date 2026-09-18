@@ -227,6 +227,7 @@ func TestInboxIntegration(t *testing.T) {
 		t.Fatal("retired connection accepted")
 	}
 	db.Exec(ctx, `UPDATE slash_hook_connections SET enabled=true`)
+	testCardSync(t, ctx, db, s2)
 	// A database failure never acknowledges a signed event.
 	closed, _ := pgxpool.NewWithConfig(ctx, cfg)
 	closed.Close()

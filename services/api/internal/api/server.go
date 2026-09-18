@@ -68,6 +68,8 @@ func (s *Server) Handler() http.Handler {
 	for _, path := range []string{"", "/{connection}/{resource}", "/{connection}/{resource}/{id}"} {
 		mux.Handle("GET /client-api/v1/customers/{customerID}/card-projections"+path, s.authenticate(http.HandlerFunc(s.channelRead)))
 	}
+	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/sync", s.authenticate(http.HandlerFunc(s.channelRead)))
+	mux.Handle("POST /admin-api/v1/channel-projections/{connection}/{resource}/{id}/sync", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("GET /admin-api/v1/channel-projections/{connection}/{resource}/{id}", s.authenticate(http.HandlerFunc(s.channelRead)))

@@ -1,5 +1,5 @@
 import { isFundsPath, type FundsCommand } from './fundsContract';
-import { isCardSnapshotPath } from './cardSnapshotContract';
+import { isCardSnapshotPath, isCardSyncPath } from './cardSnapshotContract';
 import { isAdminSite } from './site';
 import { isLedgerReadPath } from './ledgerContract';
 import { getFirebaseAuth } from '../firebase';
@@ -13,6 +13,7 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
+  card_sync_disabled: '此卡来源尚未启用渠道同步。',
   projection_updated: '数据版本已变化，请刷新后重试。',
   test_wallet_unavailable: '测试余额暂时无法读取，请稍后重试。',
   ledger_disabled: '账本查询尚未启用。',
@@ -90,9 +91,9 @@ export function isUserDirectoryPath(path:string):boolean {
  const params=new URLSearchParams(query);
  return [...params.keys()].every(key=>['email','userId','limit','offset'].includes(key)&&params.getAll(key).length===1);
 }
-async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand, envelope = false, requestId?:string): Promise<T> {
+async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand | {refresh:true}, envelope = false, requestId?:string): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !isCardSyncPath(path) && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
@@ -121,3 +122,5 @@ export async function liveGetPage<T>(path:string):Promise<{data:T[];meta:{limit:
 export function isTestWalletPath(path:string):boolean { return /^\/client-api\/v1\/customers\/[0-9a-f-]{36}\/test-wallet$/.test(path); }
 
 export const fundsCommand = <T>(path:string,body:FundsCommand,requestId:string)=>liveRequest<T>(path,body,false,requestId);
+
+export const liveCardSync = (path:string) => liveRequest<{syncState:string}>(path,{refresh:true});

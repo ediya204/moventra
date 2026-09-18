@@ -1,3 +1,4 @@
+import { cardSyncLabel, type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
 import {channelOwnerLabel,type ChannelOwnership} from '../components/channelOwnership';
 import {DashboardLayout} from '../components/DashboardLayout';
 import {useEffect,useRef,useState} from 'react';
@@ -6,7 +7,7 @@ import {Alert,Box,Button,MenuItem,Paper,Stack,TextField,Typography} from '@mui/m
 import {DataGrid,type GridColDef} from '@mui/x-data-grid';
 import {zhCN} from '@mui/x-data-grid/locales';
 import {useAuth} from '../../../../packages/shared/src/auth/AuthContext';
-import {liveGet} from '../../../../packages/shared/src/auth/liveApi';
+import {liveGet,liveCardSync} from '../../../../packages/shared/src/auth/liveApi';
 import {PageSkeleton} from '../../../../packages/shared/src/components/AsyncState';
 import {MerchantCell,LogoAttribution} from '../../../../packages/shared/src/components/MerchantLogo';
 import {TransactionStatusChip} from '../components/TransactionStatusChip';
@@ -15,7 +16,7 @@ import {transactionRowClass} from '../components/cardTransactionFields';
 import {transactionRowStyles} from '../components/transactionRowStyles';
 import TransactionDrawer,{type DrawerTransaction,type DrawerCard} from '../slash/TransactionDrawer';
 type Connection={id:string;label:string;revision:string;sourceAt:string};
-type Card=DrawerCard&ChannelOwnership&{last4?:string;cardLast4?:string;cardStatus?:string;createdAtUTC?:string;accountId?:string};
+type Card=CardSyncInfo&DrawerCard&ChannelOwnership&{last4?:string;cardLast4?:string;cardStatus?:string;createdAtUTC?:string;accountId?:string};
 type Tx=DrawerTransaction&{postedAt?:string};
 type Page<T>={rows:T[];total:number;revision:string;sourceAt:string;importedAt:string;coverageReason:string};
 function errorText(e:unknown){const code=(e as {code?:string})?.code;return code==='channel_scope_required'||code==='not_found'?'暂无此渠道的读取权限，或记录不在授权范围内。':code==='projection_updated'?'数据已更新，请刷新后重新查询。':code==='mfa_required'?'请重新登录并完成双重验证。':'数据读取失败，请重试。'}
@@ -51,13 +52,14 @@ function ChannelContent(){
  {field:'postedAt',headerName:'入账时间 · UTC',width:180,valueFormatter:utcTime},
  {field:'actions',headerName:'操作',width:95,sortable:false,renderCell:p=><Button onClick={()=>void show(p.row)}>查看详情</Button>}];
  const current=data?.rows[0] as Card|undefined;
- return <DashboardLayout production><Stack gap={2.5}><Stack direction="row" justifyContent="space-between"><Box><Typography variant="h4">{id?'卡片详情':params.get('cardId')?'此卡交易流水':'卡交易流水'}</Typography><Typography color="text.secondary" sx={{mt:1}}>Slash · 真实只读记录</Typography></Box><Button disabled={busy} onClick={()=>setRefresh(n=>n+1)}>刷新已导入数据</Button></Stack>
+ useEffect(()=>{if(!id)return;const timer=setInterval(()=>{if(document.visibilityState==='visible')setRefresh(n=>n+1)},15000);return()=>clearInterval(timer)},[id]);
+ return <DashboardLayout production><Stack gap={2.5}><Stack direction="row" justifyContent="space-between"><Box><Typography variant="h4">{id?'卡片详情':params.get('cardId')?'此卡交易流水':'卡交易流水'}</Typography><Typography color="text.secondary" sx={{mt:1}}>Slash · 真实只读记录</Typography></Box><Button disabled={busy} onClick={()=>setRefresh(n=>n+1)}>刷新状态</Button></Stack>
  <Alert severity="info">{data?.coverageReason||'手动导入上游已采集记录，不代表实时或完整资金池。所属用户须由内部系统绑定。'}{data&&<> 最近采集：{utcTime(data.sourceAt)} UTC · 导入：{utcTime(data.importedAt)} UTC</>}</Alert>
  {!id&&params.get('cardId')&&<Button component={Link} to={`/cards/${encodeURIComponent(params.get('cardId')!)}?connection=${encodeURIComponent(connection)}`}>返回卡片详情</Button>}
  {error&&<Alert severity="error" action={<Button onClick={()=>setRefresh(n=>n+1)}>重试</Button>}>{error}</Alert>}
  {!busy&&!error&&!connections.length&&<Alert severity="info">当前没有可读取的渠道连接，请联系管理员核对渠道授权。</Alert>}
  {connections.length>0&&<TextField select size="small" label="渠道连接" value={connection} onChange={e=>update({connection:e.target.value})} sx={{maxWidth:360}}>{connections.map(c=><MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>)}</TextField>}
- {id?busy?<PageSkeleton/>:current&&<Paper variant="outlined" sx={{p:3}}><Stack gap={2}><Typography variant="h5">{current.cardName||'卡名未采集'} · {(current.cardLast4||current.last4)?'•••• '+(current.cardLast4||current.last4):'尾号未采集'}</Typography><Typography>所属用户：{channelOwnerLabel(current)}</Typography><Typography>渠道状态：{current.cardStatus||'未知'}</Typography><Typography>创建时间：{utcTime(current.createdAtUTC)}</Typography><Typography color="text.secondary">该卡当前仅提供渠道资料查询，资金余额及后台管理操作尚未接入。</Typography><Button component={Link} to={`/transactions?${new URLSearchParams({connection,cardId:id})}`}>查看此卡交易</Button><Button component={Link} to={`/cards?${new URLSearchParams({connection,page:params.get('cardsPage')||'0',keyword:params.get('cardsKeyword')||'',status:params.get('cardsStatus')||''})}`}>返回全部卡片</Button></Stack></Paper>:
+ {id?busy?<PageSkeleton/>:current&&<Paper variant="outlined" sx={{p:3}}><Stack gap={2}><Typography variant="h5">{current.cardName||'卡名未采集'} · {(current.cardLast4||current.last4)?'•••• '+(current.cardLast4||current.last4):'尾号未采集'}</Typography><Typography>所属用户：{channelOwnerLabel(current)}</Typography><Typography>渠道状态：{current.cardStatus||'未知'}</Typography><Typography>{cardSyncLabel(current)}</Typography>{current.syncState&&<Button disabled={current.syncState==='pending'} onClick={()=>liveCardSync(`/admin-api/v1/channel-projections/${connection}/cards/${id}/sync`).then(()=>setRefresh(n=>n+1)).catch(e=>setError(errorText(e)))}>向渠道核对状态</Button>}<Typography>创建时间：{utcTime(current.createdAtUTC)}</Typography><Typography color="text.secondary">该卡当前仅提供渠道资料查询，资金余额及后台管理操作尚未接入。</Typography><Button component={Link} to={`/transactions?${new URLSearchParams({connection,cardId:id})}`}>查看此卡交易</Button><Button component={Link} to={`/cards?${new URLSearchParams({connection,page:params.get('cardsPage')||'0',keyword:params.get('cardsKeyword')||'',status:params.get('cardsStatus')||''})}`}>返回全部卡片</Button></Stack></Paper>:
  <Paper variant="outlined" sx={{p:2}}><Stack direction="row" flexWrap="wrap" gap={2} mb={2}><TextField label="商户、尾号或交易ID" size="small" value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&update({keyword:search})}/><TextField select size="small" label="状态" value={params.get('status')||''} onChange={e=>update({status:e.target.value})} sx={{minWidth:160}}><MenuItem value="">全部</MenuItem>{slashTransactionFilters.map(s=><MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}</TextField><TextField size="small" type="date" label="开始日期 · UTC" InputLabelProps={{shrink:true}} value={(params.get('from')||'').slice(0,10)} onChange={e=>update({from:e.target.value?e.target.value+'T00:00:00Z':''})}/><TextField size="small" type="date" label="截止日期 · UTC（不含）" InputLabelProps={{shrink:true}} value={(params.get('to')||'').slice(0,10)} onChange={e=>update({to:e.target.value?e.target.value+'T00:00:00Z':''})}/><Button variant="contained" onClick={()=>update({keyword:search})}>查询</Button></Stack>
  <DataGrid autoHeight rows={id?[]:(data?.rows as Tx[]||[])} columns={columns} loading={busy} disableRowSelectionOnClick disableColumnSorting disableColumnFilter paginationMode="server" rowCount={data?.total||0} paginationModel={{page,pageSize:20}} onPaginationModelChange={m=>{const q=new URLSearchParams(params);q.set('page',String(m.page));setParams(q)}} pageSizeOptions={[20]} localeText={zhCN.components.MuiDataGrid.defaultProps.localeText} getRowClassName={p=>transactionRowClass(p.row.status,p.row.detailedStatus)} sx={{...transactionRowStyles,'& .MuiDataGrid-cell':{fontVariantNumeric:'tabular-nums'}}}/></Paper>}
  <LogoAttribution/>
