@@ -10,7 +10,7 @@
 
 ## 已实现
 
-- Cregis 离线协议包：WaaS 签名/回调类型校验及 Team API 请求字节签名；尚未接入运行时或后台。见 [接入边界](../../docs/integrations/cregis.md)。
+- Cregis WaaS：签名/回调类型校验、只读流水客户端、`cmd/cregis-readonly` 单页核验命令；本地模拟测试通过，尚未接入 API 运行时或后台、尚未真实渠道验证。另保留 Team API 签名辅助函数。见 [接入边界](../../docs/integrations/cregis.md)。
 - Firebase ID Token 验证适配器：校验撤销、邮箱已验证；本地用户禁用立即阻止后续请求。生产入口拒绝 Firebase Auth emulator 模式。
 - 用户与客户主体分离：个人主体 / 企业主体，一个登录用户可以拥有个人主体并加入企业。
 - 个人所有权、企业有效成员、运营按主体/资源显式授权。运营查询额外要求 MFA。

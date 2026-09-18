@@ -21,7 +21,7 @@
 
 ## 当前工作区增量（未部署）
 
-2026-09-18 新增 Cregis 离线签名与回调报文校验包；没有 HTTP 入口、来源存储或正式资金功能。等待产品类型及配置位置确认，见 [Cregis 接入](integrations/cregis.md)。
+2026-09-18 Cregis 已确认采用 WaaS，新增签名/回调校验、只读流水客户端及独立核验命令；本地 TLS 模拟测试通过，尚无真实渠道验证、HTTP 入口、来源存储或正式资金功能。等待凭据位置，见 [Cregis 接入](integrations/cregis.md)。
 
 2026-09-18 后台刷新恢复身份采用 browserSessionPersistence，客户端保持内存会话；恢复后仍需 Go 角色、账号状态、MFA 及资源授权检查。此项为并行任务的本地改动，尚未部署，验证结果引用[该任务记录](business/admin-session-persistence.md)，本次未重跑，不覆盖上方 `a2fa1f6` 的发布结论。
 
