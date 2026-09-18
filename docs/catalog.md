@@ -22,7 +22,9 @@
 - [卡片详情导航发布](../deploy/2026-09-07-card-detail-navigation.md) — `deploy/2026-09-07-card-detail-navigation.md`
 - [资金运营概览发布记录](../deploy/2026-09-07-operations-overview.md) — `deploy/2026-09-07-operations-overview.md`
 - [BIN catalogue release — 2026-09-18](../deploy/2026-09-18-bin-catalog-sync.md) — `deploy/2026-09-18-bin-catalog-sync.md`
+- [客户端开卡与八个 BIN 目录发布](../deploy/2026-09-18-client-issuing-release.md) — `deploy/2026-09-18-client-issuing-release.md`
 - [已完成改动统一发布清单](../deploy/2026-09-18-completed-work-release.md) — `deploy/2026-09-18-completed-work-release.md`
+- [客户端开卡结构生产迁移 — 2026-09-18](../deploy/2026-09-18-issuing-checkout-migration.md) — `deploy/2026-09-18-issuing-checkout-migration.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
 - [Moventra completed-session release — 2026-09-18](../deploy/2026-09-18-session-consolidation.md) — `deploy/2026-09-18-session-consolidation.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
@@ -60,6 +62,7 @@
 - [docs/business/card-issuing-2026-09-18.md](business/card-issuing-2026-09-18.md) — `docs/business/card-issuing-2026-09-18.md`
 - [FLOW-CARD-OWNER-01：正式后台读取既有归属](business/card-owner-display.md) — `docs/business/card-owner-display.md`
 - [卡片、渠道与交易业务逻辑](business/cards-and-transactions.md) — `docs/business/cards-and-transactions.md`
+- [FLOW-CLIENT-ISSUING-001：客户端开卡闭环](business/client-card-issuing.md) — `docs/business/client-card-issuing.md`
 - [连通性整改基线与首批清单](business/connectivity-baseline-2026-09-13.md) — `docs/business/connectivity-baseline-2026-09-13.md`
 - [FLOW-CARD-TEST-01 客户卡片测试快照](business/customer-card-binding.md) — `docs/business/customer-card-binding.md`
 - [业务闭环开发与验收标准](business/delivery-standard.md) — `docs/business/delivery-standard.md`

@@ -1,0 +1,59 @@
+# FLOW-CLIENT-ISSUING-001：客户端开卡闭环
+
+日期：2026-09-18。LOCAL，本地隔离闭环；未发布、未执行真实 Slash 金融写接口。基线为 main `1ed842a` 加本次未提交增量。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，并行数字货币模块改动保留。
+
+## 范围、差异与决策
+
+正式客户端原来没有挂载开卡组件；旧 `bins/CardOpeningPage` 属于免费 Demo，不作为正式实现。复用正式 issuing 目录、报价、订单、Blnk 分户及 Slash 适配器，新增正式客户端页面、同意证据、卡查询和 Worker 启动入口。默认 `ISSUING_MODE=disabled`，不改变生产资金权威。
+
+用户确认 USD 开卡钱包支付；首充默认最低值、允许增加；发卡失败全退，发卡成功但首充失败只退首充，原卡补充首充不重复收费。本期不接外部收款或自动兑换。最低首充和价格来自后台配置，零费用和未配置区分；草稿/归档不公开。
+
+## 完整流程卡
+
+| 项目 | 实现与验收口径 |
+| --- | --- |
+| 起止与角色 | 获开卡资格的个人客户选择 BIN、确认报价及声明，支付后查询完成的新卡；运营查询同一订单、处理异常 |
+| 页面关系 | 首页申请新卡/卡片中心 → `/portal/cards/new?product=UUID&q=...&page=1`；订单 `/portal/card-orders`、`/portal/card-orders/:id`；新卡 `/portal/issued-cards/:id`；原卡片投影保留。列表页码在 URL；详情有订单/卡片中心返回入口 |
+| 后台关系 | `/card-bins/customers?customer=UUID&order=UUID&orderPage=1`；同页客户资格、钱包、到账申请/复核、订单详情、声明证据及恢复；需 MFA 和独立 issuing 授权 |
+| 业务身份 | 客户主体、内部订单 ID、供应商范围与外部卡 ID；新卡内部 ID 为首笔开卡订单 ID，补充首充关联 parentId，不创建第二张卡 |
+| 权威与模式 | issuing_orders 为业务状态；独立 Blnk 为该开卡钱包/卡分户记账依据；Slash 为发卡/限制来源。隔离模式只允许 moventra_test_ 库和 127.0.0.1 模拟端点，UI 明示隔离验收 |
+| 接口链 | 正式 React 组件 → shared issuingRequest（Firebase bearer）→ 同域网关精确白名单 → Go issuingAPI → 客户所有权/运营 MFA+grant → PostgreSQL → issuing-worker → Blnk/Slash 适配器 |
+| 状态和动作 | queued→reserved→creating→created→fee_charged→funded→enabling→active；订单未知保持预占/已有分户状态；失败仅在确认后释放，退款未完成显示 releasing |
+| 跨端变化 | 客户订单与后台详情均读取同一 GET；处理中每3秒轮询，隐藏暂停、恢复刷新、终态停止；卡列表以订单归属读取，不依赖手动渠道投影导入 |
+| 同意证据 | 两项声明默认不勾选；报价/金额/条款变化后重置。报价绑定条款版本；提交必须 lawfulUse/acceptedTerms=true。数据库原子保存 actor/customer/order、版本、文本、摘要及服务端时间，禁止修改/删除；历史无记录明确显示 |
+| 幂等恢复 | 浏览器按登录 UID+customer 在 sessionStorage 先保存请求正文和 UUID；响应丢失重放同键；退出清理。服务端同键异载荷拒绝；同报价不能生成第二单；远端记账按稳定 reference 恢复 |
+| 权限 | 客户仅个人所有权；后台沿用 customer:read、funding:submit/review、recovery:write；自复核拒绝；换客户/卡 ID、无 MFA/范围、审计失败均拒绝 |
+| 资金 | USD 最小单位字符串，开卡费+首充先转订单在途；费收入与卡分户分别记账。首充失败确认卡仍受限后退首充；未知不退款，不把 spending limit 当渠道可用余额 |
+| 恢复与监测 | 独立 Worker 3秒调度，状态持久化、单订单互斥、错误退避5–300秒；记录待处理/待核查计数，日志不含凭据/渠道响应；后台恢复只安排核查，不直接重开 |
+| 验收 | E01–E07、E09 见下方；列表沿用服务端50+1分页，E08全量压测未执行 |
+
+## 接口及兼容
+
+在两端 `/.../v1/customers/{customerID}/card-issuing` 新增 GET `products/{id}`、`terms`、`cards`、`cards/{id}`。订单详情附加 consent 与最多200项有序处理事件；列表保持原数组契约。卡详情区分 known/unavailable/not_funded，余额未知返回 null。
+
+POST orders 使用 quoteId、termsVersion、lawfulUse、acceptedTerms 及 Idempotency-Key。未同意返回400 consent_required；条款失效返回409 terms_changed；费用等额外字段拒绝。报价仍为5分钟，价格或产品配置变更需重新确认。topups 仅处理 funding_failed 原卡，开卡费为零。
+
+机器契约见 [issuing.openapi.json](../../services/api/docs/issuing.openapi.json)。新增迁移014（013由并行任务使用），Ready要求014 checksum；旧迁移不变。历史订单可读，不补造声明；旧未包含声明的提交会被拒绝，前后端需成套发布。
+
+当前声明为版本化应用政策 `issuing-2026-09-18-v1`，不是新增法务合规认证。正式条款和商业参数由运营/法务在真实上线阶段确认，确认人待分配；不阻塞隔离实现。
+
+## 验证与证据
+
+- 前端专项：金额精度、网关/transport一致性、声明门槛、修改金额重置、超时后重新挂载恢复相同请求、登录主体隔离、后台目录操作。
+- PostgreSQL专项：缺声明/旧条款/伪造费用拒绝，同意证据不可变、幂等、两端订单相同、客户卡详情隔离；现有资金测试覆盖组价/专属价/免费价、并发预占、防超支、未知结果找回、首充失败退款及原卡补充首充、远端预占后本地回滚恢复和审计失败。
+- 本地真实 Blnk Core v0.15.4（源码 f3067eb56a573055ce86c3328566145b467f393b）使用独立 PostgreSQL 和 Redis；不复用浏览器测试账本运行专项测试，固定测试客户 ID 不能跨测试库共用 Blnk 实例。
+- 浏览器专项使用真实正式页面组件、shared transport、真实 Go HTTP handler、独立 PostgreSQL、本地 Blnk、模拟 Slash HTTP 和独立 issuing-worker；认证只注入测试身份，不代表真实 Firebase 登录验收。
+- 浏览器实测：钱包1000 USD，开卡费5、首充20，完成后钱包975、卡分户20；客户端/后台订单完全相同；Worker预占后重启仍完成；详情刷新、390px手机无横向溢出通过。
+- 本次没有执行生产迁移、实际渠道发卡、真实资金动作、推送或部署。独立本地二进制验证不替代 Docker 镜像运行验收。
+
+复现入口：`bash services/api/scripts/test-issuing.sh`；设置 BLNK_TEST_URL/BLNK_TEST_KEY 时使用新的本地真实 Blnk 实例，否则使用有状态 HTTP fixture。前端专项为 `node --test tests/frontend/issuing.test.mjs tests/frontend/issuing-checkout.test.mjs tests/frontend/issuing-admin-ui.test.mjs`。
+
+浏览器测试：新建 moventra_test_ 应用库及独立 Blnk/Redis，编译 cmd/issuing-worker；设置 TEST_DATABASE_URL、BLNK_TEST_URL、BLNK_TEST_KEY、ISSUING_WORKER_BINARY、ISSUING_BROWSER_OUTPUT，运行 `go test -run '^TestIssuingBrowserHarness$' -v ./internal/api`。再以同一 ISSUING_BROWSER_OUTPUT 启动 `pnpm exec vite --config tests/frontend/fixtures/issuing/vite.config.mjs`，执行 `node tests/frontend/issuing-browser.mjs`（可用 PLAYWRIGHT_MODULE/CHROME_EXECUTABLE 指定本机依赖）。测试凭据与模拟端点只在测试入口，不进入正式构建。结束时创建输出路径加 `.stop` 文件并清理本次独立资源。
+
+本次结果记录见 [隔离验收 JSON](../testing/client-card-issuing-2026-09-18.json)。前端开卡专项8项通过；全仓前端107/109通过，剩余为并行数字货币导航期望和 CryptoFunds 测试替身导入。整套隔离 PostgreSQL Go race回归、Go vet/build通过；两端typecheck/build通过（保留既有大包提示）；docs检查及diff检查通过。首次真实Blnk专项误复用了浏览器测试账本，固定客户ID导致余额断言不匹配；改为独立新Blnk库/Redis后通过，未修改金额断言掩盖问题。
+
+## 交付与回退
+
+能力等级：隔离闭环。设计、本地实现、专项自动化、上述浏览器范围通过；真实渠道与应用部署未执行；随后获授权的生产结构迁移 014 已完成，见[生产迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。全仓检查结果及并行改动的失败单独记录，不能用本次专项通过追认其他模块。
+
+回退时先禁用执行入口并保留订单、账本和同意证据，不删除在途事项；前端可关闭开卡入口，查询和核查保留。生产激活仍需独立账本、供应商验证清单、零限制/累计限制/未知恢复/对账验证及明确授权。

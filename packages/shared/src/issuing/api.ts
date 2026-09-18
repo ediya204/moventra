@@ -1,6 +1,7 @@
 import { getFirebaseAuth } from "../firebase";
 import { isAdminSite } from "../auth/site";
 import { issuingPath, reasons } from "./contract";
+export class IssuingError extends Error { constructor(public code: string, public status: number, message: string) { super(message); } }
 export async function issuingRequest<T>(
   path: string,
   body?: unknown,
@@ -38,7 +39,7 @@ export async function issuingRequest<T>(
     const p = await r.json();
     if (getFirebaseAuth().currentUser !== user) throw new Error("登录已变更");
     if (!r.ok)
-      throw new Error(reasons[p?.error?.code] || `请求未完成（${r.status}）`);
+      throw new IssuingError(p?.error?.code || "unknown", r.status, reasons[p?.error?.code] || `请求未完成（${r.status}）`);
     if (p?.data === undefined || p.data === null)
       throw new Error("服务响应无效");
     return p.data as T;

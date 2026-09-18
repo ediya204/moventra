@@ -256,3 +256,7 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../business/card-owner-display.md)。
 
 归属联合验收补充：连接读取权限不自动授予客户身份读取；需要该客户 accounts:read，缺失或撤销时只返回 restricted，不泄露 customerId/userId/name。
+
+## 客户端开卡确认契约
+
+`card-issuing` 新增 GET products/{id}、terms、cards、cards/{id}；报价绑定 termsVersion，POST orders 必须提交 quoteId、termsVersion、lawfulUse=true、acceptedTerms=true，并携带原始 Idempotency-Key。服务端拒绝可信费用字段，声明/订单原子持久化。详情含同意证据和阶段事件；历史证据为空。金额为USD最小单位字符串，未知余额为null而非零。详见[机器契约](../../services/api/docs/issuing.openapi.json)与[流程](../business/client-card-issuing.md)。

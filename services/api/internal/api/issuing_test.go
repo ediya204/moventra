@@ -278,7 +278,7 @@ func TestIssuingFullFlow(t *testing.T) {
 	}
 	free := "0"
 	request("POST", a+"/prices", "staff", issuing.Price{ProductID: pid, ScopeKind: "customer", ScopeID: personal, FeeMinor: &free, Revision: 2}, "", 200)
-	request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, uuid.NewString(), 409)
+	request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, uuid.NewString(), 409)
 	qraw = quote("1000", 200)
 	json.Unmarshal(qraw, &q)
 	if q.FeeMinor != "0" || q.PriceSource != "customer" {
@@ -296,15 +296,29 @@ func TestIssuingFullFlow(t *testing.T) {
 	}
 	qraw = quote("1000", 200)
 	json.Unmarshal(qraw, &q)
+	// Consent is required at origin, independently of UI controls.
+	request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, uuid.NewString(), 400)
+	request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: "old", LawfulUse: true, AcceptedTerms: true}, uuid.NewString(), 409)
+	request("POST", c+"/orders", "alice", map[string]any{"quoteId": q.ID, "termsVersion": q.TermsVersion, "lawfulUse": true, "acceptedTerms": true, "feeMinor": "0"}, uuid.NewString(), 400)
+	request("GET", c+"/terms", "alice", nil, "", 200)
+	request("GET", c+"/products/"+pid, "alice", nil, "", 200)
 	key := uuid.NewString()
-	oid := getID(request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, key, 200))
-	if getID(request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, key, 200)) != oid {
+	oid := getID(request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, key, 200))
+	if getID(request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, key, 200)) != oid {
 		t.Fatal("idempotency")
 	}
-	request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, uuid.NewString(), 409)
+	request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, uuid.NewString(), 409)
+	var consentCount int
+	if e = db.QueryRow(ctx, `SELECT count(*) FROM issuing_consents WHERE order_id=$1 AND lawful_use AND accepted_terms AND actor_id='00000000-0000-0000-0000-000000000001'`, oid).Scan(&consentCount); e != nil || consentCount != 1 {
+		t.Fatal("missing consent", consentCount, e)
+	}
+	if _, e = db.Exec(ctx, `UPDATE issuing_consents SET terms_text='changed' WHERE order_id=$1`, oid); e == nil {
+		t.Fatal("mutable consent")
+	}
+	request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: "different", LawfulUse: true, AcceptedTerms: true}, key, 409)
 	var named, retryNamed issuing.Order
 	json.Unmarshal(request("GET", c+"/orders/"+oid, "alice", nil, "", 200), &named)
-	json.Unmarshal(request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, key, 200), &retryNamed)
+	json.Unmarshal(request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, key, 200), &retryNamed)
 	if named.CardName == "" || named.CardName != retryNamed.CardName {
 		t.Fatal("card name changed on retry")
 	}
@@ -338,12 +352,26 @@ func TestIssuingFullFlow(t *testing.T) {
 	if wallet.Available != "8700" {
 		t.Fatal(wallet.Available)
 	}
+	var card struct {
+		Balance string        `json:"balanceMinor"`
+		Order   issuing.Order `json:"order"`
+	}
+	json.Unmarshal(request("GET", c+"/cards/"+oid, "alice", nil, "", 200), &card)
+	if card.Balance != "1000" || card.Order.ID != oid {
+		t.Fatal("new card missing", card)
+	}
+	request("GET", strings.Replace(c, personal, other, 1)+"/cards/"+oid, "alice", nil, "", 404)
+	customerOrder := request("GET", c+"/orders/"+oid, "alice", nil, "", 200)
+	adminOrder := request("GET", ac+"/orders/"+oid, "staff", nil, "", 200)
+	if string(customerOrder) != string(adminOrder) {
+		t.Fatal("cross surface divergence")
+	}
 	// Funding rejection charges the fee once, then original-card topup charges zero fee.
 	provider.unknown = false
 	provider.rejectFunding = true
 	qraw = quote("1000", 200)
 	json.Unmarshal(qraw, &q)
-	oid2 := getID(request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, uuid.NewString(), 200))
+	oid2 := getID(request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, uuid.NewString(), 200))
 	for i := 0; i < 6; i++ {
 		if e = svc.Process(ctx, oid2); e != nil {
 			t.Fatal(e)
@@ -416,7 +444,7 @@ func TestIssuingFullFlow(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		qraw = quote("6000", 200)
 		json.Unmarshal(qraw, &q)
-		concurrentIDs = append(concurrentIDs, getID(request("POST", c+"/orders", "alice", map[string]string{"quoteId": q.ID}, uuid.NewString(), 200)))
+		concurrentIDs = append(concurrentIDs, getID(request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: q.ID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, uuid.NewString(), 200)))
 	}
 	var wg sync.WaitGroup
 	for _, id := range concurrentIDs {
@@ -460,13 +488,24 @@ func TestIssuingFullFlow(t *testing.T) {
 	qraw = quote("1000", 200)
 	json.Unmarshal(qraw, &q)
 	crashQuoteID = q.ID
-	crashID = getID(request("POST", c+"/orders", "alice", map[string]string{"quoteId": crashQuoteID}, uuid.NewString(), 200))
+	crashID = getID(request("POST", c+"/orders", "alice", issuing.Checkout{QuoteID: crashQuoteID, TermsVersion: issuing.CurrentTerms().Version, LawfulUse: true, AcceptedTerms: true}, uuid.NewString(), 200))
 	_, e = db.Exec(ctx, `CREATE FUNCTION reject_reserve_state() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.state='reserved' THEN RAISE EXCEPTION 'simulated local crash'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_reserve BEFORE UPDATE ON issuing_orders FOR EACH ROW EXECUTE FUNCTION reject_reserve_state()`)
 	if e != nil {
 		t.Fatal(e)
 	}
 	if e = svc.Process(ctx, crashID); e == nil {
 		t.Fatal("rollback injection did not fire")
+	}
+	// A worker-level failure schedules durable backoff instead of hot-looping.
+	if _, e = db.Exec(ctx, `UPDATE issuing_orders SET next_attempt_at=now() WHERE id=$1`, crashID); e != nil {
+		t.Fatal(e)
+	}
+	if e = svc.Tick(ctx); e == nil {
+		t.Fatal("worker failure was hidden")
+	}
+	var delayed bool
+	if e = db.QueryRow(ctx, `SELECT retry_count=1 AND next_attempt_at>now() FROM issuing_orders WHERE id=$1`, crashID).Scan(&delayed); e != nil || !delayed {
+		t.Fatal("missing durable retry", e)
 	}
 	_, e = db.Exec(ctx, `DROP TRIGGER reject_reserve ON issuing_orders`)
 	if e != nil {

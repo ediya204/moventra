@@ -132,3 +132,7 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 ## 2026-09-18：后台用户归属读取修复（代码已发布）
 
 正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../../docs/business/card-owner-display.md)。
+
+## 客户端开卡运行与定向迁移
+
+API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任务，默认 ISSUING_MODE 关闭。live 要求独立 TLS Blnk、运营验收清单和对应供应商服务端凭据，不可把本地测试结论填成生产认证。新增迁移014；本发布不包含并行013，迁移器使用显式编号。`scripts/issuing-checkout-sql.py` 只生成014，`scripts/test-issuing-checkout-migration.py` 与 `scripts/test-issuing-catalog-release.py` 验证本机随机隔离库。见[流程](../../docs/business/client-card-issuing.md)及[生产迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。

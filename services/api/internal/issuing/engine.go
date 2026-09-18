@@ -84,7 +84,7 @@ func (s *Service) transfer(ctx context.Context, tx pgx.Tx, customer, ref, source
 	return e
 }
 func (s *Service) state(ctx context.Context, tx pgx.Tx, o Order, state, code string) error {
-	_, e := tx.Exec(ctx, `UPDATE issuing_orders SET state=$2,error_code=$3,updated_at=now(),next_attempt_at=now()+interval '30 seconds' WHERE id=$1`, o.ID, state, code)
+	_, e := tx.Exec(ctx, `UPDATE issuing_orders SET state=$2,error_code=$3,retry_count=0,updated_at=now(),next_attempt_at=now()+CASE WHEN $3='provider_outcome_unknown' THEN interval '30 seconds' ELSE interval '1 second' END WHERE id=$1`, o.ID, state, code)
 	if e != nil {
 		return e
 	}
@@ -379,6 +379,12 @@ func (s *Service) Tick(ctx context.Context) error {
 		}
 		if e != nil {
 			last = e
+			if j.kind == "order" {
+				_, scheduleErr := s.DB.Exec(ctx, `UPDATE issuing_orders SET retry_count=LEAST(retry_count+1,10),next_attempt_at=now()+make_interval(secs => LEAST(300,5*power(2,LEAST(retry_count,6)))::double precision) WHERE id=$1`, j.id)
+				if scheduleErr != nil {
+					last = scheduleErr
+				}
+			}
 		}
 	}
 	rows, e = s.DB.Query(ctx, `SELECT o.id::text FROM issuing_orders o LEFT JOIN issuing_sync s ON s.order_id=o.id WHERE o.parent_id IS NULL AND o.external_card_id<>'' AND (s.next_attempt_at IS NULL OR s.next_attempt_at<=now()) ORDER BY s.next_attempt_at NULLS FIRST,o.created_at LIMIT 5`)

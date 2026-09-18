@@ -68,3 +68,7 @@
 ## 2026-09-18 财务入口候选（未部署）
 
 新增 /pricing、/pricing/products/:productId 与 /reports，分别复用既有 card-issuing 产品/价格接口和 ops/overview；不新增 API、迁移或授权。参数、数据范围和验证见[流程卡](admin-finance-migration.md)。
+
+## 客户端开卡路由
+
+正式 `/portal/cards/new` → `/portal/card-orders/:id` → `/portal/issued-cards/:id`，订单列表 `/portal/card-orders`；后台 `/card-bins/customers` 按customer/order读取同一记录。两端共享transport与精确同域网关，Go校验主体/运营MFA/授权。完整接口与异常恢复见[流程](client-card-issuing.md)。

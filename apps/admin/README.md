@@ -63,3 +63,7 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 ## 财务入口增量（2026-09-18，未部署）
 
 正式 /pricing 与 /pricing/products/:productId 接通既有卡产品价格接口，支持客户/组覆盖及恢复继承；/reports 提供已授权 USD 交易投影明细和 CSV。数字货币流水、OTC 与出金审批尚未完成，不改变测试资金边界。见[流程卡](../../docs/business/admin-finance-migration.md)。
+
+## 开卡订单与客户钱包
+
+BIN 管理客户页 `/card-bins/customers?customer=UUID&order=UUID` 可查询开卡钱包、订单阶段及不可变同意证据，沿用运营 MFA、逐客户授权和入账双人复核。与客户端读取同一订单；见[开卡流程](../../docs/business/client-card-issuing.md)。

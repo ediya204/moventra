@@ -6,7 +6,7 @@ export function issuingRoute(method, path) {
         `^/admin-api/v1/card-issuing/(suppliers|products|groups|audit)(/${id})?$`,
       ).test(path) ||
       new RegExp(
-        `^/(client|admin)-api/v1/customers/${id}/card-issuing/(products|wallet|orders)(/${id})?$`,
+        `^/(client|admin)-api/v1/customers/${id}/card-issuing/((products|orders|cards)(/${id})?|wallet|terms)$`,
       ).test(path) ||
       new RegExp(
         `^/admin-api/v1/customers/${id}/card-issuing/(enrollment|deposits|audit|reconciliation)$`,

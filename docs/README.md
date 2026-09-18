@@ -129,3 +129,5 @@
 - [Blnk 私有服务与共享 PostgreSQL 实例](releases/2026-09-18-blnk-private-service.md)
 - [Slash / Blnk 调查与实施方案](integrations/slash-blnk-plan-2026-09-18.md)
 - [Slash 来源持久化设计](integrations/slash-persistence-design-2026-09-18.md)
+
+- [客户端开卡闭环](business/client-card-issuing.md)：BIN、声明、钱包、订单及新卡，生产开放边界单独记录。

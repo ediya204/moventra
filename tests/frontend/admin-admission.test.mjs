@@ -12,6 +12,7 @@ const mocks=uri(`
 const m=globalThis.__moventraAdmission;
 export const sessionPath='/admin-api/v1/me';
 export const isAdminSite=true,isDemoMode=false,browserPopupRedirectResolver={};
+export const clearIssuingPending=()=>{};
 export const clearAccessToken=()=>{},setAccessToken=()=>{},login=()=>{};
 export const getFirebaseAuth=()=>m.auth;
 export const liveGet=()=>m.pending;

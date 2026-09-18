@@ -26,9 +26,9 @@ func (s *Service) Quote(ctx context.Context, tx pgx.Tx, customer, productID, fun
 	if number(funding).Cmp(number(v.Product.MinimumMinor)) < 0 {
 		return q, ErrInvalid
 	}
-	q = Quote{ID: uuid.NewString(), ProductID: productID, FeeMinor: v.FeeMinor, FundingMinor: funding, TotalMinor: add(v.FeeMinor, funding), PriceSource: v.PriceSource, ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Format(time.RFC3339)}
+	q = Quote{TermsVersion: CurrentTerms().Version, ID: uuid.NewString(), ProductID: productID, FeeMinor: v.FeeMinor, FundingMinor: funding, TotalMinor: add(v.FeeMinor, funding), PriceSource: v.PriceSource, ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Format(time.RFC3339)}
 	raw, _ := json.Marshal(v)
-	_, e = tx.Exec(ctx, `INSERT INTO issuing_quotes(id,customer_id,product_id,fingerprint,snapshot,fee_minor,funding_minor,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, q.ID, customer, productID, hash(v), raw, q.FeeMinor, funding, q.ExpiresAt)
+	_, e = tx.Exec(ctx, `INSERT INTO issuing_quotes(id,customer_id,product_id,fingerprint,snapshot,fee_minor,funding_minor,expires_at,terms_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, q.ID, customer, productID, hash(v), raw, q.FeeMinor, funding, q.ExpiresAt, q.TermsVersion)
 	return q, e
 }
 
@@ -40,7 +40,22 @@ func OrderRead(ctx context.Context, tx pgx.Tx, customer, id string) (any, error)
 	}
 	var raw json.RawMessage
 	e := tx.QueryRow(ctx, `SELECT `+orderJSON+` FROM issuing_orders WHERE customer_id=$1 AND id=$2`, customer, id).Scan(&raw)
-	return raw, mapped(e)
+	if e != nil {
+		return nil, mapped(e)
+	}
+	var result map[string]any
+	if e = json.Unmarshal(raw, &result); e != nil {
+		return nil, e
+	}
+	var consent json.RawMessage
+	e = tx.QueryRow(ctx, `SELECT jsonb_build_object('version',terms_version,'digest',terms_digest,'text',terms_text,'acceptedAt',accepted_at,'lawfulUse',lawful_use,'acceptedTerms',accepted_terms) FROM issuing_consents WHERE order_id=$1 AND customer_id=$2`, id, customer).Scan(&consent)
+	if e != nil && e != pgx.ErrNoRows {
+		return nil, e
+	}
+	result["consent"] = consent
+	events, e := jsonRows(ctx, tx, `SELECT jsonb_build_object('state',substring(action from 7),'createdAt',created_at,'code',detail->>'code') FROM issuing_audit WHERE customer_id=$1 AND resource_id=$2 AND action LIKE 'order.%' ORDER BY id LIMIT 200`, customer, id)
+	result["events"] = events
+	return result, e
 }
 func (s *Service) Submit(ctx context.Context, tx pgx.Tx, customer, quoteID, key string) (any, error) {
 	if !ValidID(quoteID) || !ValidID(key) {

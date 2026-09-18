@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Moventra card issuing",
-    "version": "1.0.0",
-    "description": "LOCAL implementation. Live financial execution is disabled unless a dedicated Blnk service and supplier certification manifest are configured. USD virtual cards only. Lists return up to 51 entries: display 50, use the extra entry as hasMore."
+    "version": "1.1.0",
+    "description": "LOCAL implementation. Live financial execution is disabled unless a dedicated Blnk service and supplier certification manifest are configured. USD virtual cards only. Lists return up to 51 entries: display 50, use the extra entry as hasMore. Checkout requires explicit versioned consent, persisted atomically with its order. Quotes bind termsVersion for five minutes. Card detail exposes internal subaccount balance, never upstream available funds. Local execution accepts only moventra_test_ databases and loopback fixtures; production stays disabled by default."
   },
   "servers": [
     {
@@ -51,9 +51,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -97,9 +95,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Supplier"
@@ -184,9 +180,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -236,9 +230,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Supplier"
@@ -314,9 +306,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -360,9 +350,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Product"
@@ -447,12 +435,10 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "$ref": "#/components/schemas/PublicProduct"
                     }
                   }
                 }
@@ -499,9 +485,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Product"
@@ -577,9 +561,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -623,9 +605,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Group"
@@ -710,9 +690,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -762,9 +740,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Group"
@@ -816,9 +792,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -894,9 +868,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -975,9 +947,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Wallet"
@@ -1052,9 +1022,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -1133,9 +1101,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -1198,9 +1164,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Order"
@@ -1294,9 +1258,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Order"
@@ -1348,9 +1310,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Quote"
@@ -1421,9 +1381,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Order"
@@ -1508,9 +1466,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Wallet"
@@ -1585,9 +1541,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -1666,9 +1620,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "array",
@@ -1756,9 +1708,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Order"
@@ -1833,9 +1783,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -1885,9 +1833,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -1972,9 +1918,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -2024,9 +1968,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -2111,9 +2053,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -2188,9 +2128,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -2251,9 +2189,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -2324,9 +2260,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "data"
-                  ],
+                  "required": ["data"],
                   "properties": {
                     "data": {
                       "type": "object"
@@ -2366,6 +2300,556 @@
           }
         }
       }
+    },
+    "/client-api/v1/customers/{customerID}/card-issuing/terms": {
+      "get": {
+        "summary": "Read issuing terms",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": ["version", "text", "digest"],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "digest": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/card-issuing/cards": {
+      "get": {
+        "summary": "Read issuing cards",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "maxItems": 51,
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/card-issuing/cards/{id}": {
+      "get": {
+        "summary": "Read issuing cards/{id}",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "order",
+                        "currency",
+                        "balanceMinor",
+                        "balanceStatus",
+                        "balanceKind"
+                      ],
+                      "properties": {
+                        "order": {
+                          "$ref": "#/components/schemas/Order"
+                        },
+                        "currency": {
+                          "const": "USD"
+                        },
+                        "balanceMinor": {
+                          "type": ["string", "null"]
+                        },
+                        "balanceStatus": {
+                          "enum": ["known", "unavailable", "not_funded"]
+                        },
+                        "balanceKind": {
+                          "const": "internal_card_subaccount"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/client-api/v1/customers/{customerID}/card-issuing/products/{id}": {
+      "get": {
+        "summary": "Read issuing products/{id}",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicProduct"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/card-issuing/terms": {
+      "get": {
+        "summary": "Read issuing terms",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": ["version", "text", "digest"],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "digest": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/card-issuing/cards": {
+      "get": {
+        "summary": "Read issuing cards",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "maxItems": 51,
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/card-issuing/cards/{id}": {
+      "get": {
+        "summary": "Read issuing cards/{id}",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "order",
+                        "currency",
+                        "balanceMinor",
+                        "balanceStatus",
+                        "balanceKind"
+                      ],
+                      "properties": {
+                        "order": {
+                          "$ref": "#/components/schemas/Order"
+                        },
+                        "currency": {
+                          "const": "USD"
+                        },
+                        "balanceMinor": {
+                          "type": ["string", "null"]
+                        },
+                        "balanceStatus": {
+                          "enum": ["known", "unavailable", "not_funded"]
+                        },
+                        "balanceKind": {
+                          "const": "internal_card_subaccount"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/customers/{customerID}/card-issuing/products/{id}": {
+      "get": {
+        "summary": "Read issuing products/{id}",
+        "parameters": [
+          {
+            "name": "customerID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Committed response; data is never returned if mandatory audit fails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicProduct"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request or invalid money"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Wrong role or missing MFA"
+          },
+          "404": {
+            "description": "Not found or unauthorized scope"
+          },
+          "409": {
+            "description": "Stale revision/quote, duplicate evidence, disabled issuing, or insufficient funds"
+          },
+          "503": {
+            "description": "Dependency or mandatory audit unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2387,17 +2871,10 @@
             "type": "string"
           },
           "adapter": {
-            "enum": [
-              "manual",
-              "slash"
-            ]
+            "enum": ["manual", "slash"]
           },
           "status": {
-            "enum": [
-              "active",
-              "paused",
-              "archived"
-            ]
+            "enum": ["active", "paused", "archived"]
           },
           "accountRef": {
             "type": "string"
@@ -2439,22 +2916,13 @@
             "pattern": "^([0-9]{6}|[0-9]{8})$"
           },
           "network": {
-            "enum": [
-              "",
-              "visa",
-              "mastercard"
-            ]
+            "enum": ["", "visa", "mastercard"]
           },
           "upstreamId": {
             "type": "string"
           },
           "status": {
-            "enum": [
-              "draft",
-              "active",
-              "paused",
-              "archived"
-            ]
+            "enum": ["draft", "active", "paused", "archived"]
           },
           "description": {
             "type": "string"
@@ -2503,11 +2971,7 @@
             "minimum": 0
           }
         },
-        "required": [
-          "id",
-          "name",
-          "revision"
-        ]
+        "required": ["id", "name", "revision"]
       },
       "Price": {
         "type": "object",
@@ -2518,10 +2982,7 @@
             "format": "uuid"
           },
           "scopeKind": {
-            "enum": [
-              "customer",
-              "group"
-            ]
+            "enum": ["customer", "group"]
           },
           "scopeId": {
             "type": "string",
@@ -2586,12 +3047,7 @@
             "description": "Legacy configuration only. New Slash enrollment omits holder configuration and uses channel defaults."
           }
         },
-        "required": [
-          "customerId",
-          "groupId",
-          "enabled",
-          "revision"
-        ]
+        "required": ["customerId", "groupId", "enabled", "revision"]
       },
       "QuoteInput": {
         "type": "object",
@@ -2606,10 +3062,7 @@
             "pattern": "^(0|[1-9][0-9]{0,17})$"
           }
         },
-        "required": [
-          "productId",
-          "fundingMinor"
-        ]
+        "required": ["productId", "fundingMinor"]
       },
       "Quote": {
         "type": "object",
@@ -2636,15 +3089,14 @@
             "pattern": "^(0|[1-9][0-9]{0,18})$"
           },
           "priceSource": {
-            "enum": [
-              "customer",
-              "group",
-              "default"
-            ]
+            "enum": ["customer", "group", "default"]
           },
           "expiresAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "termsVersion": {
+            "type": "string"
           }
         },
         "required": [
@@ -2654,21 +3106,31 @@
           "fundingMinor",
           "totalMinor",
           "priceSource",
-          "expiresAt"
+          "expiresAt",
+          "termsVersion"
         ]
       },
       "Submit": {
         "type": "object",
         "additionalProperties": false,
+        "required": ["quoteId", "termsVersion", "lawfulUse", "acceptedTerms"],
         "properties": {
           "quoteId": {
             "type": "string",
             "format": "uuid"
+          },
+          "termsVersion": {
+            "type": "string"
+          },
+          "lawfulUse": {
+            "type": "boolean",
+            "const": true
+          },
+          "acceptedTerms": {
+            "type": "boolean",
+            "const": true
           }
-        },
-        "required": [
-          "quoteId"
-        ]
+        }
       },
       "Topup": {
         "type": "object",
@@ -2683,10 +3145,7 @@
             "pattern": "^(0|[1-9][0-9]{0,17})$"
           }
         },
-        "required": [
-          "orderId",
-          "fundingMinor"
-        ]
+        "required": ["orderId", "fundingMinor"]
       },
       "Deposit": {
         "type": "object",
@@ -2700,10 +3159,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "amountMinor",
-          "evidenceRef"
-        ]
+        "required": ["amountMinor", "evidenceRef"]
       },
       "Review": {
         "type": "object",
@@ -2717,10 +3173,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "revision",
-          "approve"
-        ]
+        "required": ["revision", "approve"]
       },
       "Recovery": {
         "type": "object",
@@ -2730,9 +3183,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "evidenceRef"
-        ]
+        "required": ["evidenceRef"]
       },
       "Order": {
         "type": "object",
@@ -2800,6 +3251,41 @@
           "cardName": {
             "type": "string",
             "description": "Persisted internal display alias; empty for historical orders. Not a cardholder identity."
+          },
+          "consent": {
+            "type": ["object", "null"],
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "digest": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "acceptedAt": {
+                "type": "string"
+              }
+            }
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "required": [
@@ -2830,14 +3316,10 @@
             "pattern": "^-?[0-9]+$"
           },
           "mode": {
-            "const": "live"
+            "enum": ["live", "isolated"]
           }
         },
-        "required": [
-          "currency",
-          "availableMinor",
-          "mode"
-        ]
+        "required": ["currency", "availableMinor", "mode"]
       },
       "PublicProduct": {
         "type": "object",

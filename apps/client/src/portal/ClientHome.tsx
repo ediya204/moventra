@@ -1,3 +1,4 @@
+import CardIssuing from "../issuing/CardIssuing";
 import OnlineFunds from '../../../../packages/shared/src/finance/OnlineFunds';
 import TestWallet from './TestWallet';
 import CardSnapshots from './CardSnapshots';
@@ -102,7 +103,7 @@ export default function ClientHome() {
   }, [customer?.id, session, user, reload]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
-  if (!/^\/portal\/funds(?:\/(?:deposit|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
+  if (!/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
@@ -110,7 +111,7 @@ export default function ClientHome() {
   const admission=onboarding?.customerId===customer?.id?onboarding:null;
   const enabled=clientFeaturesEnabled(admission);
   const security = pathname === "/portal/security";
-  const page = pathname.startsWith("/portal/card-transactions/") ? "卡片交易详情" : links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
+  const page = pathname.startsWith("/portal/card-orders") ? "开卡订单" : pathname.startsWith("/portal/issued-cards/") ? "新开卡片详情" : pathname === "/portal/cards/new" ? "申请新卡" : pathname.startsWith("/portal/card-transactions/") ? "卡片交易详情" : links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
   const nav = (
     <Stack sx={{ height: "100%", p: 2.5, overflowY: "auto" }} spacing={3}>
       <Box sx={{ py: 2 }}>
@@ -379,7 +380,7 @@ export default function ClientHome() {
                   <Box sx={workspaceGrid}>
                     {[["充值 USDT", "solar:wallet-money-linear"], ["兑换 USD", "solar:refresh-linear"], ["充值到卡", "solar:card-transfer-linear"], ["申请新卡", "solar:card-linear"]].map(([label, icon]) => (
                       <Paper key={label} variant="outlined" sx={{ p: 2 }}>
-                        <Button component={Link} to={label === "申请新卡" ? "/portal/cards" : label === "充值 USDT" ? "/portal/funds/deposit" : label === "兑换 USD" ? "/portal/funds/exchange" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
+                        <Button component={Link} to={label === "申请新卡" ? "/portal/cards/new" : label === "充值 USDT" ? "/portal/funds/deposit" : label === "兑换 USD" ? "/portal/funds/exchange" : "/portal/funds"} disabled={!enabled} fullWidth startIcon={<Icon icon={icon} width={24} />}>{label}</Button>
                         <Typography variant="caption" color="text.secondary">查看办理详情</Typography>
                       </Paper>
                     ))}
@@ -412,6 +413,7 @@ export default function ClientHome() {
                 </Stack>
               </Paper>}
               {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={`cards:${customer.id}`} customerId={customer.id}/> }
+              {customer && (pathname === "/portal/cards" || pathname === "/portal/cards/new" || pathname.startsWith("/portal/card-orders") || pathname.startsWith("/portal/issued-cards/")) && <CardIssuing key={`issuing:${customer.id}`} customerId={customer.id} uid={user.uid}/> }
               {pathname.startsWith("/portal/funds") && customer && <OnlineFunds key={`funds:${customer.id}`} customerId={customer.id} reload={reload}/> }
               {["messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>

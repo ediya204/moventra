@@ -61,7 +61,7 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 				validRoute = id == "" && (resource == "quotes" || resource == "orders" || resource == "topups")
 			}
 		} else {
-			validRoute = resource == "orders" || (id == "" && (resource == "products" || resource == "wallet" || (admin && (resource == "enrollment" || resource == "deposits" || resource == "audit" || resource == "reconciliation"))))
+			validRoute = resource == "orders" || resource == "cards" || resource == "products" || (id == "" && (resource == "terms" || resource == "wallet" || (admin && (resource == "enrollment" || resource == "deposits" || resource == "audit" || resource == "reconciliation"))))
 		}
 	}
 	if !validRoute {
@@ -156,16 +156,20 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 			switch resource {
 			case "products":
 				if id != "" {
-					e = issuing.ErrInvalid
+					result, e = svc.ClientProduct(ctx, tx, customer, id)
 				} else {
 					result, e = svc.ClientProducts(ctx, tx, customer, r.URL.Query().Get("q"), offset)
 				}
+			case "terms":
+				result = issuing.CurrentTerms()
+			case "cards":
+				result, e = svc.Cards(ctx, tx, customer, id, offset)
 			case "reconciliation":
 				result, e = svc.Reconciliation(ctx, tx, customer)
 			case "wallet":
 				var balance string
 				balance, e = svc.Wallet(ctx, tx, customer)
-				result = map[string]any{"currency": "USD", "availableMinor": balance, "mode": "live"}
+				result = map[string]any{"currency": "USD", "availableMinor": balance, "mode": svc.Mode}
 			case "orders":
 				result, e = issuing.CustomerRead(ctx, tx, customer, resource, id, offset)
 			default:
@@ -259,13 +263,11 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 				result, e = svc.Quote(ctx, tx, customer, v.ProductID, v.FundingMinor)
 			}
 		case "orders":
-			var v struct {
-				QuoteID string `json:"quoteId"`
-			}
+			var v issuing.Checkout
 			e = decodeIssuing(w, r, &v)
 			auditDetail = v
 			if e == nil {
-				result, e = svc.Submit(ctx, tx, customer, v.QuoteID, r.Header.Get("Idempotency-Key"))
+				result, e = svc.Checkout(ctx, tx, customer, p.ID, r.Header.Get("Idempotency-Key"), v)
 			}
 		case "topups":
 			var v struct {
@@ -339,6 +341,10 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 	if e != nil {
 		status, code := 503, "temporarily_unavailable"
 		switch {
+		case errors.Is(e, issuing.ErrConsent):
+			status, code = 400, e.Error()
+		case errors.Is(e, issuing.ErrTerms):
+			status, code = 409, e.Error()
 		case errors.Is(e, issuing.ErrInvalid):
 			status, code = 400, e.Error()
 		case errors.Is(e, issuing.ErrNotFound):

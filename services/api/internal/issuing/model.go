@@ -43,6 +43,7 @@ type Service struct {
 	DB        *pgxpool.Pool
 	Blnk      *blnk.Client
 	Providers map[string]Provider
+	Mode      string
 	Enabled   bool
 }
 type Supplier struct {
@@ -93,6 +94,7 @@ type Snapshot struct {
 	CardholderRef    string   `json:"cardholderRef"`
 }
 type Quote struct {
+	TermsVersion string `json:"termsVersion"`
 	ID           string `json:"id"`
 	ProductID    string `json:"productId"`
 	FeeMinor     string `json:"feeMinor"`

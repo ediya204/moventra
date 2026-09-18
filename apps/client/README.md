@@ -29,3 +29,7 @@
 `/portal` 和 `/portal/funds` 新增独立的线上测试余额查询区，仅显示受控配置的测试额度，明确不可提现或充值到真实卡片。见[流程与验证](../../docs/business/online-test-wallet.md)。
 
 正式登录资金中心 `/portal/funds` 已接服务端线上测试资金：USDT/法币充值、报价兑换、提现申请、状态记录和稳定订单详情。需要个人账户已审批启用及独立测试额度；全部属于模拟流程。待确认写请求在当前标签页保存幂等键，网络异常后重试同一请求。见 [流程卡](../../docs/business/online-test-funds.md)。
+
+## 客户端开卡
+
+正式入口 `/portal/cards/new`，订单 `/portal/card-orders` 与 `/portal/card-orders/:id`，新卡详情 `/portal/issued-cards/:id`。费用、最低首充、声明、独立 USD 钱包与失败恢复见[开卡流程](../../docs/business/client-card-issuing.md)。生产是否可支付由服务端资格和执行能力决定。

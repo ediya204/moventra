@@ -1,3 +1,5 @@
+import { OrderSummary, useIssuing, LoadError, orderPending } from "../../../../packages/shared/src/issuing/ui";
+import type { Order, Wallet } from "../../../../packages/shared/src/issuing/contract";
 import { useEffect, useState, useRef } from "react";
 import {
   Alert,
@@ -31,6 +33,7 @@ import {
   money,
   toMinor,
   statuses,
+  orderStatuses,
   type Product,
   type Supplier,
 } from "../../../../packages/shared/src/issuing/contract";
@@ -128,6 +131,7 @@ function Catalog() {
           ["groups", "定价组", "/card-bins/groups"],
 
           ["audit", "维护记录", "/card-bins/audit"],
+          ["customers", "客户开卡", "/card-bins/customers"],
         ].map(([key, label, to]) => (
           <Button
             key={key}
@@ -669,7 +673,11 @@ function CustomerEditor({
   const prefix = `/admin-api/v1/customers/${customer}/card-issuing`;
   const { data, error } = useLoad<any>(prefix + "/enrollment", reload);
   const deposits = useLoad<Row[]>(prefix + "/deposits", reload);
-  const orders = useLoad<Row[]>(prefix + "/orders", reload);
+  const [orderParams, setOrderParams] = useSearchParams();
+  const orderPage = Math.max(1, Math.min(2000, Number(orderParams.get("orderPage")) || 1));
+  const orders = useLoad<Row[]>(prefix + "/orders?page=" + orderPage, reload);
+  const wallet = useIssuing<Wallet>(prefix + "/wallet", reload);
+  const selectedOrder = orderParams.get("order") || "";
   const [draft, setDraft] = useState<any>({});
   const [amount, setAmount] = useState("0");
   const [evidence, setEvidence] = useState("");
@@ -798,12 +806,21 @@ function CustomerEditor({
       </Paper>
       <Paper variant="outlined" sx={{ p: 3 }}>
         <Stack spacing={2}>
-          <Typography variant="h6">最近开卡订单（最多 50 条）</Typography>
+          <Typography variant="h6">开卡钱包与订单</Typography>
+          <LoadError message={wallet.error} retry={wallet.refresh}/>
+          <Typography>USD 可用余额：{wallet.data ? money(wallet.data.availableMinor) : "暂不可查询"}</Typography>
+          {selectedOrder && <AdminOrder prefix={prefix} id={selectedOrder} reload={reload}/>}
+          <Stack direction="row" spacing={2}>
+            <Button disabled={orderPage<=1} onClick={()=>{const p=new URLSearchParams(orderParams);p.set("orderPage",String(orderPage-1));setOrderParams(p)}}>上一页</Button>
+            <Typography>第 {orderPage} 页</Typography>
+            <Button disabled={!orders.data || orders.data.length<=50} onClick={()=>{const p=new URLSearchParams(orderParams);p.set("orderPage",String(orderPage+1));setOrderParams(p)}}>下一页</Button>
+          </Stack>
           {orders.error && <Alert severity="error">{orders.error}</Alert>}
           {orders.data?.slice(0, 50).map((o) => (
             <Stack key={String(o.id)} spacing={1}>
+              <Button onClick={()=>{const p=new URLSearchParams(orderParams);p.set("order",String(o.id));setOrderParams(p)}}>查看订单及声明证据</Button>
               <Typography>
-                {String(o.cardName || "卡片名称未生成")} · {String(o.productName)} · {statuses[String(o.state)]} ·{" "}
+                {String(o.cardName || "卡片名称未生成")} · {String(o.productName)} · {(orderStatuses as Record<string, string>)[String(o.state)]} ·{" "}
                 {String(o.id)}
               </Typography>
               <Typography variant="body2">
@@ -827,4 +844,9 @@ function CustomerEditor({
       </Paper>
     </Stack>
   );
+}
+
+function AdminOrder({prefix,id,reload}: {prefix:string;id:string;reload:number}) {
+ const order=useIssuing<Order>(prefix+"/orders/"+id,reload,orderPending);
+ return <><LoadError message={order.error} retry={order.refresh}/>{order.data&&<OrderSummary order={order.data}/>}</>;
 }

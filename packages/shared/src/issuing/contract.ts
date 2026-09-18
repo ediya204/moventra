@@ -33,6 +33,7 @@ export type PublicProduct = Pick<
   | "revision"
 > & { currency: "USD"; blockedReason: string };
 export type Quote = {
+  termsVersion: string;
   id: string;
   productId: string;
   feeMinor: string;
@@ -42,6 +43,8 @@ export type Quote = {
   expiresAt: string;
 };
 export type Order = {
+  consent?: { version: string; digest: string; text: string; acceptedAt: string } | null;
+  events?: { state: string; createdAt: string; code: string }[];
   cardName: string;
   id: string;
   customerId: string;
@@ -79,7 +82,13 @@ export const statuses: Record<string, string> = {
   rejected: "已拒绝",
   applied: "已入账",
 };
+export const orderStatuses = { ...statuses, active: "开卡成功", failed: "开卡未完成", funding_failed: "首充失败 · 可补充充值" };
+export type Terms = { version: string; text: string; digest: string };
+export type Wallet = { availableMinor: string; currency: "USD"; mode: string };
+export type IssuedCard = { order: Order; balanceMinor: string | null; balanceStatus: string; currency: "USD" };
 export const reasons: Record<string, string> = {
+  consent_required: "请勾选合法用途声明和开卡条款",
+  terms_changed: "开卡条款已更新，请重新阅读并确认",
   product_unconfigured: "产品费用或最低首充未配置",
   source_product_inactive: "上游产品不可用",
   provider_access_blocked: "渠道访问被拒绝，等待运营恢复",
@@ -133,7 +142,7 @@ export function issuingPath(method: string, path: string) {
         `^/admin-api/v1/card-issuing/(suppliers|products|groups|audit)(/${uuid})?$`,
       ).test(p) ||
       new RegExp(
-        `^/(client|admin)-api/v1/customers/${uuid}/card-issuing/(products|wallet|orders)(/${uuid})?$`,
+        `^/(client|admin)-api/v1/customers/${uuid}/card-issuing/((products|orders|cards)(/${uuid})?|wallet|terms)$`,
       ).test(p) ||
       new RegExp(
         `^/admin-api/v1/customers/${uuid}/card-issuing/(enrollment|deposits|audit|reconciliation)$`,

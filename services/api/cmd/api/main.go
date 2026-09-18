@@ -21,6 +21,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"moventra.local/api/internal/api"
 	"moventra.local/api/internal/database"
+	"moventra.local/api/internal/issuing"
 	"moventra.local/api/internal/ledger"
 )
 
@@ -189,8 +190,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	issuingService, err := issuing.FromEnv(pool)
+	if err != nil {
+		return err
+	}
 	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
-	handler := hook.Handler((&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger}).Handler())
+	handler := hook.Handler((&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
 	server := http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()

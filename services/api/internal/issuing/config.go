@@ -18,6 +18,9 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	if mode == "" || mode == "disabled" {
 		return s, nil
 	}
+	if mode == "local" {
+		return localService(s)
+	}
 	if mode != "live" {
 		return nil, errors.New("invalid_issuing_mode")
 	}
@@ -64,6 +67,37 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 		}
 		s.Providers[v.ID] = NewSlash(os.Getenv(v.KeyEnv), v.Entity, v.Account)
 	}
+	s.Mode = "live"
 	s.Enabled = true
+	return s, nil
+}
+
+// Local execution is opt-in, loopback-only, and cannot reuse application or shadow databases.
+func localService(s *Service) (*Service, error) {
+	c := s.DB.Config().ConnConfig
+	if (c.Host != "/tmp" && c.Host != "127.0.0.1" && c.Host != "localhost") || !strings.HasPrefix(c.Database, "moventra_test_") {
+		return nil, errors.New("isolated_issuing_database_required")
+	}
+	localURL := func(raw string) bool {
+		u, e := url.Parse(raw)
+		return e == nil && u.Scheme == "http" && u.Hostname() == "127.0.0.1" && u.Port() != "" && u.User == nil && u.RawQuery == "" && u.Fragment == "" && (u.Path == "" || u.Path == "/")
+	}
+	if !localURL(os.Getenv("ISSUING_BLNK_URL")) || !localURL(os.Getenv("ISSUING_FIXTURE_URL")) {
+		return nil, errors.New("loopback_fixtures_required")
+	}
+	id := os.Getenv("ISSUING_FIXTURE_SUPPLIER_ID")
+	if !ValidID(id) {
+		return nil, ErrInvalid
+	}
+	b, e := blnk.New(os.Getenv("ISSUING_BLNK_URL"), os.Getenv("ISSUING_BLNK_KEY"))
+	if e != nil {
+		return nil, e
+	}
+	p := NewSlash("synthetic", "fixture_entity", "fixture_account")
+	p.base = strings.TrimSuffix(os.Getenv("ISSUING_FIXTURE_URL"), "/")
+	s.Blnk = b
+	s.Providers[id] = p
+	s.Enabled = true
+	s.Mode = "isolated"
 	return s, nil
 }

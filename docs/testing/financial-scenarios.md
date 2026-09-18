@@ -182,3 +182,7 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 ## 2026-09-18：卡名隔离验收补充
 
 开卡 fixture 验证：100个唯一英文姓名候选；随机结果属于池；未绑定 holder 的已启用客户可报价/提交；新 Slash 请求无 cardholderId 且 name 与订单一致；幂等重试及原卡补充首充保留 cardName；后台资格响应无 cardholders。仅本地隔离测试，不代表真实渠道默认 holder 验收。流程见[开卡规则](../business/card-issuing-2026-09-18.md)。
+
+## FLOW-CLIENT-ISSUING-001
+
+开卡专项覆盖精度、声明、报价失效、并发预占、未知结果、退款、原卡补充首充、远端记账后本地提交失败和Worker重启。目录发布另验8个BIN费率10 USD/最低20 USD、冲突回滚、审计失败回滚及重复不变。测试与生产验收分别见[流程](../business/client-card-issuing.md)，不追认真实扣款发卡通过。

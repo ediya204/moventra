@@ -1,0 +1,36 @@
+{
+  "orderId": "a217e9f9-da10-40c7-81f3-afd7384d736f",
+  "status": "passed",
+  "checks": [
+    "both declarations",
+    "USD quote and amount",
+    "actual HTTP API",
+    "real local Blnk",
+    "separate worker restart",
+    "order refresh",
+    "new card deep link",
+    "cross-surface equality",
+    "975 wallet / 20 card / 5 fee",
+    "390px mobile"
+  ],
+  "screenshots": "/Users/ediya/.codex/visualizations/2026/09/18/01a0b3ca-d0ba-7892-b96c-3a759c137782/issuing",
+  "date": "2026-09-18",
+  "baseline": "main 1ed842a + uncommitted changes",
+  "flow": "FLOW-CLIENT-ISSUING-001",
+  "environment": "isolated PostgreSQL + Blnk 0.15.4 + mock Slash HTTP + injected test identity",
+  "realChannel": false,
+  "deployed": false,
+  "productionMigration": false,
+  "frontendFocused": "8 tests passed",
+  "frontendFull": {
+    "passed": 107,
+    "failed": 2,
+    "failures": [
+      "admin-workspace-parity: parallel crypto navigation expectation",
+      "client-workspace: parallel CryptoFunds import missing from test resolver"
+    ]
+  },
+  "goFull": "isolated PostgreSQL go test -race ./... passed",
+  "blnkFocused": "TestIssuingFullFlow and adapter/config/migration tests passed against dedicated fresh real local Blnk",
+  "verificationBoundary": "Browser mounts production components and actual transport/API; Firebase login is injected, not validated. Docker image runtime not exercised."
+}

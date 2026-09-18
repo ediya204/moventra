@@ -1,3 +1,4 @@
+import { clearIssuingPending } from "../issuing/pending";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoogleAuthProvider, browserPopupRedirectResolver, signInWithPopup, getMultiFactorResolver, onIdTokenChanged, signInWithEmailAndPassword, signOut as firebaseSignOut, TotpMultiFactorGenerator, type MultiFactorError, type MultiFactorResolver, type User } from 'firebase/auth';
 import { clearAccessToken, setAccessToken } from '../api/client';
@@ -96,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolver.current = null; setFactors([]);
   }, []);
   const signOut = useCallback(() => {
+    try { clearIssuingPending(); } catch { /* Storage may be disabled. */ }
     generation.current++; resolver.current = null; setFactors([]); clearAccessToken(); setProfile(null); setSession(null); setUser(null); setSessionError(null);
     if (usesFirebaseAuth) void firebaseSignOut(getFirebaseAuth());
   }, []);

@@ -90,3 +90,13 @@ test("gateway and transport agree on exact mutation boundaries", async () => {
   );
   assert.equal(cross.status, 404);
 });
+test('new card and terms routes are read-only with exact singleton boundaries', () => {
+ const base=`/client-api/v1/customers/${id}/card-issuing`;
+ for(const path of [base+'/terms',base+'/products/'+id,base+'/cards',base+'/cards/'+id]){
+  assert.equal(issuingRoute('GET',path),true);assert.equal(issuingPath('GET',path),true);
+  assert.equal(issuingRoute('POST',path),false);assert.equal(issuingPath('POST',path),false);
+ }
+ for(const path of [base+'/terms/'+id,base+'/wallet/'+id]){
+  assert.equal(issuingRoute('GET',path),false);assert.equal(issuingPath('GET',path),false);
+ }
+});
