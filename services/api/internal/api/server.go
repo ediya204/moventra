@@ -47,6 +47,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	s.issuingRoutes(mux)
 	s.cryptoRoutes(mux)
+	s.manualRoutes(mux)
 	mux.Handle("GET /client-api/v1/customers/{customerID}/deposit-addresses", s.authenticate(http.HandlerFunc(s.depositAddress)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/deposit-addresses", s.authenticate(http.HandlerFunc(s.depositAddress)))
 	if s.Deposits != nil {

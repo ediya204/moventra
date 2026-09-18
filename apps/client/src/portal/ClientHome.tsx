@@ -1,3 +1,4 @@
+import ManualFunds from '../../../../packages/shared/src/finance/ManualFunds';
 import CardIssuing from "../issuing/CardIssuing";
 import CustomerFunds from '../../../../packages/shared/src/finance/CustomerFunds';
 import OnlineFunds from '../../../../packages/shared/src/finance/OnlineFunds';
@@ -104,7 +105,7 @@ export default function ClientHome() {
   }, [customer?.id, session, user, reload]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
-  if (!/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/test-funds(?:\/(?:history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/crypto(?:\/(?:deposit|fiat|withdraw|exchange|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
+  if (!/^\/portal\/funds\/manual(?:\/orders\/[0-9a-f-]{36})?$/.test(pathname) && !/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/test-funds(?:\/(?:history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/crypto(?:\/(?:deposit|fiat|withdraw|exchange|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
@@ -418,7 +419,9 @@ export default function ClientHome() {
               {pathname.startsWith('/portal/crypto')&&customer&&<CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/crypto" orderId={pathname.split('/orders/')[1]}/>}
               {customer && (pathname === "/portal/cards" || pathname === "/portal/cards/new" || pathname.startsWith("/portal/card-orders") || pathname.startsWith("/portal/issued-cards/")) && <CardIssuing key={`issuing:${customer.id}`} customerId={customer.id} uid={user.uid}/> }
               {pathname.startsWith("/portal/test-funds")&&customer&&<OnlineFunds key={`test:${customer.id}`} customerId={customer.id} reload={reload} basePath="/portal/test-funds"/>}
-              {pathname.startsWith("/portal/funds") && customer && <CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/funds" orderId={pathname.split('/orders/')[1]}/> }
+              {pathname.startsWith('/portal/funds')&&<Button component={Link} to="/portal/funds/manual">人工出入金记录</Button>}
+              {pathname.startsWith('/portal/funds/manual')&&customer&&<ManualFunds key={customer.id+pathname} customerId={customer.id} basePath="/portal/funds/manual" orderId={pathname.split('/orders/')[1]}/>}
+              {pathname.startsWith("/portal/funds") && !pathname.startsWith('/portal/funds/manual') && customer && <CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/funds" orderId={pathname.split('/orders/')[1]}/> }
               {["messages", "support", "settings"].some(route => pathname === `/portal/${route}` || pathname.startsWith(`/portal/${route}/`)) && (
                 <Paper variant="outlined" sx={{ p: 3 }}>
                   <Typography variant="h6">{page}</Typography>

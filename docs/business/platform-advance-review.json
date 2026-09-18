@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "email": "ediyanghk@gmail.com",
+  "source": "platform_advance",
+  "currency": "USD",
+  "scale": 2,
+  "amountMinor": "1000000",
+  "frequency": "one_time",
+  "customerId": null,
+  "requestId": null,
+  "allocations": []
+}

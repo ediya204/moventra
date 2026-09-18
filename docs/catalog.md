@@ -21,6 +21,7 @@
 
 - [卡片详情导航发布](../deploy/2026-09-07-card-detail-navigation.md) — `deploy/2026-09-07-card-detail-navigation.md`
 - [资金运营概览发布记录](../deploy/2026-09-07-operations-overview.md) — `deploy/2026-09-07-operations-overview.md`
+- [余额查询与人工资金代码发布](../deploy/2026-09-18-balance-query-release.md) — `deploy/2026-09-18-balance-query-release.md`
 - [BIN catalogue release — 2026-09-18](../deploy/2026-09-18-bin-catalog-sync.md) — `deploy/2026-09-18-bin-catalog-sync.md`
 - [客户端开卡与八个 BIN 目录发布](../deploy/2026-09-18-client-issuing-release.md) — `deploy/2026-09-18-client-issuing-release.md`
 - [已完成改动统一发布清单](../deploy/2026-09-18-completed-work-release.md) — `deploy/2026-09-18-completed-work-release.md`
@@ -76,6 +77,7 @@
 - [正式身份、客户主体与业务开通](business/identity-and-production.md) — `docs/business/identity-and-production.md`
 - [FLOW-TEST-FUNDS-01 正式登录后的测试资金流程](business/online-test-funds.md) — `docs/business/online-test-funds.md`
 - [FLOW-TEST-WALLET-01 线上测试余额](business/online-test-wallet.md) — `docs/business/online-test-wallet.md`
+- [FLOW-PLATFORM-ADVANCE-001：余额查询与人工出入金](business/platform-advance.md) — `docs/business/platform-advance.md`
 - [FLOW-WALLET-001：项目上游钱包与逐卡归属](business/project-wallet.md) — `docs/business/project-wallet.md`
 - [页面、API 与浏览器可达范围](business/routes-and-api.md) — `docs/business/routes-and-api.md`
 - [两角色与登录隔离](business/two-role-login.md) — `docs/business/two-role-login.md`

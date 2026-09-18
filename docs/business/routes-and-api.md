@@ -76,3 +76,14 @@
 ## 资金中心四流程（2026-09-18，本地未部署）
 
 `/portal/funds` 总览；`/deposit`、`/fiat`、`/withdraw`、`/exchange` 四操作；`/history` 与 `/orders/:id` 完整历史和深链。`/portal/crypto` 兼容同一页面，旧测试历史保留 `/portal/test-funds/history`。调用独立 crypto API，不把 online_test 改成正式余额。开户完成后进入充值页才发地址请求。transport、网关、Go 路由均增加网络/逐卡报价、订单与最近 5 条；详见[FLOW](funds-center.md)。
+
+## 余额查询与人工出入金（2026-09-18，本地实现，未部署）
+
+| 入口 | 关系与接口 |
+| --- | --- |
+| 后台资金与财务 → `/finance/balances` | 全用户分页与筛选汇总；GET `/admin-api/v1/balances` |
+| `/finance/balances/:customerId` | 人工出入金/资金流水/关联卡片；GET `/admin-api/v1/balances/{customerId}` |
+| `/finance/balances/:customerId/orders/:orderId` | 同客户订单深链、审批及恢复；后台 scoped manual-funds 接口 |
+| 客户资金中心 → `/portal/funds/manual` 及 `/orders/:orderId` | 本人只读记录；client scoped manual-funds 接口 |
+
+新页面继承既有正式认证、MFA、站点隔离及主题；具体客户read与动作授权独立检查。无用途字段、不直接覆盖余额。接口清单及现阶段未完成的真实资金条件见[FLOW-PLATFORM-ADVANCE-001](platform-advance.md)。

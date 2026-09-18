@@ -48,6 +48,9 @@ var issuingCheckout string
 //go:embed 015_funds_flows.sql
 var fundsFlows string
 
+//go:embed 016_manual_funds.sql
+var manualFunds string
+
 // Migrate is explicit (never called automatically by the API process).
 // One transaction and advisory lock make concurrent invocations safe.
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
@@ -62,11 +65,8 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	if _, err = tx.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations(version integer PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
 		return err
 	}
-	for _, item := range []struct {
-		version int
-		sql     string
-	}{{1, initial}, {2, channelProjection}, {3, onboarding}, {4, userRoles}, {5, userDirectoryAudit}, {6, blnkShadow}, {7, customerCardSnapshots}, {8, onlineTestWallet}, {9, onlineTestFunds}, {10, slashWebhook}, {11, projectWallet}, {12, cardIssuing}, {13, cryptoFunds}, {14, issuingCheckout}, {15, fundsFlows}} {
-		version, migration := item.version, item.sql
+	for index, migration := range []string{initial, channelProjection, onboarding, userRoles, userDirectoryAudit, blnkShadow, customerCardSnapshots, onlineTestWallet, onlineTestFunds, slashWebhook, projectWallet, cardIssuing, cryptoFunds, issuingCheckout, fundsFlows, manualFunds} {
+		version := index + 1
 		checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(migration)))
 		var count int
 		if err = tx.QueryRow(ctx, `SELECT count(*) FROM schema_migrations WHERE version=$1`, version).Scan(&count); err != nil {

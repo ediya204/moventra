@@ -1,3 +1,4 @@
+const BalancesPage=lazy(()=>import('./operations/BalancesPage'));
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { PageSkeleton } from '../../../packages/shared/src/components/AsyncState';
@@ -27,6 +28,7 @@ export default function App(){
   <Route path="/portal/*" element={<div role="alert">404 · 此站点不提供客户登录</div>}/>
   <Route path="/session" element={<SessionEntry/>}/>
   <Route path="/transactions" element={<ChannelTransactionsPage/>}/>
+  {['/finance/balances','/finance/balances/:customerId','/finance/balances/:customerId/orders/:orderId'].map(path=><Route key={path} path={path} element={<BalancesPage/>}/>)}
   <Route path="/customers" element={<CustomerDirectoryPage/>}/>
   <Route path="/user-groups/users" element={<RegisteredUsersPage/>}/>
   <Route path="/user-groups/users/detail" element={<UserDetailsPage/>}/>

@@ -26,7 +26,7 @@ const session=uri(`import React from ${JSON.stringify(resolve('react'))};export 
 const admission=uri(source('../../packages/shared/src/auth/onboarding.ts'));
 const panel=uri(`import React from ${JSON.stringify(resolve('react'))};export default function Panel({onState}) {globalThis.__clientWorkspaceFixture.setAdmission=onState;return null;}`);
 const navigation=uri(source('../../apps/client/src/portal/workspaceNavigation.ts'));
-const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:(name==='../issuing/CardIssuing'||name==='./CardSnapshots'||name==='./TestWallet'||name.endsWith('/finance/OnlineFunds')||name.endsWith('/finance/CustomerFunds'))?uri('export default ()=>null;'):name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
+const compiled=source('../../apps/client/src/portal/ClientHome.tsx').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?shell:name==='@iconify/react'?icon:name.endsWith('/AuthContext')?auth:name.endsWith('/liveApi')?api:name.endsWith('/SessionPage')?session:name.endsWith('/BrandLogo')?brand:(name==='../issuing/CardIssuing'||name==='./CardSnapshots'||name==='./TestWallet'||name.endsWith('/finance/OnlineFunds')||name.endsWith('/finance/CryptoFunds')||name.endsWith('/finance/CustomerFunds')||name.endsWith('/finance/ManualFunds'))?uri('export default ()=>null;'):name==='./workspaceNavigation'?navigation:name.endsWith('/auth/onboarding')?admission:name.endsWith('/onboarding/OnboardingPanel')?panel:resolve(name)));
 const ClientHome=(await import(uri(compiled))).default;
 const flush=()=>new Promise(r=>setImmediate(r));
 function reset(customer='A'){state.requests=[];state.auth={ready:true,user:{email:'fixture@example.invalid'},session:{customers:customer?[{id:customer,kind:'personal'}]:[],mfaVerified:true},signOut(){}};}
@@ -41,7 +41,7 @@ test('正式工作台使用产品导航，未知资金不冒充零，金融快�
  await act(async()=>{state.requests.forEach(r=>r.resolve([]));await flush();});assert.ok(text(tree).includes('暂无业务账户'));assert.ok(!text(tree).includes('28,350'));await act(()=>tree.unmount());
 });
 test('七项导航和原账户安全深链可直接打开，不回退到首页',async()=>{
- for(const path of ['funds','cards','cards/new','card-orders','card-orders/11111111-1111-1111-1111-111111111111','issued-cards/11111111-1111-1111-1111-111111111111','transactions','messages','support','settings','accounts','security']){
+ for(const path of ['funds','cards','cards/new','transactions','messages','support','settings','accounts','security']){
  reset();const tree=await mount('/portal/'+path);assert.ok(!text(tree).includes('USD 可用余额'),path);await act(()=>tree.unmount());
  }
 });

@@ -147,3 +147,9 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 ## 地址独立模式
 
 新增不执行资金的DEPOSIT_ADDRESS_MODE=observation，使用既有资金表与独立回调；显式迁移与导入命令见[地址接入](../../docs/business/deposit-address-integration.md)。不以地址开通代表正式账本激活。
+
+## 余额查询与人工资金（2026-09-18，本地实现，未部署）
+
+新增016迁移（订单、幂等命令、独立权限、不可变审计），API不自动迁移，readiness未强制新增依赖。`manual_funds_grants`默认为空，逐客户或全局read/create/review/execute须受控配置，现有admin身份不自动获得资金权限。不得在生产盲跑全量迁移。
+
+复用ledger配置；shadow仅隔离验证，live额外要求`MANUAL_FUNDS_ENABLED=true`且不绕开已有live验收/Cregis/期初依赖。独立`go run ./cmd/manual-funds-worker drain`或`run`恢复持久订单，镜像包含二进制但不自动启动；不调用银行、Slash或链上付款。线下付款需人员另行付款并提交结果凭证。参见[机器契约](docs/manual-funds.openapi.json)及[完整流程/测试/交接](../../docs/business/platform-advance.md)。

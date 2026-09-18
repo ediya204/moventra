@@ -268,3 +268,11 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 ## 地址独立接入增量
 
 新增GET/POST `/client-api/v1/customers/{customerID}/deposit-addresses`；GET支持page或event，POST仅TRC20与UUID幂等头。回调`/webhooks/cregis/address-deposit`仅持久记录，不增加余额。见[契约及流程](../business/deposit-address-integration.md)。
+
+## 余额查询与人工出入金（2026-09-18，本地实现）
+
+新增 [manual-funds OpenAPI](../../services/api/docs/manual-funds.openapi.json)。后台 GET `/admin-api/v1/balances` 及 `/{customerId}` 查询授权范围内全用户、筛选汇总及分页详情；金额来自已登记 journal，缺失为 null，不冒充上游余额。
+
+订单 GET `/{admin|client}-api/v1/customers/{customerId}/manual-funds` 及 `/orders/{orderId}`；后台 POST `/orders` 和单号后的 approve/reject/cancel/confirm_payment/payment_failed/reconcile。USD金额使用最小单位字符串，创建带凭证引用，动作带 revision 与幂等键。冲正新建关联原单，不提供直接余额覆盖。后台要求MFA、独立read及对应create/review/execute授权；客户仅查询本人且裁剪内部字段。网关按站点、精确路径与方法放行，跨域POST拒绝。
+
+缺少016迁移/服务配置时此能力不可用；未部署。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。

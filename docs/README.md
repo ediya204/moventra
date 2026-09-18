@@ -135,3 +135,5 @@
 2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](business/funds-center.md)。
 
 - [客户充值地址标准接入](business/deposit-address-integration.md)：地址复用、回调和入账边界。
+
+- [余额查询与人工出入金](business/platform-advance.md)：人工订单、独立审核与资金预占，真实资金启用边界独立验证。
