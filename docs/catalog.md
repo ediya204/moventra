@@ -26,7 +26,7 @@
 - [已完成改动统一发布清单](../deploy/2026-09-18-completed-work-release.md) — `deploy/2026-09-18-completed-work-release.md`
 - [资金中心四流程发布](../deploy/2026-09-18-funds-center-release.md) — `deploy/2026-09-18-funds-center-release.md`
 - [客户端开卡结构生产迁移 — 2026-09-18](../deploy/2026-09-18-issuing-checkout-migration.md) — `deploy/2026-09-18-issuing-checkout-migration.md`
-- [开卡生产连接准备（尚未部署）](../deploy/2026-09-18-issuing-preparation.md) — `deploy/2026-09-18-issuing-preparation.md`
+- [开卡生产连接准备（已部署，只读）](../deploy/2026-09-18-issuing-preparation.md) — `deploy/2026-09-18-issuing-preparation.md`
 - [后端运行优化发布](../deploy/2026-09-18-runtime-optimization.md) — `deploy/2026-09-18-runtime-optimization.md`
 - [Moventra completed-session release — 2026-09-18](../deploy/2026-09-18-session-consolidation.md) — `deploy/2026-09-18-session-consolidation.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`

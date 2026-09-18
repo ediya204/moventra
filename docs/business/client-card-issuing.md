@@ -58,6 +58,6 @@ POST orders 使用 quoteId、termsVersion、lawfulUse、acceptedTerms 及 Idempo
 
 回退时先禁用执行入口并保留订单、账本和同意证据，不删除在途事项；前端可关闭开卡入口，查询和核查保留。生产激活仍需独立账本、供应商验证清单、零限制/累计限制/未知恢复/对账验证及明确授权。
 
-## 连接准备增量（2026-09-18，本地未部署）
+## 连接准备增量（2026-09-18，已部署只读模式）
 
-新增prepare只读检查模式与Blnk私有CA支持；Worker仅检查连接和订单计数，不调用金融处理，数据库会话只读、Blnk禁止非GET。私有TLS进程与Blnk同容器，远端加密、明文仅loopback。真实执行条件保持不变，具体配置与验证见[准备记录](../../deploy/2026-09-18-issuing-preparation.md)。
+API与独立Worker已发布2b4a905，Blnk私有CA认证连接及Worker重启检查通过；新增prepare只读检查模式与Blnk私有CA支持；Worker仅检查连接和订单计数，不调用金融处理，数据库会话只读、Blnk禁止非GET。私有TLS进程与Blnk同容器，开卡客户端远端连接加密、代理明文转发固定loopback。真实执行条件保持不变，具体配置与验证见[准备记录](../../deploy/2026-09-18-issuing-preparation.md)。

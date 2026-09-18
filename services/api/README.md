@@ -137,9 +137,9 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 
 API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任务，默认 ISSUING_MODE 关闭。live 要求独立 TLS Blnk、运营验收清单和对应供应商服务端凭据，不可把本地测试结论填成生产认证。新增迁移014；本发布不包含并行013，迁移器使用显式编号。`scripts/issuing-checkout-sql.py` 只生成014，`scripts/test-issuing-checkout-migration.py` 与 `scripts/test-issuing-catalog-release.py` 验证本机随机隔离库。见[流程](../../docs/business/client-card-issuing.md)及[生产迁移记录](../../deploy/2026-09-18-issuing-checkout-migration.md)。
 
-## 开卡只读准备模式
+## 开卡只读准备模式（2026-09-18已部署）
 
-`ISSUING_MODE=prepare`需有效HTTPS账本URL、密钥和可选专用CA（ISSUING_BLNK_CA_PEM）。API保持开卡不可执行；issuing-worker每分钟仅做认证GET与只读数据库查询。live仍要求真实验收清单。`Dockerfile.blnk-tls`在原固定Blnk镜像内增加5443私有TLS入口，证书私钥只进服务端环境，见[生产准备](../../deploy/2026-09-18-issuing-preparation.md)。
+`ISSUING_MODE=prepare`需有效HTTPS账本URL、密钥和可选专用CA（ISSUING_BLNK_CA_PEM）。API保持开卡不可执行；issuing-worker每分钟仅做认证GET与只读数据库查询。live仍要求真实验收清单。独立Worker使用`Dockerfile.issuing-worker`。`Dockerfile.blnk-tls`在原固定Blnk镜像内增加5443私有TLS入口，证书私钥只进服务端环境，见[生产准备](../../deploy/2026-09-18-issuing-preparation.md)。
 ## 资金中心接入准备（未激活）
 
 新增 015 迁移及双链/卡片资金 Worker 增量，配置、零期初登记、恢复边界与验收清单见[资金中心运行说明](../../docs/business/funds-center.md)。默认仍不启用 live；本批没有执行生产迁移或渠道金融写入。`crypto-worker enroll-zero-card` 为受信运维入口，不是公共 API；拒绝非零或已消费的存量卡。
