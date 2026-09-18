@@ -72,7 +72,7 @@ BIN 管理客户页 `/card-bins/customers?customer=UUID&order=UUID` 可查询开
 
 ## 余额查询（2026-09-18，代码已发布）
 
-正式后台导航“资金与财务 → 余额查询”：`/finance/balances`、`/:customerId`、`/:customerId/orders/:orderId`。全用户分页及授权范围汇总，详情包含人工出入金、资金流水、关联卡片；无用途字段。读取与动作均要求独立资金权限和运营MFA，无默认授权。金额仅覆盖已登记账本，缺失不填零。代码已发布，生产016迁移及资金授权未启用；[FLOW及上线边界](../../docs/business/platform-advance.md)。
+正式后台导航“资金与财务 → 余额查询”：`/finance/balances`、`/:customerId`、`/:customerId/orders/:orderId`。全用户分页及授权范围汇总，详情包含人工出入金、资金流水、关联卡片；无用途字段。读取与动作均要求独立资金权限和运营MFA，无默认授权。金额仅覆盖已登记账本，缺失不填零。代码与016已发布，正式余额查询已接通；运营独立授权待指定，人工资金执行未启用；[FLOW及上线边界](../../docs/business/platform-advance.md)。
 
 ## 卡片状态同步
 

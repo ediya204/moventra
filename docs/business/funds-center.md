@@ -95,3 +95,5 @@ FLOW-FUNDS-PRODUCTION-VIEW：用户要求线上只展示正式资金。首页移
 正式余额查询从已接通live账本读取，manual ReadOnly保证查询不开放人工写入。显式migrate-manual-funds仅安装016，校验前置版本，不创建余额或授权。133项前端及Go隔离PG race通过；真实渠道与部署另外记录。
 
 旧ledger快照及crypto来源查询同样复用正式读服务，保留各自原查询权限和MFA；对应API隔离回归通过。
+
+本批已正式启用TRC20与OTC，016及初始政策已写入；源码、Worker健康、前端版本和验证限制见[激活证据](../../deploy/2026-09-18-production-funds-activation.md)。136项合并后前端回归及隔离Go测试通过。
