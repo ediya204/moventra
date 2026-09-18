@@ -27,7 +27,7 @@ Firebase 项目 `edi-gws-20260309-hk`（Identity Platform），Web 应用显示�
 4. Go 校验 Firebase token、撤销状态、邮箱验证、本地 users 状态和主体/资源关系。前端邮箱列表、角色或自报 UID 不能授予权限。
 5. 后台等待 Go 确认 operator；拒绝或异常时退出 Firebase 并清空用户。MFA 未完成不返回 staffScopes，业务读取仍逐请求核验 MFA 与指定客户资源授权。
 
-邮箱验证/MFA 设置 UI 不表示运营业务访问已放行。客户资源运营权限仍只有 `accounts:read`、`transactions:read`；新渠道数据另外要求 `channel_read_grants` 和至少一项既有 staff_grants，客户权限不自动授予连接权限，也不是全局超级管理员。客户端身份查询不暴露运营范围；两端网关拒绝对端业务接口，后台拒绝自助注册接口。渠道范围通过 `/admin-api/v1/channel-projections` 单独发现，不混入 `me.staffScopes`。
+邮箱验证/MFA 设置 UI 不表示运营业务访问已放行。客户资源运营权限仍只有 `accounts:read`、`transactions:read`；新渠道数据另外要求 `channel_read_grants` 和至少一项既有 staff_grants，客户权限不自动授予连接权限，默认不是全局超级管理员；2026-09-19新增的独立全局授权见[权限流程](../business/global-administrator.md)，MFA和业务状态规则仍生效。客户端身份查询不暴露运营范围；两端网关拒绝对端业务接口，后台拒绝自助注册接口。渠道范围通过 `/admin-api/v1/channel-projections` 单独发现，不混入 `me.staffScopes`。
 
 ## 注册、密码和 MFA
 

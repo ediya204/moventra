@@ -28,4 +28,15 @@ API就绪检查要求019。兼容顺序：先安装019 → 部署API → `api gl
 
 ## 本批验证与发布
 
-本地隔离回归已覆盖：未来客户/渠道、各模块配置范围、客户拒绝提升、MFA/跨端拒绝、撤权恢复原范围、重复授权、审计失败回滚、019 checksum冲突；人工资金完整状态机在全局管理员下复跑，禁止自审及幂等保持。136项前端/网关回归、两端typecheck/build、Go隔离PostgreSQL race、vet/build及后台Wrangler dry-run通过；生产备份 SHA256 `77d196e7ccd30a85386f41622bef354694a98538bc479f0ae37520c5f3ce6df7` 已在本机独立恢复并完成019及重复执行演练。生产019、授权或本批部署完成后追加精确记录。
+本地隔离回归已覆盖：未来客户/渠道、各模块配置范围、客户拒绝提升、MFA/跨端拒绝、撤权恢复原范围、重复授权、审计失败回滚、019 checksum冲突；人工资金完整状态机在全局管理员下复跑，禁止自审及幂等保持。136项前端/网关回归、两端typecheck/build、Go隔离PostgreSQL race、vet/build及后台Wrangler dry-run通过；生产备份 SHA256 `77d196e7ccd30a85386f41622bef354694a98538bc479f0ae37520c5f3ce6df7` 已在本机独立恢复并完成019及重复执行演练。生产执行结果见下节。
+
+## 生产执行证据（2026-09-19 香港时间）
+
+- 源码 `e534e72683ac48551ab13683fdd9c64663fbaf53` 已推送main。API部署 `dep-dammhtm7bikc73c7mhe0` 于00:40上线；后台Worker版本 `4a9530e1-de90-4142-847a-e796ed6acd66`，发布保留平台变量。
+- 生产备份为Render `2026-09-18T16:30Z` 导出，本机独立库恢复成功，019执行及重复校验通过；备份保存在仓库外受限目录。恢复库验证后清理，不包含运行中的服务。
+- 019迁移任务 `job-dammhl5bedkc73cb5cog` 成功。用户3、客户1、staff授权3、渠道授权2、账本journal5、crypto订单2、人工订单0、开卡订单0前后相同；无全局身份自动回填。首次工具任务因临时psql路径错误在执行SQL前失败，修正路径后完成。
+- 授权任务 `job-dammiu3m8hqs73dnnvog` 成功；实时Firebase验证指定邮箱、active admin、邮箱已验证及1个MFA因子。回读globalAdmin=true，没有改变角色或MFA。
+- 独立只读复验 `job-dammj9m1egvs73crfkp0` 成功：现有客户1/覆盖1、渠道2/覆盖2、目录权限3、人工权限4、crypto权限4，grant审计仅1条。未来资源覆盖由动态视图及隔离新增资源回归证明。
+- 两端5份入口/身份显示JS与CSS资源和隔离构建逐字节一致；API readyz正常。客户端保留已核验生产版本 `9b46c180-be03-4102-9e0f-d454b7cd47f4`，本次没有重发无变化的客户端。
+- FUNDS_DISPLAY_MODE=production、FUNDS_PRODUCTION_MODE=enabled、ISSUING_MODE=prepare继续保持。未发送邮件、修改密码或MFA；未发起任何资金、发卡或卡片状态命令。
+- 本人登录后“超级管理员”显示及全模块浏览器操作未验收；数据库授权、真实Firebase身份核验、发布产物与隔离权限测试不替代本人浏览器验收。
