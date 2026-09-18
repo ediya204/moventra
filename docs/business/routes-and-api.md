@@ -101,6 +101,6 @@
 客户端首页正式钱包及资金中心复用 GET crypto，缺失账户显示尚未开通。生产配置拒绝 test-wallet/test-funds API（404），旧 `/portal/test-funds` 及子路径跳转 `/portal/funds`，旧运营 `/finance/test-funds` 及子路径跳转 `/finance/balances`。隔离测试实现和历史数据保留，不在生产导航展示。限定充值服务只开放正式账本读取，不因页面切换开启提款、兑换或卡片充提；见[发布证据](../../deploy/2026-09-18-production-funds-view.md)。
 
 
-## 2026-09-19 卡片中心发布候选
+## 2026-09-19 卡片中心发布
 
 卡片中心沿用card-projections查询链；keyword/cardStatus服务端筛选，cardSort仅本页排序。来源与页码随详情返回保留，不新增API、金融写操作或权限。

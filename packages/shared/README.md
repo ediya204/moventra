@@ -17,6 +17,6 @@
 2026-09-17：`auth/ledgerApi.ts` 提供同域 `getShadowLedger`，复用 Firebase Bearer 与两端路由隔离。`ledgerContract.ts` 检查 shadow 标识、主体、精确字符串金额及汇总；不切换现有页面余额，不提供资金写方法。见 [Blnk 接入](../../docs/integrations/blnk.md)。
 
 
-## 2026-09-19 卡片中心发布候选
+## 2026-09-19 卡片中心发布
 
 ChannelCardStatus为双端卡片原始状态提供统一浅色标签与语义图标，不修改状态逻辑。
