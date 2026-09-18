@@ -193,6 +193,48 @@ func TestProjectWalletAssignments(t *testing.T) {
 			t.Fatalf("admin sync scope %s %s: %d %s", test.uid, test.card, w.Code, w.Body.String())
 		}
 	}
+
+	controlRequest := func(uid, path, key, body string, code int) {
+		t.Helper()
+		r := httptest.NewRequest("POST", path, strings.NewReader(body))
+		r.Header.Set("Authorization", "Bearer "+uid)
+		r.Header.Set("Idempotency-Key", key)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != code {
+			t.Fatalf("control %s expected %d got %d: %s", uid, code, w.Code, w.Body.String())
+		}
+	}
+	actionPath := "/client-api/v1/customers/" + personal + "/card-projections/wallet-source/cards/old-card/actions"
+	key := "90000000-0000-4000-8000-000000000001"
+	body := `{"action":"activate","expectedStatus":"paused","confirmClose":false}`
+	controlRequest("alice", actionPath, key, body, 409)
+	if _, e = db.Exec(ctx, `UPDATE card_sync_links SET controls_enabled=true WHERE connection_id='wallet-source'`); e != nil {
+		t.Fatal(e)
+	}
+	controlRequest("bob", actionPath, key, body, 404)
+	controlRequest("staff-no-mfa", "/admin-api/v1/channel-projections/wallet-source/cards/old-card/actions", key, body, 403)
+	controlRequest("alice", actionPath, "invalid", body, 400)
+	controlRequest("alice", actionPath, key, `{"action":"close","expectedStatus":"paused","confirmClose":false}`, 400)
+	controlRequest("alice", actionPath, key, `{"action":"pause","expectedStatus":"inactive"}`, 400)
+	controlRequest("alice", actionPath, key, body, 202)
+	controlRequest("alice", actionPath, key, body, 200)
+	controlRequest("alice", actionPath, key, `{"action":"close","expectedStatus":"paused","confirmClose":true}`, 409)
+	controlRequest("alice", actionPath, "90000000-0000-4000-8000-000000000002", body, 409)
+	if _, e = db.Exec(ctx, `UPDATE card_control_commands SET state='confirmed' WHERE id=$1`, key); e != nil {
+		t.Fatal(e)
+	}
+	controlRequest("staff", "/admin-api/v1/channel-projections/wallet-source/cards/old-card/actions", "90000000-0000-4000-8000-000000000003", body, 403)
+	if _, e = db.Exec(ctx, `INSERT INTO staff_grants(user_id,customer_id,permission) VALUES('00000000-0000-0000-0000-000000000003',$1,'accounts:read')`, personal); e != nil {
+		t.Fatal(e)
+	}
+	controlRequest("staff", "/admin-api/v1/channel-projections/wallet-source/cards/old-card/actions", "90000000-0000-4000-8000-000000000003", body, 202)
+	if _, e = db.Exec(ctx, `DELETE FROM card_control_commands WHERE connection_id='wallet-source'`); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = db.Exec(ctx, `DELETE FROM staff_grants WHERE user_id='00000000-0000-0000-0000-000000000003' AND customer_id=$1 AND permission='accounts:read'`, personal); e != nil {
+		t.Fatal(e)
+	}
 	// Importing a new card does not give it to the initial user; assign explicitly to Bob.
 	b.SourceAt = "2026-09-18T01:00:00Z"
 	b.Records = append(b.Records, card("new-card", "apexis"), trans("new-history", "new-card", "apexis"))

@@ -1,6 +1,8 @@
 # 卡片当前状态同步
 
-## FLOW-CARD-SYNC-01 · 2026-09-18
+当前采用FLOW-CARD-CONTROL-02：操作命令、Webhook和手动核对驱动，不再定时查询Slash。当前交付证据见[发布记录](../../deploy/2026-09-18-card-controls.md)。
+
+## FLOW-CARD-SYNC-01 · 2026-09-18 首批历史（周期补查已被02替代）
 
 用户确认实施卡片同步。基线 60d3295，main；保留并行资金与文档改动。遵循[开发总纲](../DEVELOPMENT.md)、[业务闭环标准](delivery-standard.md)、[资金规则](../domain/transactions-and-funds.md)及[Slash 接入](../integrations/slash.md)。
 
@@ -20,3 +22,13 @@
 - 真实只读预检：job-daml4lmk1f9s739fdqk0 于15:01 UTC确认指定连接账户/项目钱包与trial_20260918匹配，23张正式归属卡，1467个通知已处理，无待处理积压。尚未将此预检视为实时状态发布验收。
 - 部署：API最终cfdd45f及两端Worker已上线；已启用23张正式归属卡并全部完成真实GET。14 active、9 paused，无失败。完整版本、限制及回退见[发布记录](../../deploy/2026-09-18-card-state-sync.md)。
 - 回退：旧导入保留；停用 card_sync_links 可回退导入显示，事件仍可继续保存。部署 API 前必须显式安装017；不自动执行其他迁移。
+
+## FLOW-CARD-CONTROL-02 · 当前流程（2026-09-18）
+
+用户确认取消全量周期补查，采用操作API＋Webhook。客户端 `/portal/cards/:id` 与后台 `/cards/:id` 的启用、停用、注销 → 同域POST actions → 校验正式归属/运营MFA与连接权限 → 持久命令 → Slash PATCH仅status → GET核验 → 两端共同当前状态。注销保留记录，不提供重新启用closed的入口。官方[PATCH](https://docs.slash.com/api-reference/card-patch)已核验active/paused/inactive/closed请求字段。
+
+不自动执行任何现有卡片状态变更来验收。只有用户在页面确认的操作才调用真实写接口；启用操作能力限定既有项目连接。命令幂等ID、同卡互斥、执行前重核归属和期望状态；外部写入前持久标记，崩溃/超时只做该卡只读结果核对，不盲重发PATCH。超过恢复次数进入待核实，阻止相反命令。运营操作沿用admin、MFA、明确连接授权及客户账户权限；客户只能控制本人正式归属卡。独立连接开关默认关闭。
+
+Slash操作 → 验签去重 → 按该卡GET最新状态 → 更新读模型。移除时间过期规则，checkedAt表示最后确认时间；失败与尚未确认明确展示。页面读取本系统的刷新不调用Slash，手动核对仍可用。本批不设置额度、不改变账本、不采集敏感信息。
+
+验证覆盖：无事件空闲Step不发起上游GET；重复请求只写一次；跨客户/非MFA拒绝；并发相反动作拒绝；状态变动前置冲突；PATCH超时与进程恢复不重发；Webhook乱序读取当前事实；关闭后保留历史。设计/本地/自动化/真实渠道/上线分别记录。

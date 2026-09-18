@@ -5,26 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 )
-
-// Provider-specific scheduling. Synthetic IDs cannot collide with provider IDs.
-// Called under the same session lock as Step, so multiple instances coalesce.
-func scheduleCards(ctx context.Context, db interface {
-	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
-}) error {
-	_, err := db.Exec(ctx, `INSERT INTO slash_hook_events(connection_id,event_id,event_type,entity_id,event_at,kind,state)
- SELECT l.hook_connection_id,'poll:'||b.external_card_id||':'||floor(extract(epoch FROM now())/300)::text,
- 'internal.card.reconcile',b.external_card_id,now(),'card','queued'
- FROM card_sync_links l JOIN slash_hook_connections h ON h.id=l.hook_connection_id AND h.enabled
- JOIN project_wallet_cards b ON b.connection_id=l.connection_id
- JOIN project_wallets w ON w.connection_id=b.connection_id AND w.virtual_account_ref=b.virtual_account_ref AND w.account_ref=h.account_ref
- LEFT JOIN card_current_states s ON s.connection_id=b.connection_id AND s.external_card_id=b.external_card_id
- WHERE l.enabled AND (s.checked_at IS NULL OR s.checked_at<now()-interval '5 minutes')
- AND NOT EXISTS(SELECT 1 FROM slash_hook_events e WHERE e.connection_id=h.id AND e.entity_id=b.external_card_id AND e.kind='card' AND e.state='queued')
- ON CONFLICT(connection_id,event_id) DO NOTHING`)
-	return err
-}
 
 // Validate before publishing; imports and ownership are never overwritten.
 func publishCard(ctx context.Context, tx pgx.Tx, hook, id, entity, acct string, payload []byte) error {
@@ -55,6 +36,10 @@ func publishCard(ctx context.Context, tx pgx.Tx, hook, id, entity, acct string, 
 	_, err = tx.Exec(ctx, `INSERT INTO card_current_states(connection_id,external_card_id,account_ref,virtual_account_ref,status,source_event_id)
  VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(connection_id,external_card_id) DO UPDATE SET
  account_ref=excluded.account_ref,virtual_account_ref=excluded.virtual_account_ref,status=excluded.status,checked_at=now(),source_event_id=excluded.source_event_id`, connection, entity, acct, wallet, status, id)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(ctx, `UPDATE card_control_commands SET state='confirmed',last_error='',updated_at=now() WHERE connection_id=$1 AND external_card_id=$2 AND target_status=$3 AND state IN ('submitted','confirming','review')`, connection, entity, status)
 	return err
 }
 

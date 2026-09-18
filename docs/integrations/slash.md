@@ -1,6 +1,6 @@
 # Slash 接入规范
 
-> 当前本地实施见 [V1现状](../current-state.md)、[手动同步](../frontend/slash-manual-sync.md) 与 [卡交易状态](../frontend/transaction-status-colors.md)。来源真实数据只读；内部用户归属不来自 Slash。本文后续目标模型不代表正式 Go 已实现。旧本地采集器采用手动同步；正式 Go 卡片当前状态另见[卡片同步](../business/card-state-sync.md)，采用通知回查、五分钟补查及手动核对。
+> 当前本地实施见 [V1现状](../current-state.md)、[手动同步](../frontend/slash-manual-sync.md) 与 [卡交易状态](../frontend/transaction-status-colors.md)。来源真实数据只读；内部用户归属不来自 Slash。本文后续目标模型不代表正式 Go 已实现。旧本地采集器采用手动同步；正式 Go 卡片当前状态另见[卡片同步](../business/card-state-sync.md)，采用操作命令、通知触发回查及手动核对；不做周期补查。018新增已授权的卡片状态操作，资金与交易来源仍独立。
 
 文档更新：2026-09-07。本次复查官方 Transaction/Balance 页面与已有来源约束，未调用租户 API。其余 SOURCE 与本租户 GET 记录沿用先前 2026-09-07 核验，不作为本次重新验证。真实 Webhook、生产接入与资金验收未执行。
 

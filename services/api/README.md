@@ -158,4 +158,4 @@ TRC20限额充值使用`api prepare-deposit-pilot`核验零期初，再开启`DE
 
 ## 卡片状态同步
 
-新增017只读状态模型，API启动校验017；显式运行 `api migrate-card-state-sync` 仅应用本迁移。通过 `CARD_SYNC_CONNECTION` 与 `CARD_SYNC_HOOK_CONNECTION` 指定已有连接，运行 `api slash-webhook-enable-card-sync`，实际核验Slash账户及项目钱包匹配后启用。现有Slash worker接收通知并回查；每5秒处理一条，已正式归属卡片超过5分钟后入队补查，积压可能增加延迟，10分钟未核验标为过期。禁用映射恢复原导入显示。详见[流程与限制](../../docs/business/card-state-sync.md)。
+017保存当前状态；018新增持久卡片命令并取消周期补查。API启动校验018；`api migrate-card-controls` 只安装018，要求已安装002/010/011/017，不自动安装资金迁移。既有同步映射保留，操作开关默认关闭：设置 `CARD_SYNC_CONNECTION` 后运行 `api slash-webhook-enable-card-controls`，核验连接账户/项目钱包匹配后启用。Worker每5秒处理队列，空队列不查询Slash；通知、手动核对和命令结果恢复只查询对应卡片。PATCH前持久submitted，超时/重启不重发，12次未确认进入review；手动GET或Webhook观察到目标状态可解除。checkedAt不按时间判过期。详见[流程与限制](../../docs/business/card-state-sync.md)。

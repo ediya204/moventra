@@ -20,8 +20,10 @@ export function snapshotAmount(value?:string|null, currency='USD'):string {
 export function isCardSyncPath(path:string):boolean {
  return /^\/(?:client-api\/v1\/customers\/[0-9a-f-]{36}\/card-projections|admin-api\/v1\/channel-projections)\/[A-Za-z0-9_-]+\/cards\/[A-Za-z0-9_-]+\/sync$/.test(path);
 }
-export type CardSyncInfo={syncState?:string;checkedAt?:string};
+export type CardSyncInfo={syncState?:string;checkedAt?:string;controlsEnabled?:boolean;cardAction?:{id:string;state:string;targetStatus:string;error?:string}|null};
 export function cardSyncLabel(row:CardSyncInfo):string {
- const labels:Record<string,string>={synced:'已核验',pending:'同步中',stale:'状态已过期',error:'同步异常'};
+ const labels:Record<string,string>={synced:'已核验',pending:'同步中',unverified:'尚未核验',stale:'待核实',error:'同步异常'};
  return row.syncState ? (labels[row.syncState]||'待核实')+(row.checkedAt?' · '+new Date(row.checkedAt).toLocaleString('zh-CN'):' · 尚未核验') : '导入快照';
 }
+
+export function isCardActionPath(path:string):boolean { return path.endsWith("/actions") && isCardSyncPath(path.slice(0,-8)+"/sync"); }

@@ -54,7 +54,12 @@ func testCardSync(t *testing.T, ctx context.Context, db *pgxpool.Pool, s *Servic
 		}
 	}
 	step()
-	read("paused", "synced") // periodic repair without webhook
+	read("active", "unverified") // Idle workers do not query Slash.
+	if err := s.receive(ctx, "/webhooks/slash", Event{Type: "card.update", ID: "initial-card-event", Entity: "card1", At: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	step()
+	read("paused", "synced")
 	var original string
 	db.QueryRow(ctx, `SELECT data->>'cardStatus' FROM channel_records WHERE external_id='card1'`).Scan(&original)
 	if original != "active" {
@@ -84,5 +89,6 @@ func testCardSync(t *testing.T, ctx context.Context, db *pgxpool.Pool, s *Servic
 	step()
 	read("closed", "synced")
 	db.Exec(ctx, `UPDATE card_current_states SET checked_at=now()-interval '11 minutes'`)
-	read("closed", "stale")
+	read("closed", "synced")
+	testCardControls(t, ctx, db, s)
 }

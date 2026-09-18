@@ -250,7 +250,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			safe := map[string]json.RawMessage{}
-			for _, key := range []string{"id", "cardId", "cardName", "cardLast4", "name", "last4", "cardStatus", "createdAtUTC", "checkedAt", "syncState", "status", "detailedStatus", "date", "authorizedAt", "postedAt", "merchant", "categoryCode", "amountCents", "originalCurrency", "merchantData"} {
+			for _, key := range []string{"id", "cardId", "cardName", "cardLast4", "name", "last4", "cardStatus", "createdAtUTC", "checkedAt", "syncState", "cardAction", "controlsEnabled", "status", "detailedStatus", "date", "authorizedAt", "postedAt", "merchant", "categoryCode", "amountCents", "originalCurrency", "merchantData"} {
 				if value, ok := input[key]; ok {
 					safe[key] = value
 				}
@@ -277,6 +277,10 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		if resource != "cards" || id == "" || (client && !walletScoped) {
 			fail(w, 404, "not_found")
+			return
+		}
+		if strings.HasSuffix(r.URL.Path, "/actions") {
+			s.queueCardControl(w, r, tx, p, connection, id, customer)
 			return
 		}
 		var hook string
@@ -328,7 +332,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		coverage = "项目钱包内已明确归属本用户的卡片及对应交易；不含其他用户或其他钱包。仅已导入来源记录，不代表完整历史或个人可用资金。"
 	}
 	if kind == "card" && (!client || walletScoped) {
-		coverage = "卡片基础资料保留导入版本；已启用同步的卡片由渠道通知和定时回查更新状态，每卡标示核验时间。交易仍按原导入范围，不代表资金余额。"
+		coverage = "卡片基础资料保留导入版本；已启用同步的卡片由卡片操作和渠道通知更新状态，每卡标示核验时间。交易仍按原导入范围，不代表资金余额。"
 		if client {
 			coverage = "仅展示正式归属本用户的项目钱包卡片。" + coverage
 		}

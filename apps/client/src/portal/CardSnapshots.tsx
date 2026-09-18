@@ -1,3 +1,4 @@
+import CardControls from '../../../../packages/shared/src/components/CardControls';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Alert, Box, Button, CircularProgress, Chip, Drawer, IconButton, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
@@ -39,7 +40,14 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
    .then(([data,txs])=>{if(active){setResult(data);setCardTransactions(txs)}}).catch(error=>{if(active)setFailure(authMessage(error))});
   return()=>{active=false};
  },[base,connections,connection,isCard,id,page,keyword]);
- useEffect(()=>{const timer=setInterval(()=>{if(document.visibilityState==='visible')setReload(n=>n+1)},15000);return()=>clearInterval(timer)},[]);
+ const [pollError,setPollError]=useState(false);
+ useEffect(()=>{
+  if(!connection||!connections?.length)return;let active=true;
+  const timer=setInterval(()=>{if(document.visibilityState!=='visible')return;
+   const q=new URLSearchParams({page:String(page),revision:connections.find(c=>c.id===connection)?.revision||''});if(keyword)q.set('keyword',keyword);
+   liveGet<Result>(`${base}/${connection}/${isCard?'cards':'transactions'}${id?'/'+id:'?'+q}`).then(value=>{if(active){setResult(value);setPollError(false)}}).catch(()=>{if(active)setPollError(true)});
+  },15000);return()=>{active=false;clearInterval(timer)};
+ },[base,connection,connections,isCard,id,page,keyword]);
  const syncCard=async(cardId:string)=>{try{await liveCardSync(`${base}/${connection}/cards/${cardId}/sync`);setReload(n=>n+1)}catch(e){setFailure(authMessage(e))}};
  const listContext=new URLSearchParams(params);listContext.delete('back');listContext.delete('transaction');
  const currentContext=pathname+'?'+listContext;
@@ -55,12 +63,13 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
   <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h6">{isCard?(id?'卡片详情':'我的卡片'):(id?'卡片交易详情':'卡片交易')}</Typography><Button onClick={()=>setReload(x=>x+1)}>刷新状态</Button></Stack>
   <Alert severity="info">仅展示归属于本账户的卡片。卡片状态以最近一次渠道核验为准；交易和资金信息分别核对。</Alert>
   {id&&<Button sx={{alignSelf:'flex-start'}} component={Link} to={back}>返回{isCard?'卡片':'交易'}列表</Button>}
+  {pollError&&<Alert severity="warning">连接暂时中断，当前显示最后已确认状态。请刷新重试。</Alert>}
   {failure?<Alert severity="error" action={<Button onClick={()=>setReload(x=>x+1)}>重试</Button>}>{failure}</Alert>:connections===null?<CircularProgress size={24}/>:!connections.length?<Alert severity="info">尚未为本账户分配卡片。</Alert>:<>
    <TextField select size="small" label="数据来源" value={connection} onChange={e=>change({connection:e.target.value,page:'0'})}>{connections.map(c=><MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>)}</TextField>
    {!id&&<TextField size="small" label={isCard?'搜索卡名、尾号或卡片 ID':'搜索商户、尾号或交易 ID'} value={keyword} onChange={e=>change({keyword:e.target.value,page:'0'})}/>}
    {!result?<CircularProgress size={24}/>:<>
     <Typography variant="caption" color="text.secondary">来源：{time(result.sourceAt)} · 导入：{time(result.importedAt)}<br/>{result.coverageReason}</Typography>
-    {isCard?<>{id?<Box>{result.rows.map(row=><Stack key={row.id} spacing={1}><Typography variant="h5">{row.cardName||row.name||'未命名卡片'} · {row.cardLast4||row.last4||'尾号未知'}</Typography><Typography>渠道状态：{row.cardStatus||'未知'}</Typography><Typography color={row.syncState==='error'||row.syncState==='stale'?'warning.main':'text.secondary'}>{cardSyncLabel(row)}</Typography>{row.syncState&&<Button disabled={row.syncState==='pending'} onClick={()=>syncCard(row.id)}>向渠道核对状态</Button>}<Typography>创建时间：{time(row.createdAtUTC)}</Typography><Typography variant="caption">卡片 ID：{row.id}</Typography><Typography variant="h6" sx={{pt:2}}>关联交易</Typography>{cardTransactions&&txTable(cardTransactions)}</Stack>)}</Box>:<><TableContainer><Table size="small"><TableHead><TableRow>{['卡片','后四位','渠道状态','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead><TableBody>{result.rows.map(row=><TableRow key={row.id}><TableCell>{row.cardName||row.name||'未命名卡片'}</TableCell><TableCell>{row.cardLast4||row.last4||'未知'}</TableCell><TableCell>{row.cardStatus||'未知'}<Typography variant="caption" display="block" color="text.secondary">{cardSyncLabel(row)}</Typography></TableCell><TableCell>{time(row.createdAtUTC)}</TableCell><TableCell><Button component={Link} to={link(`/portal/cards/${row.id}`)}>详情与交易</Button></TableCell></TableRow>)}</TableBody></Table></TableContainer>{!result.rows.length&&<Alert severity="info">当前筛选没有卡片。</Alert>}{paging(result)}</>}</>:id?<Typography variant="body2">关闭详情后返回交易列表。</Typography>:txTable(result)}
+    {isCard?<>{id?<Box>{result.rows.map(row=><Stack key={row.id} spacing={1}><Typography variant="h5">{row.cardName||row.name||'未命名卡片'} · {row.cardLast4||row.last4||'尾号未知'}</Typography><Typography>渠道状态：{row.cardStatus||'未知'}</Typography><Typography color={row.syncState==='error'||row.syncState==='stale'?'warning.main':'text.secondary'}>{cardSyncLabel(row)}</Typography>{row.syncState&&<Button disabled={row.syncState==='pending'} onClick={()=>syncCard(row.id)}>向渠道核对状态</Button>}<CardControls row={row} path={`${base}/${connection}/cards/${row.id}/actions`} onRefresh={()=>setReload(n=>n+1)}/><Typography>创建时间：{time(row.createdAtUTC)}</Typography><Typography variant="caption">卡片 ID：{row.id}</Typography><Typography variant="h6" sx={{pt:2}}>关联交易</Typography>{cardTransactions&&txTable(cardTransactions)}</Stack>)}</Box>:<><TableContainer><Table size="small"><TableHead><TableRow>{['卡片','后四位','渠道状态','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead><TableBody>{result.rows.map(row=><TableRow key={row.id}><TableCell>{row.cardName||row.name||'未命名卡片'}</TableCell><TableCell>{row.cardLast4||row.last4||'未知'}</TableCell><TableCell>{row.cardStatus||'未知'}<Typography variant="caption" display="block" color="text.secondary">{cardSyncLabel(row)}</Typography></TableCell><TableCell>{time(row.createdAtUTC)}</TableCell><TableCell><Button component={Link} to={link(`/portal/cards/${row.id}`)}>详情与交易</Button></TableCell></TableRow>)}</TableBody></Table></TableContainer>{!result.rows.length&&<Alert severity="info">当前筛选没有卡片。</Alert>}{paging(result)}</>}</>:id?<Typography variant="body2">关闭详情后返回交易列表。</Typography>:txTable(result)}
    </>}
   </>}
   {result&&(!isCard||Boolean(id&&cardTransactions))&&<LogoAttribution/>}

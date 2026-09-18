@@ -281,4 +281,6 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 
 ## 卡片状态同步（2026-09-18，已发布）
 
-GET 卡片列表/详情在正式项目钱包及运营授权下使用共同当前状态；DTO新增 `syncState`（synced/pending/stale/error）及可空 `checkedAt`。先应用状态再筛选、计数和分页，历史测试快照仍固定版本。POST `/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/sync` 与 `/admin-api/v1/channel-projections/{connection}/cards/{id}/sync` 仅安排只读渠道回查，202不代表已同步。沿用个人所有权或运营MFA+渠道授权；不存在/越权404，未启用409 `card_sync_disabled`。不提供任意渠道代理。详见[流程与验收](../business/card-state-sync.md)。
+GET 卡片列表/详情在正式项目钱包及运营授权下使用共同当前状态；DTO含 `syncState`（synced/pending/unverified/error）及可空 `checkedAt`；无通知不代表过期。先应用状态再筛选、计数和分页，历史测试快照仍固定版本。POST `/client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/sync` 与 `/admin-api/v1/channel-projections/{connection}/cards/{id}/sync` 仅安排只读渠道回查，202不代表已同步。沿用个人所有权或运营MFA+渠道授权；不存在/越权404，未启用409 `card_sync_disabled`。不提供任意渠道代理。详见[流程与验收](../business/card-state-sync.md)。
+
+卡片状态命令：POST 同一详情路径 `/actions`，仅接收 `{action:activate|pause|close,expectedStatus:active|paused|inactive,confirmClose:boolean}` 与UUID `Idempotency-Key`。close要求confirmClose=true，closed不允许恢复；禁止透传其他Slash字段。首次202、相同请求200只表示命令已接收，confirmed才是读取渠道已达目标。DTO增加controlsEnabled和cardAction（id/state/targetStatus/error）。客户限本人正式归属卡；后台限admin+MFA+渠道授权+该客户accounts:read，连接必须显式开启controls_enabled。409表示功能未启用、同卡未决命令或幂等冲突；越权404/403。仅Slash适配器PATCH status，其他渠道不继承Slash机制。

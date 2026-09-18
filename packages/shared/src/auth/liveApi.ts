@@ -1,5 +1,5 @@
 import { isFundsPath, type FundsCommand } from './fundsContract';
-import { isCardSnapshotPath, isCardSyncPath } from './cardSnapshotContract';
+import { isCardSnapshotPath, isCardSyncPath, isCardActionPath } from './cardSnapshotContract';
 import { isAdminSite } from './site';
 import { isLedgerReadPath } from './ledgerContract';
 import { getFirebaseAuth } from '../firebase';
@@ -13,7 +13,12 @@ export class SessionError extends Error {
   constructor(public code: string, public status = 0) { super(code); }
 }
 const messages: Record<string, string> = {
-  card_sync_disabled: '此卡来源尚未启用渠道同步。',
+  card_action_in_progress:'该卡已有处理中或待核实的操作，请等待渠道确认。',
+ card_controls_disabled:'此卡暂不支持在线操作。',
+ card_control_scope_required:'没有这张卡的操作权限。',
+ idempotency_conflict:'请求内容已变化，请关闭后重新操作。',
+ invalid_card_action:'操作与当前卡片状态不匹配，请刷新后重试。',
+ card_sync_disabled: '此卡来源尚未启用渠道同步。',
   projection_updated: '数据版本已变化，请刷新后重试。',
   test_wallet_unavailable: '测试余额暂时无法读取，请稍后重试。',
   ledger_disabled: '账本查询尚未启用。',
@@ -91,9 +96,9 @@ export function isUserDirectoryPath(path:string):boolean {
  const params=new URLSearchParams(query);
  return [...params.keys()].every(key=>['email','userId','limit','offset'].includes(key)&&params.getAll(key).length===1);
 }
-async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand | {refresh:true}, envelope = false, requestId?:string): Promise<T> {
+async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand | {refresh:true} | CardActionInput, envelope = false, requestId?:string): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !isCardSyncPath(path) && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !isCardSyncPath(path) && !isCardActionPath(path) && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
@@ -124,3 +129,6 @@ export function isTestWalletPath(path:string):boolean { return /^\/client-api\/v
 export const fundsCommand = <T>(path:string,body:FundsCommand,requestId:string)=>liveRequest<T>(path,body,false,requestId);
 
 export const liveCardSync = (path:string) => liveRequest<{syncState:string}>(path,{refresh:true});
+
+export type CardActionInput={action:"activate"|"pause"|"close";expectedStatus:string;confirmClose:boolean};
+export const liveCardAction=(path:string,body:CardActionInput,key:string)=>liveRequest<{id:string;state:string}>(path,body,false,key);

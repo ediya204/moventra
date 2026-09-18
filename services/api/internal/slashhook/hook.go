@@ -270,12 +270,12 @@ func (s *Service) Step(ctx context.Context) error {
 			db.Conn().Close(c)
 		}
 	}()
-	if err = scheduleCards(ctx, db); err != nil {
-		return err
+	if handled, commandErr := s.controlStep(ctx, db); handled || commandErr != nil {
+		return commandErr
 	}
 	var conn, id, kind, entity, acct string
 	var attempt int
-	err = db.QueryRow(ctx, `SELECT e.connection_id,e.event_id,e.kind,e.entity_id,c.account_ref,e.attempts FROM slash_hook_events e JOIN slash_hook_connections c ON c.id=e.connection_id WHERE c.enabled AND e.state='queued' AND e.next_attempt<=now() ORDER BY e.next_attempt,e.received_at LIMIT 1`).Scan(&conn, &id, &kind, &entity, &acct, &attempt)
+	err = db.QueryRow(ctx, `SELECT e.connection_id,e.event_id,e.kind,e.entity_id,c.account_ref,e.attempts FROM slash_hook_events e JOIN slash_hook_connections c ON c.id=e.connection_id WHERE c.enabled AND e.state='queued' AND e.event_type<>'internal.card.reconcile' AND e.next_attempt<=now() ORDER BY e.next_attempt,e.received_at LIMIT 1`).Scan(&conn, &id, &kind, &entity, &acct, &attempt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil
 	}

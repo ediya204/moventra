@@ -30,7 +30,7 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (overview && env.SITE_KIND !== 'admin') return error(404, 'api_not_available');
   const registration = url.pathname === '/api/v1/register';
   const identity = /^\/(api|client-api|admin-api)\/v1\/me$/.test(url.pathname);
-  const cardSync = new RegExp(`^/(?:client-api/v1/customers/${id}/card-projections|admin-api/v1/channel-projections)/[A-Za-z0-9_-]+/cards/[A-Za-z0-9_-]+/sync$`).test(url.pathname);
+  const cardSync = new RegExp(`^/(?:client-api/v1/customers/${id}/card-projections|admin-api/v1/channel-projections)/[A-Za-z0-9_-]+/cards/[A-Za-z0-9_-]+/(?:sync|actions)$`).test(url.pathname);
   if (cardSync && (request.method !== 'POST' || url.search)) return error(405,'method_not_allowed');
   if (cardSync && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403,'cross_origin_forbidden');
   const cardSnapshots = new RegExp(`^/client-api/v1/customers/${id}/card-projections(?:/[A-Za-z0-9_-]+/(?:cards|transactions)(?:/[A-Za-z0-9_-]+)?)?$`).test(url.pathname);

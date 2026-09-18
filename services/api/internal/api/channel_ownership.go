@@ -22,6 +22,7 @@ const channelOwnershipJoin = ` LEFT JOIN LATERAL (
  LEFT JOIN users owner_user ON owner_user.id=owner_customer.personal_owner_id `
 
 const channelOwnershipSelection = `r.data || jsonb_build_object(
+ 'controlsEnabled', COALESCE((r.data->>'controlsEnabled')::boolean,false) AND owner_customer.id IS NOT NULL AND assignment.kind='project_wallet' AND assignment.scope_matches,
  'assignmentKind', COALESCE(assignment.kind,'unassigned'),
  'customerAssignment', CASE WHEN assignment.customer_id IS NULL THEN jsonb_build_object('state','unassigned') WHEN NOT assignment.scope_matches THEN jsonb_build_object('state','scope_mismatch') WHEN owner_customer.id IS NULL THEN jsonb_build_object('state','restricted') ELSE jsonb_build_object('state','assigned','id',owner_customer.id,'name',owner_customer.name) END,
  'internal', jsonb_build_object(
