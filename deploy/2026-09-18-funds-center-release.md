@@ -15,6 +15,14 @@
 
 ## 上线与核验
 
-待记录本批代码提交、Render deploy、两端 Worker 版本、健康及鉴权探测。正式金融能力仍需[四流程验收](../docs/business/funds-center.md)中的真实渠道、恢复及对账证据，不以代码发布代替。
+代码 `9079821554ae6927bad61891e4c220a397c20c7e` 已推送 main。Render `dep-damh0s142hec7392usug` 于 10:22:19 UTC（18:22 香港时间）变为 live，运行提交匹配。
+
+- 客户端 `moventra-web`：`3fa13ebf-6869-4032-b5df-0693a02a704c`。
+- 后台 `moventra-admin`：`b45ecf7b-e6a6-42cd-ba73-ffa78bd05dd2`。
+- 29 项 HTTP 检查通过：API healthz/readyz 200；新资金路由未登录 401；跨端路由 404；四页与详情深链 200。`/login` 正确 302 到两端各自登录路径，目标页面 200。
+- 8 份线上 JS/CSS 与本地构建逐字节一致；Python 默认 HTTP 客户端首次被返回 403，使用 curl 正常核验，不代表服务未发布。
+- 浏览器进入资金中心和运营资金页均跳转本端登录，没有控制台错误；没有本人业务会话，登录后的正式业务验收未执行。
+- 发布后资金激活相关环境变量仍未配置，未更新任何金融执行开关；本轮日志查询未发现 error。
+- 结构化证据见[发布检查](../docs/testing/funds-center-release-2026-09-18.json)。正式金融能力仍需[四流程验收](../docs/business/funds-center.md)中的真实渠道、恢复及对账证据，不以代码发布代替。
 
 回退基线：Render 已发布 92cad848384799c7c666e3e4879227b0c049566f；客户端 b35d97a0-d1f4-4d19-84c1-979dda71fd38、后台 1c3e82a5-bed0-49ed-b44e-f2afecf782b0。若并行批次先完成新发布，以触发本批前核对的版本为准。无本批数据库变更需要回滚。

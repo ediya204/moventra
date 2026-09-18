@@ -1,0 +1,265 @@
+{
+  "codeCommit": "9079821554ae6927bad61891e4c220a397c20c7e",
+  "renderDeploy": "dep-damh0s142hec7392usug",
+  "renderLiveAt": "2026-09-18T10:22:19Z",
+  "clientVersion": "3fa13ebf-6869-4032-b5df-0693a02a704c",
+  "adminVersion": "b45ecf7b-e6a6-42cd-ba73-ffa78bd05dd2",
+  "http": [
+    {
+      "method": "GET",
+      "url": "https://moventra-api-ejeq.onrender.com/healthz",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra-api-ejeq.onrender.com/readyz",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/login",
+      "status": 302,
+      "expected": 302,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto?kind=deposit&limit=5",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/login",
+      "status": 302,
+      "expected": 302,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/admin-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/admin-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto?kind=deposit&limit=5",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/funds/deposit",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/funds/fiat",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/funds/withdraw",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/funds/exchange",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/funds/history",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/funds/orders/00000000-0000-0000-0000-000000000001",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/finance/crypto-flows",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/finance/withdrawals",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/finance/otc",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra-api-ejeq.onrender.com/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra-api-ejeq.onrender.com/admin-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "POST",
+      "url": "https://moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto/addresses",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "POST",
+      "url": "https://moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto/withdrawals/quotes",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "POST",
+      "url": "https://moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto/cards/quotes",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "POST",
+      "url": "https://moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto/otc/quotes",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/portal/login",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/admin/login",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://moventra.me/admin-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/client-api/v1/customers/00000000-0000-0000-0000-000000000001/crypto",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/system/cregis",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.moventra.me/admin-api/v1/crypto-scopes",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    }
+  ],
+  "assets": [
+    {
+      "app": "client",
+      "asset": "/assets/ClientHome-BMSapXlo.js",
+      "status": 200,
+      "sha256": "4ba53e3e9873b76f1381dfa8ca445ac61cfba5a81e42e44cd384475e4995beb4"
+    },
+    {
+      "app": "client",
+      "asset": "/assets/index-CiF_OZmg.css",
+      "status": 200,
+      "sha256": "4b3785148b59df6d3804e29b59fd3788340c2f4400b19d550c1c0bc635fe077f"
+    },
+    {
+      "app": "client",
+      "asset": "/assets/index-MlHZSoIR.js",
+      "status": 200,
+      "sha256": "b2cd3a5f44ecad17c04c01887272a6cdb8e281be343cba1b3dff6b1953bb17f1"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/CregisSourcesPage-BW0Sy7Yh.js",
+      "status": 200,
+      "sha256": "f0ee352569e0e2e5524e289feb8377a4f1d330cb2d51be619f5d3a94fa617399"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/CryptoFundsPage-BiFsjF7L.js",
+      "status": 200,
+      "sha256": "3e04da02a627fc1d6d39466bc7f828fea171704938aaf208ca1aa15944773445"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/cryptoApi-C8tXEHpo.js",
+      "status": 200,
+      "sha256": "cc90f815e299f5af07068a47d2d65222462c07d6012944e5bda3fcfaafe95550"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/index-Bvg0ua-S.js",
+      "status": 200,
+      "sha256": "1df06afa0defd4ddb3e6c49d952807de368a7d9ddc1d63b739ce6dc10c788bf7"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/index-CiF_OZmg.css",
+      "status": 200,
+      "sha256": "4b3785148b59df6d3804e29b59fd3788340c2f4400b19d550c1c0bc635fe077f"
+    }
+  ],
+  "liveFundsEnabled": false,
+  "productionMigrationsApplied": false,
+  "authenticatedBusinessAcceptance": false
+}

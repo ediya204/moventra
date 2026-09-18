@@ -6,7 +6,7 @@
 
 从仓库根目录运行 `pnpm dev:client`（127.0.0.1:8853）、`pnpm build:client`；产物为 `apps/client/dist`，部署到客户端 Worker。身份固定为 client，不使用 `VITE_SITE_KIND` 切换应用。共用认证/UI 位于 [packages/shared](../../packages/shared/README.md)。
 
-生产使用 Firebase 邮箱密码或 Google 登录。已开通用户由 `/session` 进入 `/portal`，安全页为 `/portal/security`。查询只展示获授权个人主体的账户与交易，空数据、未关联和失败分别显示；已支持明确授权的只读卡片和关联交易；资金中心为独立线上测试流程，不提供真实资金执行。
+生产使用 Firebase 邮箱密码或 Google 登录。已开通用户由 `/session` 进入 `/portal`，安全页为 `/portal/security`。查询只展示获授权个人主体的账户与交易，空数据、未关联和失败分别显示；已支持明确授权的只读卡片和关联交易；资金中心四流程已发布，正式资金尚未激活；旧测试记录在独立历史入口保留。
 
 `/register` 仅做表单预览和校验；通过 Firebase 验证的会话遇到 `403 registration_required` 才通过资料补全调用 Go 注册，常见于首次 Google 登录。注册创建登录用户，不自动开通个人主体、企业、资金账户或运营权限。企业模型保留在后端，当前前端为 V1 个人范围。
 
@@ -34,4 +34,4 @@
 
 正式入口 `/portal/cards/new`，订单 `/portal/card-orders` 与 `/portal/card-orders/:id`，新卡详情 `/portal/issued-cards/:id`。费用、最低首充、声明、独立 USD 钱包与失败恢复见[开卡流程](../../docs/business/client-card-issuing.md)。生产是否可支付由服务端资格和执行能力决定。
 
-2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。
+2026-09-18 资金中心四流程已发布：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。
