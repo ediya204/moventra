@@ -37,7 +37,7 @@ const {pathToFileURL}=await import('node:url');
 const require=createRequire(import.meta.url);
 const uri=value=>'data:text/javascript;base64,'+Buffer.from(value).toString('base64');
 const fixture=globalThis.__cardSnapshotUI={requests:[]};
-const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
+const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,Chip=Pass,Drawer=Pass,IconButton=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
 const api=uri(`export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,resolve,reject}));`);
 const logo=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/MerchantLogo.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace('import.meta.env.VITE_LOGO_DEV_PUBLISHABLE_KEY','undefined').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./merchantBrand'?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:pathToFileURL(require.resolve(name)).href));
 const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
@@ -57,7 +57,7 @@ test('card page supports empty, retry, URL pagination and context-preserving det
 test('direct card and transaction links load authoritative details and linked rows',async()=>{
  let view=await mount('/portal/cards/c1?connection=slash');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests[1].path,base+'/slash/cards/c1');assert.match(fixture.requests[2].path,/transactions\?cardId=c1/);
  await act(async()=>{fixture.requests[1].resolve(page([{id:'c1',cardName:'Card one'}]));fixture.requests[2].resolve(page([{id:'t1',cardId:'c1',amountCents:'-9007199254740993',detailedStatus:'settled'}]));await flush()});assert.match(content(view.toJSON()),/90071992547409\.93/);await act(()=>view.unmount());
- view=await mount('/portal/card-transactions/t1?connection=slash');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests[1].path,base+'/slash/transactions/t1');await act(async()=>{fixture.requests[1].resolve(page([{id:'t1',cardId:'c1',amountCents:'0',status:'posted',detailedStatus:'refund'}]));await flush()});assert.match(content(view.toJSON()),/USD 0\.00/);assert.match(content(view.toJSON()),/退款/);await act(()=>view.unmount());
+ view=await mount('/portal/card-transactions/t1?connection=slash');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests[1].path,base+'/slash/transactions/t1');await act(async()=>{fixture.requests[1].resolve(page([{id:'t1',cardId:'c1',amountCents:'0',status:'posted',detailedStatus:'refund'}]));await flush()});assert.match(content(view.toJSON()),/0\.00USD · 卡片交易/);assert.match(content(view.toJSON()),/退款/);await act(()=>view.unmount());
 });
 
 test('merchant images appear in snapshot list, card-linked rows and transaction detail',async()=>{
@@ -81,4 +81,46 @@ test('merchant images appear in snapshot list, card-linked rows and transaction 
   assert.match(content(view.toJSON()),/FACEBK \*PRIVATE-ORDER-123/);
   await act(()=>view.unmount());
  }
+});
+
+
+test('transaction drawer preserves paginated list, supports deep links, retry and close',async()=>{
+ const view=await mount('/portal/transactions?connection=slash&page=1&keyword=OPENAI&transaction=t1');
+ const listConnections=fixture.requests.find(r=>r.path===base);
+ const detail=fixture.requests.find(r=>r.path===base+'/slash/transactions/t1');
+ assert.ok(detail,'URL restores detail without list cache');
+ await act(async()=>{listConnections.resolve(connections);detail.reject(new Error('offline'));await flush()});
+ const list=fixture.requests.find(r=>r.path.includes('transactions?page=1'));
+ assert.match(list.path,/keyword=OPENAI/);
+ await act(async()=>{list.resolve(page([{id:'t1',merchant:'OPENAI',cardId:'c1',cardLast4:'2047',amountCents:'-1891'}]));await flush()});
+ assert.match(content(view.toJSON()),/OPENAI/);assert.match(content(view.toJSON()),/•••• 2047/);
+ const drawer=view.root.findAll(n=>n.props.anchor==='right'&&n.props.PaperProps)[0];
+ assert.equal(drawer.props.PaperProps.role,'dialog');
+ const alert=drawer.findAll(n=>n.props.severity==='error')[0];
+ await act(async()=>{alert.props.action.props.onClick();await flush()});
+ await act(async()=>{fixture.requests.at(-1).resolve(page([{id:'t1',merchant:'OPENAI detail',cardId:'c1',cardLast4:'2047',amountCents:'-1891'}]));await flush()});
+ assert.match(content(view.toJSON()),/OPENAI detail/);
+ assert.match(content(view.toJSON()),/•••• 2047/);
+ assert.match(content(view.toJSON()),/−18.91/);
+ const requests=fixture.requests.length;
+ await act(async()=>{drawer.props.onClose();await flush()});
+ assert.equal(view.root.findAll(n=>n.props.anchor==='right').length,0);
+ assert.equal(fixture.requests.length,requests,'closing preserves list without refetch');
+ const detailLink=view.root.findAllByType('button').find(b=>b.props.children==='详情');
+ assert.match(detailLink.props.to,/page=1/);assert.match(detailLink.props.to,/keyword=OPENAI/);assert.match(detailLink.props.to,/transaction=t1/);
+ await act(()=>view.unmount());
+});
+
+
+test('status presentation distinguishes failure, settlement, refund and unknown source combinations',async()=>{
+ const {transactionAppearance:display}=await import(uri(component));
+ assert.equal(display({status:'failed',detailedStatus:'declined'}).color,'error');
+ assert.equal(display({status:'failed'}).icon,'close');
+ assert.equal(display({status:'posted',detailedStatus:'settled'}).color,'success');
+ assert.equal(display({status:'pending',detailedStatus:'settled'}).label,'待核实');
+ assert.equal(display({status:'pending',detailedStatus:'refund'}).label,'退款处理中');
+ assert.equal(display({status:'posted',detailedStatus:'refund'}).icon,'refund');
+ assert.notEqual(display({status:'posted',detailedStatus:'reversed'}).icon,display({status:'posted',detailedStatus:'settled'}).icon);
+ assert.equal(display({status:'posted',detailedStatus:'new-state'}).label,'未知状态');
+ assert.equal(display({}).color,'default');
 });

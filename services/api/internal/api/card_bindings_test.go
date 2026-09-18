@@ -37,7 +37,7 @@ func TestCustomerCardSnapshot(t *testing.T) {
 	defer db.Exec(ctx, `TRUNCATE channel_connections,users CASCADE`)
 	b := projection.Bundle{ConnectionID: "binding-test", AccountID: "account-test", Label: "Synthetic binding", SourceAt: "2026-09-07T00:00:00Z"}
 	for i := 0; i < 25; i++ {
-		b.Records = append(b.Records, projection.Record{Kind: "card", Data: map[string]any{"id": fmt.Sprintf("card-%02d", i), "accountId": b.AccountID, "cardName": "Test card", "cardStatus": "active"}})
+		b.Records = append(b.Records, projection.Record{Kind: "card", Data: map[string]any{"id": fmt.Sprintf("card-%02d", i), "accountId": b.AccountID, "cardName": "Test card", "cardStatus": "active", "last4": fmt.Sprintf("%04d", 2047+i)}})
 	}
 	b.Records = append(b.Records, projection.Record{Kind: "transaction", Data: map[string]any{"id": "tx-one", "accountId": b.AccountID, "cardId": "card-00", "amountCents": "-9007199254740993", "status": "posted", "detailedStatus": "settled", "date": b.SourceAt}}, projection.Record{Kind: "transaction", Data: map[string]any{"id": "tx-unbound", "accountId": b.AccountID, "cardId": "missing-card", "amountCents": "100", "status": "posted", "detailedStatus": "refund", "date": b.SourceAt}})
 	rev, e := projection.Import(ctx, db, b, "staff")
@@ -117,6 +117,16 @@ func TestCustomerCardSnapshot(t *testing.T) {
 	if len(rows) != 1 || rows[0].(map[string]any)["amountCents"] != "-9007199254740993" || rows[0].(map[string]any)["accountId"] != nil || data["syncMode"] != "test_snapshot" {
 		t.Fatal(data)
 	}
+	for _, suffix := range []string{"/transactions", "/transactions/tx-one", "/transactions?keyword=2047", "/transactions?cardId=card-00"} {
+		got := decode(base + "/binding-test" + suffix)
+		items := got["rows"].([]any)
+		if len(items) != 1 || items[0].(map[string]any)["cardLast4"] != "2047" {
+			t.Fatalf("missing linked suffix at %s: %v", suffix, got)
+		}
+	}
+	if got := decode(base + "/binding-test/transactions?keyword=2048"); got["total"] != float64(0) {
+		t.Fatal("matched unrelated card suffix", got)
+	}
 	// Same resource IDs in another connection must not grant access.
 	b.ConnectionID = "other-connection"
 	if _, e = projection.Import(ctx, db, b, "staff"); e != nil {
@@ -128,6 +138,7 @@ func TestCustomerCardSnapshot(t *testing.T) {
 	// Source updates must not silently broaden the frozen test snapshot.
 	b.ConnectionID = "binding-test"
 	b.SourceAt = "2026-09-08T00:00:00Z"
+	b.Records[0].Data["last4"] = "9999"
 	b.Records = append(b.Records, projection.Record{Kind: "card", Data: map[string]any{"id": "new-card", "accountId": b.AccountID}})
 	newRev, e := projection.Import(ctx, db, b, "staff")
 	if e != nil {
@@ -135,6 +146,10 @@ func TestCustomerCardSnapshot(t *testing.T) {
 	}
 	if _, e = bind("alice", newRev, 26); e == nil {
 		t.Fatal("snapshot replacement allowed")
+	}
+	// The customer's frozen snapshot must not borrow updated card metadata.
+	if decode(base + "/binding-test/transactions/tx-one")["rows"].([]any)[0].(map[string]any)["cardLast4"] != "2047" {
+		t.Fatal("suffix changed across snapshot revisions")
 	}
 	if decode(base + "/binding-test/cards")["total"] != float64(25) {
 		t.Fatal("snapshot expanded")

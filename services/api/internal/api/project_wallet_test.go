@@ -37,7 +37,7 @@ func TestProjectWalletAssignments(t *testing.T) {
 	defer db.Exec(ctx, `TRUNCATE channel_connections,users CASCADE`)
 	b := projection.Bundle{ConnectionID: "wallet-source", AccountID: "account", Label: "Original source", SourceAt: "2026-09-18T00:00:00Z"}
 	card := func(id, va string) projection.Record {
-		return projection.Record{Kind: "card", Data: map[string]any{"id": id, "accountId": b.AccountID, "virtualAccountId": va, "cardName": id}}
+		return projection.Record{Kind: "card", Data: map[string]any{"id": id, "accountId": b.AccountID, "virtualAccountId": va, "cardName": id, "last4": "2047"}}
 	}
 	trans := func(id, c, va string) projection.Record {
 		return projection.Record{Kind: "transaction", Data: map[string]any{"id": id, "accountId": b.AccountID, "virtualAccountId": va, "cardId": c, "amountCents": "-9007199254740993", "date": b.SourceAt}}
@@ -142,8 +142,14 @@ func TestProjectWalletAssignments(t *testing.T) {
 		t.Fatal(txs)
 	}
 	txrow := txs["rows"].([]any)[0].(map[string]any)
-	if txrow["accountId"] != nil || txrow["virtualAccountId"] != nil || txrow["amountCents"] != "-9007199254740993" {
+	if txrow["accountId"] != nil || txrow["virtualAccountId"] != nil || txrow["amountCents"] != "-9007199254740993" || txrow["cardLast4"] != "2047" {
 		t.Fatal("DTO leak/precision", txrow)
+	}
+	for _, resource := range []string{"transactions/history", "transactions?keyword=2047"} {
+		result := rows("alice", personal, resource)
+		if result["total"] != float64(1) || result["rows"].([]any)[0].(map[string]any)["cardLast4"] != "2047" {
+			t.Fatal("wallet card suffix missing", resource, result)
+		}
 	}
 	for _, path := range []string{"/wallet-source/cards/outside-card", "/wallet-source/transactions/other-history", "/wallet-source/transactions?cardId=outside-card"} {
 		if w := request("alice", personal, path); w.Code != 404 {

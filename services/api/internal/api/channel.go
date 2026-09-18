@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -170,6 +171,13 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 	data := []json.RawMessage{}
 	var total int
 	where := `connection_id=$1 AND revision=$2 AND kind=$3 AND ($4='' OR external_id=$4) AND ($5='' OR data->>'merchant' ILIKE '%'||$5||'%' OR data->>'cardLast4'=$5 OR external_id=$5 OR ($3='card' AND (data->>'cardName' ILIKE '%'||$5||'%' OR data->>'name' ILIKE '%'||$5||'%' OR data->>'last4'=$5))) AND ($6='' OR data->>'detailedStatus'=$6) AND ($7::timestamptz IS NULL OR (data->>'date')::timestamptz >= $7) AND ($8::timestamptz IS NULL OR (data->>'date')::timestamptz < $8) AND ($9='' OR data->>'cardId'=$9) AND ($10='' OR data->>'cardStatus'=$10)`
+	// Resolve display metadata only from the same scoped card snapshot. Never
+	// derive a suffix from a card ID or read another connection/revision.
+	cardLast4 := "data->>'cardLast4'"
+	if client && kind == "transaction" {
+		cardLast4 = `COALESCE(NULLIF(data->>'cardLast4',''), (SELECT COALESCE(NULLIF(card.data->>'cardLast4',''),NULLIF(card.data->>'last4','')) FROM channel_records card WHERE card.connection_id=channel_records.connection_id AND card.revision=channel_records.revision AND card.kind='card' AND card.external_id=channel_records.data->>'cardId' AND card.data->>'accountId' IS NOT DISTINCT FROM channel_records.data->>'accountId' AND card.data->>'virtualAccountId' IS NOT DISTINCT FROM channel_records.data->>'virtualAccountId'))`
+		where = strings.ReplaceAll(where, "data->>'cardLast4'", cardLast4)
+	}
 	args := []any{connection, revision, kind, id, q.Get("keyword"), q.Get("detailedStatus"), from, to, q.Get("cardId"), q.Get("cardStatus")}
 	if client {
 		// Both cards and transactions are restricted before counting/pagination.
@@ -205,6 +213,9 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		offset = "$12"
 	}
 	selection := "data"
+	if client && kind == "transaction" {
+		selection = `data || jsonb_build_object('cardLast4', ` + cardLast4 + `)`
+	}
 	if !client && kind == "card" {
 		selection = `data || jsonb_build_object('assignmentKind', CASE
    WHEN EXISTS(SELECT 1 FROM project_wallet_cards a WHERE a.connection_id=channel_records.connection_id AND a.external_card_id=channel_records.external_id) THEN 'project_wallet'
