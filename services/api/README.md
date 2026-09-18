@@ -154,6 +154,8 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 
 复用ledger配置；shadow仅隔离验证，live额外要求`MANUAL_FUNDS_ENABLED=true`且不绕开已有live验收/Cregis/期初依赖。独立`go run ./cmd/manual-funds-worker drain`或`run`恢复持久订单，镜像包含二进制但不自动启动；不调用银行、Slash或链上付款。线下付款需人员另行付款并提交结果凭证。参见[机器契约](docs/manual-funds.openapi.json)及[完整流程/测试/交接](../../docs/business/platform-advance.md)。
 
+TRC20限额充值候选使用`api prepare-deposit-pilot`核验零期初，再开启`DEPOSIT_PILOT_MODE=enabled`；API内部每15秒执行指定客户/地址的最终性及入账任务，无出金writer。配置、限额、恢复及关闭见[地址流程](../../docs/business/deposit-address-integration.md)。不设置全量资金认证标志，不自动执行数据库迁移。
+
 ## 卡片状态同步
 
 新增017只读状态模型，API启动校验017；显式运行 `api migrate-card-state-sync` 仅应用本迁移。通过 `CARD_SYNC_CONNECTION` 与 `CARD_SYNC_HOOK_CONNECTION` 指定已有连接，运行 `api slash-webhook-enable-card-sync`，实际核验Slash账户及项目钱包匹配后启用。现有Slash worker接收通知并回查；每5秒处理一条，已正式归属卡片超过5分钟后入队补查，积压可能增加延迟，10分钟未核验标为过期。禁用映射恢复原导入显示。详见[流程与限制](../../docs/business/card-state-sync.md)。

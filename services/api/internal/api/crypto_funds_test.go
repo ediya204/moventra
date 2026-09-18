@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func cryptoBlnk(t *testing.T) *blnk.Client {
+func cryptoBlnk(t *testing.T, loseResponse ...bool) *blnk.Client {
 	t.Helper()
 	if raw := os.Getenv("BLNK_TEST_URL"); raw != "" {
 		if !strings.HasPrefix(raw, "http://127.0.0.1:") {
@@ -47,6 +47,8 @@ func cryptoBlnk(t *testing.T) *blnk.Client {
 			reply(map[string]any{"balance_id": id, "ledger_id": "general_ledger_id", "indicator": indicator, "currency": currencies[id], "balance": balances[id], "inflight_debit_balance": 0})
 		}
 		switch {
+		case r.Method == "GET" && r.URL.Path == "/ledgers/general_ledger_id":
+			reply(map[string]string{"ledger_id": "general_ledger_id"})
 		case r.Method == "POST" && r.URL.Path == "/balances":
 			var v map[string]any
 			json.NewDecoder(r.Body).Decode(&v)
@@ -102,6 +104,11 @@ func cryptoBlnk(t *testing.T) *blnk.Client {
 			balances[v.Destination].Add(balances[v.Destination], v.Amount)
 			tr := map[string]any{"transaction_id": "txn_" + v.Reference, "reference": v.Reference, "source": v.Source, "destination": v.Destination, "currency": v.Currency, "precision": v.Precision, "precise_amount": v.Amount, "status": "APPLIED"}
 			transfers[v.Reference] = tr
+			if len(loseResponse) > 0 && loseResponse[0] {
+				loseResponse[0] = false
+				w.WriteHeader(503)
+				return
+			}
 			reply(tr)
 		default:
 			w.WriteHeader(404)

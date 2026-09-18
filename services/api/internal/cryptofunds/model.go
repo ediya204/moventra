@@ -149,6 +149,7 @@ type Input struct {
 	Settings  *Settings `json:"settings,omitempty"`
 }
 type Service struct {
+	Pilot  *DepositPilot
 	Ledger *ledger.Service
 	Live   *LiveRuntime
 }

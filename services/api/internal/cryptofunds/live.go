@@ -327,7 +327,7 @@ func (s *Service) ProcessLiveEvents(ctx context.Context) error {
 	if s.Live == nil {
 		return nil
 	}
-	rows, e := s.Ledger.DB.Query(ctx, `SELECT id::text,kind,external_id,payload FROM crypto_events WHERE namespace=$1 AND connection_id=$2 AND project_id=$3 AND kind IN ('deposit','payout') AND state='received' ORDER BY updated_at,id LIMIT 20`, s.NS(), s.Live.Connection, s.Live.Project)
+	rows, e := s.Ledger.DB.Query(ctx, `SELECT id::text,kind,external_id,payload FROM crypto_events WHERE namespace=$1 AND connection_id=$2 AND project_id=$3 AND kind IN ('deposit','payout') AND state='received' AND ($4='' OR (kind='deposit' AND payload->>'address'=$4 AND payload->>'chain_id'='195' AND payload->>'token_id'=$5)) ORDER BY updated_at,id LIMIT 20`, s.NS(), s.Live.Connection, s.Live.Project, s.pilotAddress(), pilotToken)
 	if e != nil {
 		return e
 	}
@@ -353,7 +353,11 @@ func (s *Service) ProcessLiveEvents(ctx context.Context) error {
 	for _, ev := range list {
 		if e = s.liveEvent(ctx, ev.id, ev.kind, ev.cid, ev.raw); e != nil {
 			// Rotate unresolved evidence instead of starving later final transfers.
-			if _, err := s.Ledger.DB.Exec(ctx, `UPDATE crypto_events SET updated_at=now() WHERE id=$1 AND state='received'`, ev.id); err != nil {
+			code := "verification_pending"
+			if s.Pilot != nil && e.Error() == "deposit_pilot_cap_reached" {
+				code = "deposit_pilot_cap_reached"
+			}
+			if _, err := s.Ledger.DB.Exec(ctx, `UPDATE crypto_events SET updated_at=now(),error=$2 WHERE id=$1 AND state='received'`, ev.id, code); err != nil {
 				return err
 			}
 			continue
@@ -362,6 +366,9 @@ func (s *Service) ProcessLiveEvents(ctx context.Context) error {
 	return nil
 }
 func (s *Service) liveEvent(ctx context.Context, eventID, kind, cid string, raw []byte) error {
+	if s.Pilot != nil && kind != "deposit" {
+		return errors.New("deposit_pilot_scope_rejected")
+	}
 	var f map[string]json.RawMessage
 	if json.Unmarshal(raw, &f) != nil {
 		return invalid("invalid_event")
@@ -413,6 +420,9 @@ func (s *Service) liveEvent(ctx context.Context, eventID, kind, cid string, raw 
 	if e != nil {
 		return e
 	}
+	if s.Pilot != nil && (customer != s.Pilot.Customer || address != s.Pilot.Address || network != "TRC20") {
+		return errors.New("deposit_pilot_scope_rejected")
+	}
 	proof, e := n.Verifier.Verify(ctx, str("txid"), n.Contract, address, amount)
 	if e != nil {
 		return e
@@ -433,6 +443,11 @@ func (s *Service) liveEvent(ctx context.Context, eventID, kind, cid string, raw 
 	var id, owner string
 	e = tx.QueryRow(ctx, `SELECT p.order_id::text,o.customer_id::text FROM crypto_postings p JOIN crypto_orders o ON o.id=p.order_id WHERE p.namespace=$1 AND p.economic_key=$2`, s.NS(), economic).Scan(&id, &owner)
 	if errors.Is(e, pgx.ErrNoRows) {
+		if s.Pilot != nil {
+			if e = s.pilotCapacity(ctx, tx, amount); e != nil {
+				return e
+			}
+		}
 		o := Order{Network: network, CustomerID: customer, Kind: "deposit", State: "processing", Currency: "USDT", ToCurrency: "USDT", Amount: amount, Receive: amount, Fee: "0", Address: address, Approval: "not_required", Provider: "confirmed", Chain: "finalized", Posting: "pending", Proof: &proof, Contract: n.Contract, TransactionHash: proof.TransactionHash, Evidence: proof.EvidenceRef}
 		if e = s.Insert(ctx, tx, &o); e != nil {
 			return e
@@ -445,7 +460,7 @@ func (s *Service) liveEvent(ctx context.Context, eventID, kind, cid string, raw 
 	if e != nil {
 		return e
 	}
-	_, e = tx.Exec(ctx, `UPDATE crypto_events SET state='verified',order_id=$2,updated_at=now() WHERE id=$1`, eventID, id)
+	_, e = tx.Exec(ctx, `UPDATE crypto_events SET state='verified',order_id=$2,error='',updated_at=now() WHERE id=$1`, eventID, id)
 	if e != nil {
 		return e
 	}

@@ -203,6 +203,12 @@ FLOW-TEST-WALLET-01 的F19/F20/F29/F35相关子场景检查测试额度精度、
 
 真实 Firebase、真实 Blnk 集成及既有开卡专用浏览器测试因环境未配置而跳过；银行核验、跨渠道经济事项去重、真实卡分配/刷卡仍未验证。当前实现及上线要求见[人工资金流程](../business/platform-advance.md)，不能据此把全部 F/R 场景标为完成。
 
+### F-PILOT-01 限定TRC20充值
+
+隔离PostgreSQL `TestDepositPilotCapDedupAndRecovery`：未记录零期初拒绝启动；并发处理同交易多渠道ID只生成一单；0.6+0.6仅接收一笔，追加0.4累计1，超限保留通知；错误链/代币/地址、未最终确认不得入账；Blnk已写但响应丢失按原引用恢复；两次独立充值仅两条journal；其他客户不见额度，重复准备不重置余额。`TestDepositPilotAuthorizationLimit`拒绝超限、负数、小数、非规范金额及缺授权依据。组件验证六位金额、剩余额度与“确认但未记账”显示。
+
+真实验收单独执行：用户向既有Cregis TRC20地址转入累计最多1 USDT，记录交易哈希、Cregis通知、solidified收据、唯一订单、Blnk引用与journal，刷新确认同一余额。尚未真实转入前不宣称真实入账验收通过。
+
 ## CARD-SYNC-01（2026-09-18）
 
 隔离PostgreSQL测试覆盖定时补查、通知乱序重新GET、钱包错配不发布、恢复、过期、原导入不变、当前状态筛选/计数、手动同步跨客户拒绝。前端覆盖精确同步路由、同源与跨端边界、同步状态文案及既有页面流程。真实渠道和部署证据单列于[同步流程](../business/card-state-sync.md)，自动化fixture不证明线上通知到达。
