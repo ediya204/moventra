@@ -212,7 +212,9 @@ func (s *Service) RunDepositPilotOnce(ctx context.Context) error {
 			return e
 		}
 	}
-	s.Pilot.lastHealthy.Store(time.Now().Unix())
+	if s.Pilot.lastHealthy.Swap(time.Now().Unix()) == 0 {
+		slog.Info("deposit pilot checks healthy", "network", "TRC20", "cap_minor", s.Pilot.Cap)
+	}
 	return nil
 }
 func (s *Service) RunDepositPilot(ctx context.Context) {
