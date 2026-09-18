@@ -1,3 +1,4 @@
+import DepositAddress from './DepositAddress';
 import {useEffect,useRef,useState} from 'react';
 import {Alert,Box,Button,Chip,MenuItem,Paper,Stack,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,TextField,Typography} from '@mui/material';
 import {Link,useLocation,useNavigate} from 'react-router-dom';
@@ -13,7 +14,7 @@ type Pending={path:string;body:Record<string,unknown>;key:string};
 type Card={id:string;name:string;last4:string;availableMinor:string|null;canOperate:boolean;reason:string};
 type View=Omit<CryptoSnapshot,'mode'>&{mode:'shadow'|'live'|'disabled';executionEligible:boolean;cards?:Card[];canOperate?:boolean;addressJobs?:Record<string,string>;networks?:{network:string;depositEnabled:boolean;withdrawEnabled:boolean}[]};
 export function CurrencyLogo({currency}:{currency:string}){return <Box component="svg" role="img" aria-label={`${currency} Logo`} viewBox="0 0 40 40" sx={{width:32,height:32,flexShrink:0}}><circle cx="20" cy="20" r="20" fill={currency==='USDT'?'#26A17B':'#2463B5'}/>{currency==='USDT'?<><path d="M10 9h20v5h-7v15h-6V14h-7z" fill="white"/><ellipse cx="20" cy="18" rx="13" ry="3" fill="none" stroke="white" strokeWidth="1.7"/></>:<text x="20" y="29" textAnchor="middle" fill="white" fontSize="29" fontFamily="Arial">$</text>}</Box>}
-export default function CustomerFunds({customerId,basePath='/portal/funds',orderId}:{customerId:string;basePath?:string;orderId?:string}){
+function FundsContent({customerId,basePath='/portal/funds',orderId}:{customerId:string;basePath?:string;orderId?:string}){
  const {session}=useAuth(),location=useLocation(),navigate=useNavigate();const params=new URLSearchParams(location.search);
  const suffix=location.pathname.slice(basePath.length).split('/')[1]||params.get('tab')||'';
  const section=suffix==='fiat-deposit'?'fiat':suffix;const operation=['deposit','fiat','withdraw','exchange'].includes(section)&&!orderId;
@@ -70,3 +71,5 @@ export default function CustomerFunds({customerId,basePath='/portal/funds',order
  </>}
  </Stack>
 }
+
+export default function CustomerFunds(props:{customerId:string;basePath?:string;orderId?:string}){const location=useLocation();const basePath=props.basePath||'/portal/funds';return !props.orderId&&(location.pathname===basePath+'/deposit'||new URLSearchParams(location.search).get('tab')==='deposit')?<DepositAddress customerId={props.customerId} basePath={basePath}/>:<FundsContent {...props}/>;}

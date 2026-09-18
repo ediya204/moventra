@@ -23,6 +23,7 @@ import (
 	"moventra.local/api/internal/cregis"
 	"moventra.local/api/internal/cryptofunds"
 	"moventra.local/api/internal/database"
+	"moventra.local/api/internal/depositaddress"
 	"moventra.local/api/internal/issuing"
 	"moventra.local/api/internal/ledger"
 )
@@ -44,6 +45,32 @@ func run() error {
 	defer pool.Close()
 	if err = pool.Ping(ctx); err != nil {
 		return errors.New("database unavailable")
+	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-deposit-addresses" {
+		if os.Getenv("CONFIRM_DEPOSIT_SCHEMA") != "yes" {
+			return errors.New("explicit_deposit_schema_confirmation_required")
+		}
+		return database.MigrateDepositAddresses(ctx, pool)
+	}
+	if len(os.Args) == 2 && os.Args[1] == "import-deposit-address" {
+		svc, e := depositaddress.FromEnv(pool)
+		if e != nil {
+			return e
+		}
+		if svc == nil {
+			return errors.New("deposit_address_configuration_required")
+		}
+		var in struct {
+			CustomerID string `json:"customerId"`
+			Address    string `json:"address"`
+			Evidence   string `json:"evidence"`
+		}
+		d := json.NewDecoder(io.LimitReader(os.Stdin, 4096))
+		d.DisallowUnknownFields()
+		if d.Decode(&in) != nil || d.Decode(new(any)) != io.EOF {
+			return errors.New("invalid_import")
+		}
+		return svc.Import(ctx, in.CustomerID, in.Address, in.Evidence)
 	}
 	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "slash-webhook-") {
 		hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
@@ -196,8 +223,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	deposits, err := depositaddress.FromEnv(pool)
+	if err != nil {
+		return err
+	}
 	hook := slashhook.New(pool, os.Getenv("SLASH_API_KEY"))
-	handler := hook.Handler((&api.Server{DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
+	handler := hook.Handler((&api.Server{Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
 	if os.Getenv("CREGIS_SOURCE_ENABLED") == "true" {
 		funding, e := cryptofunds.New(shadowLedger)
 		if e != nil {

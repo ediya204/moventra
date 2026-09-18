@@ -202,3 +202,30 @@ func NewLiveWriter(c *Client, activated bool) (*LocalWriter, error) {
 	}
 	return &LocalWriter{c}, nil
 }
+
+func (w *AddressClient) Coins(ctx context.Context) (Coins, error) { return w.writer.client.Coins(ctx) }
+func (w *AddressClient) InternalAddress(ctx context.Context, chain, address string) (bool, error) {
+	var v struct {
+		Result bool `json:"result"`
+	}
+	e := w.writer.client.request(ctx, "/api/v1/address/inner", map[string]any{"chain_id": chain, "address": address}, &v)
+	return v.Result, e
+}
+func (w *AddressClient) UpdateAddressCallback(ctx context.Context, address, callback string) error {
+	var v any
+	return w.writer.client.request(ctx, "/api/v1/address/update", map[string]any{"address": address, "callback_url": callback}, &v)
+}
+
+// AddressClient has no payout method. Address enrollment is independently
+// enabled; it does not imply ledger or financial execution certification.
+type AddressClient struct{ writer *LocalWriter }
+
+func NewAddressClient(c *Client) (*AddressClient, error) {
+	if c == nil {
+		return nil, ErrConfig
+	}
+	return &AddressClient{writer: &LocalWriter{client: c}}, nil
+}
+func (w *AddressClient) CreateAddress(ctx context.Context, chain, alias, callback string) (string, error) {
+	return w.writer.CreateAddress(ctx, chain, alias, callback)
+}

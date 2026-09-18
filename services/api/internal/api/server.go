@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"moventra.local/api/internal/database"
+	"moventra.local/api/internal/depositaddress"
 	"moventra.local/api/internal/issuing"
 	"moventra.local/api/internal/ledger"
 
@@ -19,6 +20,7 @@ import (
 )
 
 type Server struct {
+	Deposits  *depositaddress.Service
 	DB        *pgxpool.Pool
 	Verifier  Verifier
 	Directory UserDirectory
@@ -45,11 +47,16 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	s.issuingRoutes(mux)
 	s.cryptoRoutes(mux)
+	mux.Handle("GET /client-api/v1/customers/{customerID}/deposit-addresses", s.authenticate(http.HandlerFunc(s.depositAddress)))
+	mux.Handle("POST /client-api/v1/customers/{customerID}/deposit-addresses", s.authenticate(http.HandlerFunc(s.depositAddress)))
+	if s.Deposits != nil {
+		mux.HandleFunc("POST /webhooks/cregis/address-deposit", s.Deposits.CallbackHandler)
+	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { respond(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
-		if err := database.Ready(ctx, s.DB, s.Ledger != nil); err != nil {
+		if err := database.Ready(ctx, s.DB, s.Ledger != nil || s.Deposits != nil); err != nil {
 			fail(w, 503, "not_ready")
 			return
 		}

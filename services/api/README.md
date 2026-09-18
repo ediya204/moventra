@@ -143,3 +143,7 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 ## 资金中心接入准备（未激活）
 
 新增 015 迁移及双链/卡片资金 Worker 增量，配置、零期初登记、恢复边界与验收清单见[资金中心运行说明](../../docs/business/funds-center.md)。默认仍不启用 live；本批没有执行生产迁移或渠道金融写入。`crypto-worker enroll-zero-card` 为受信运维入口，不是公共 API；拒绝非零或已消费的存量卡。
+
+## 地址独立模式
+
+新增不执行资金的DEPOSIT_ADDRESS_MODE=observation，使用既有资金表与独立回调；显式迁移与导入命令见[地址接入](../../docs/business/deposit-address-integration.md)。不以地址开通代表正式账本激活。

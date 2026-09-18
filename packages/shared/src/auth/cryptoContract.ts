@@ -7,6 +7,7 @@ export function cryptoRoute(method:string,path:string):boolean{
  if(path.includes('#')||path.split('?').length>2)return false;
  const [pathname,query='']=path.split('?'),params=new URLSearchParams(query);
  if(method==='POST'&&query)return false;
+ if(new RegExp(`^/client-api/v1/customers/${id}/deposit-addresses$`).test(pathname))return method==='POST'?!query:method==='GET'&&[...params].every(([k,v])=>params.getAll(k).length===1&&(k==='page'?/^\d+$/.test(v):k==='event'&&new RegExp(`^${id}$`).test(v)));
  if(method==='GET'){
   if(new RegExp(`^/admin-api/v1/crypto-sources/[A-Za-z0-9_-]+/events/${id}$`).test(pathname))return !query;
   if(pathname==='/admin-api/v1/crypto-scopes'||pathname==='/admin-api/v1/crypto-sources')return !query;

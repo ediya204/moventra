@@ -264,3 +264,7 @@ API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolid
 ## 四流程增量（2026-09-18，本地接入准备）
 
 现行 crypto 契约扩展 `POST addresses`（currency/network，开户完成后进入充值页触发）、`withdrawals/quotes`（network/address/amountMinor）、`cards/quotes` 和 `cards/orders`（cardId/direction）。提款订单必须匹配报价网络及完整地址。GET 支持 kind/status/cardId、limit=5 或 20，时间倒序；返回 networks/cards/addressJobs/canOperate，mode 为 shadow 或 live。正式模式仍受独立启用条件约束，不能仅凭 mode 或 executionEligible 判定全部能力已验收。详细字段见[机器契约](../../services/api/docs/crypto.openapi.json)与[流程卡](../business/funds-center.md)。
+
+## 地址独立接入增量
+
+新增GET/POST `/client-api/v1/customers/{customerID}/deposit-addresses`；GET支持page或event，POST仅TRC20与UUID幂等头。回调`/webhooks/cregis/address-deposit`仅持久记录，不增加余额。见[契约及流程](../business/deposit-address-integration.md)。

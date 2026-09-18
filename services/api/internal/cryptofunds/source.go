@@ -35,7 +35,7 @@ func (src *Source) store(ctx context.Context, tx pgx.Tx, kind, id string, payloa
 func (src *Source) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		prefix := "/webhooks/cregis/"
-		if !strings.HasPrefix(r.URL.Path, prefix) {
+		if !strings.HasPrefix(r.URL.Path, prefix) || r.URL.Path == "/webhooks/cregis/address-deposit" {
 			next.ServeHTTP(w, r)
 			return
 		}

@@ -69,6 +69,7 @@
 - [Cregis 隔离充值、提现与 OTC](business/cregis-funds.md) — `docs/business/cregis-funds.md`
 - [FLOW-CARD-TEST-01 客户卡片测试快照](business/customer-card-binding.md) — `docs/business/customer-card-binding.md`
 - [业务闭环开发与验收标准](business/delivery-standard.md) — `docs/business/delivery-standard.md`
+- [客户充值地址标准接入](business/deposit-address-integration.md) — `docs/business/deposit-address-integration.md`
 - [已有后台功能恢复记录](business/existing-modules-restoration-2026-09-13.md) — `docs/business/existing-modules-restoration-2026-09-13.md`
 - [资金、定价与运营业务说明](business/funds-and-operations.md) — `docs/business/funds-and-operations.md`
 - [资金中心四流程与正式接入准备](business/funds-center.md) — `docs/business/funds-center.md`
