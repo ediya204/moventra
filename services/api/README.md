@@ -148,7 +148,7 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 
 新增不执行资金的DEPOSIT_ADDRESS_MODE=observation，使用既有资金表与独立回调；显式迁移与导入命令见[地址接入](../../docs/business/deposit-address-integration.md)。不以地址开通代表正式账本激活。
 
-## 余额查询与人工资金（2026-09-18，本地实现，未部署）
+## 余额查询与人工资金（2026-09-18，代码已发布，真实执行未启用）
 
 新增016迁移（订单、幂等命令、独立权限、不可变审计），API不自动迁移，readiness未强制新增依赖。`manual_funds_grants`默认为空，逐客户或全局read/create/review/execute须受控配置，现有admin身份不自动获得资金权限。不得在生产盲跑全量迁移。
 

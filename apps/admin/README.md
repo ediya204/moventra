@@ -70,6 +70,6 @@ BIN 管理客户页 `/card-bins/customers?customer=UUID&order=UUID` 可查询开
 
 2026-09-18 资金中心四流程发布准备：开户完成后首次进入充值页才申请 Cregis 客户专属地址；双链与正式账本保持待验收、未激活。见[资金中心](../../docs/business/funds-center.md)。
 
-## 余额查询（2026-09-18，本地实现）
+## 余额查询（2026-09-18，代码已发布）
 
-正式后台导航“资金与财务 → 余额查询”：`/finance/balances`、`/:customerId`、`/:customerId/orders/:orderId`。全用户分页及授权范围汇总，详情包含人工出入金、资金流水、关联卡片；无用途字段。读取与动作均要求独立资金权限和运营MFA，无默认授权。金额仅覆盖已登记账本，缺失不填零。未部署；[FLOW及上线边界](../../docs/business/platform-advance.md)。
+正式后台导航“资金与财务 → 余额查询”：`/finance/balances`、`/:customerId`、`/:customerId/orders/:orderId`。全用户分页及授权范围汇总，详情包含人工出入金、资金流水、关联卡片；无用途字段。读取与动作均要求独立资金权限和运营MFA，无默认授权。金额仅覆盖已登记账本，缺失不填零。代码已发布，生产016迁移及资金授权未启用；[FLOW及上线边界](../../docs/business/platform-advance.md)。

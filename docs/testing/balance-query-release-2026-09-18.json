@@ -1,0 +1,150 @@
+{
+  "checkedAt": "2026-09-18T14:53:28.738Z",
+  "sourceCommit": "60d32956bfe6c0f369e0f1d3cc34cbb79fc4aecf",
+  "render": {
+    "id": "dep-damkv6qd0e5s73frik0g",
+    "status": "live",
+    "finishedAt": "2026-09-18T14:52:04.933985Z"
+  },
+  "cloudflare": {
+    "admin": "bd125fd3-c5e0-4f48-a117-119751829b75",
+    "client": "b77e20ce-9e68-4a1f-9053-6527aa12f9a2"
+  },
+  "checks": [
+    {
+      "url": "https://moventra-api-ejeq.onrender.com/healthz",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "url": "https://moventra-api-ejeq.onrender.com/readyz",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "url": "https://moventra-api-ejeq.onrender.com/admin-api/v1/balances",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://admin.moventra.me/admin-api/v1/balances",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://moventra.me/admin-api/v1/balances",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "url": "https://moventra-api-ejeq.onrender.com/admin-api/v1/balances/10000000-0000-0000-0000-000000000001",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://admin.moventra.me/admin-api/v1/balances/10000000-0000-0000-0000-000000000001",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://moventra.me/admin-api/v1/balances/10000000-0000-0000-0000-000000000001",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "url": "https://moventra-api-ejeq.onrender.com/admin-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://admin.moventra.me/admin-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://moventra.me/admin-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "url": "https://moventra-api-ejeq.onrender.com/admin-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds/orders/20000000-0000-0000-0000-000000000001",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://admin.moventra.me/admin-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds/orders/20000000-0000-0000-0000-000000000001",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://moventra.me/admin-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds/orders/20000000-0000-0000-0000-000000000001",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "url": "https://moventra.me/client-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "url": "https://admin.moventra.me/client-api/v1/customers/10000000-0000-0000-0000-000000000001/manual-funds",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "url": "https://admin.moventra.me/finance/balances",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "url": "https://admin.moventra.me/finance/balances/10000000-0000-0000-0000-000000000001/orders/20000000-0000-0000-0000-000000000001",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "url": "https://moventra.me/portal/funds/manual",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "url": "https://moventra.me/portal/funds/manual/orders/20000000-0000-0000-0000-000000000001",
+      "status": 200,
+      "expected": 200
+    }
+  ],
+  "assets": [
+    {
+      "app": "admin",
+      "asset": "/assets/index-CwJJEBTq.js",
+      "sha256": "69e8a541dc49b1657c97d9eec53992e967c9b8e2587d1febf798c1bcec2d5b50"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/index-CiF_OZmg.css",
+      "sha256": "4b3785148b59df6d3804e29b59fd3788340c2f4400b19d550c1c0bc635fe077f"
+    },
+    {
+      "app": "admin",
+      "asset": "/assets/BalancesPage-CSfLgu00.js",
+      "sha256": "ee771b681ca0981924e877229b693df22b5a14abb226346c080d21d5d23adccd"
+    },
+    {
+      "app": "client",
+      "asset": "/assets/index-Bv3uj8Pe.js",
+      "sha256": "27b01d3b8bdbd01fe7ade7e161083a2ae2f713bab0a542441efb19e4b838dbdb"
+    },
+    {
+      "app": "client",
+      "asset": "/assets/index-CiF_OZmg.css",
+      "sha256": "4b3785148b59df6d3804e29b59fd3788340c2f4400b19d550c1c0bc635fe077f"
+    },
+    {
+      "app": "client",
+      "asset": "/assets/ClientHome-TVMr2pZY.js",
+      "sha256": "83c2b997d2dafa06560fc4c980d95f0293f1ed99ed678fa9ee20e5e0d1319e51"
+    }
+  ],
+  "financialExecutionEnabled": false,
+  "productionMigration016Applied": false,
+  "authenticatedBusinessFlowVerified": false
+}

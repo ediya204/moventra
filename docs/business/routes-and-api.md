@@ -77,7 +77,7 @@
 
 `/portal/funds` 总览；`/deposit`、`/fiat`、`/withdraw`、`/exchange` 四操作；`/history` 与 `/orders/:id` 完整历史和深链。`/portal/crypto` 兼容同一页面，旧测试历史保留 `/portal/test-funds/history`。调用独立 crypto API，不把 online_test 改成正式余额。开户完成后进入充值页才发地址请求。transport、网关、Go 路由均增加网络/逐卡报价、订单与最近 5 条；详见[FLOW](funds-center.md)。
 
-## 余额查询与人工出入金（2026-09-18，本地实现，未部署）
+## 余额查询与人工出入金（2026-09-18，代码已发布，真实执行未启用）
 
 | 入口 | 关系与接口 |
 | --- | --- |
