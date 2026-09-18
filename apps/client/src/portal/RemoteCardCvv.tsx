@@ -1,11 +1,12 @@
+import {getFirebaseAuth} from '../../../../packages/shared/src/firebase';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { createCvvSession, type CvvStatus } from "./remoteCvv";
 
 /** Only pass a remote identity obtained from authenticated customer API data. */
-export type RemoteCardIdentity = { source: "customer-api"; id: string };
+export type RemoteCardIdentity = { source: "customer-api"; id: string; customerId?: string; connection?: string };
 export function RemoteCardCvv({
   remoteIdentity,
 }: {
@@ -22,14 +23,17 @@ export function RemoteCardCvv({
     setStatus({ phase: "idle" });
     const node = secretNode.current;
     if (!node || !remoteId) return;
+    const owner = getFirebaseAuth().currentUser;
     const current = createCvvSession({
       remoteCardId: remoteId,
+      endpoint: remoteIdentity?.customerId && remoteIdentity.connection ? `/client-api/v1/customers/${remoteIdentity.customerId}/card-projections/${encodeURIComponent(remoteIdentity.connection)}/cards/${encodeURIComponent(remoteId)}/cvv/reveal` : undefined,
+      authorization: async()=>{const user=getFirebaseAuth().currentUser;if(!user)throw new Error('登录已失效或无此卡查看权限，请重新登录后重试。');const token=await user.getIdToken();if(getFirebaseAuth().currentUser!==user)throw new Error('登录已失效或无此卡查看权限，请重新登录后重试。');return `Bearer ${token}`},
       write: (value) => {
         node.textContent = value;
       },
       status: setStatus,
       isActive: () =>
-        document.visibilityState === "visible" && document.hasFocus(),
+        document.visibilityState === "visible" && document.hasFocus() && getFirebaseAuth().currentUser===owner,
     });
     session.current = current;
     const clear = () => current.hide();
@@ -43,7 +47,7 @@ export function RemoteCardCvv({
       window.removeEventListener("pagehide", clear);
       document.removeEventListener("visibilitychange", clear);
     };
-  }, [remoteId, location.key]);
+  }, [remoteId, remoteIdentity?.customerId, remoteIdentity?.connection, location.key]);
   useEffect(() => {
     if (status.phase !== "visible" || !status.expiresAt) return;
     const refresh = () =>
@@ -110,13 +114,13 @@ export function RemoteCardCvv({
         mt={1}
       >
         {!remoteId
-          ? "演示卡未关联真实上游，暂不可查看安全码。"
+          ? "此卡尚未开放安全码查询。"
           : status.phase === "visible"
             ? `${remaining} 秒后自动隐藏；离开或切换窗口立即清除。`
             : "点击后向远端实时获取，仅在当前页面临时显示。"}
       </Typography>
       {status.phase === "error" && (
-        <Alert severity="error" sx={{ mt: 1.5 }}>
+        <Alert severity="error" sx={{ mt: 1.5 }} action={status.message?.includes("登录")?<Button component={Link} to={`/portal/login?${new URLSearchParams({returnTo:location.pathname+location.search})}`} onClick={()=>session.current?.hide()}>重新登录</Button>:undefined}>
           {status.message}
         </Alert>
       )}

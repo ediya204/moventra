@@ -80,6 +80,44 @@ func (s *Service) Cards(ctx context.Context, tx pgx.Tx, customer string, snapsho
 	if len(ids) > 500 {
 		return nil, conflict("card_capacity_exceeded")
 	}
+	// Attribute held escrow from the complete ledger snapshot to its original card order.
+	transit := map[string]*big.Int{}
+	heldByKey := map[string]string{}
+	keys := []string{}
+	for _, a := range snapshot.Accounts {
+		if a.Kind == "escrow" && a.Currency == "USD" && a.HeldMinor != "0" {
+			heldByKey[a.Key] = a.HeldMinor
+			keys = append(keys, a.Key)
+		}
+	}
+	if len(keys) > 0 {
+		holds, err := tx.Query(ctx, `SELECT data->>'cardId','crypto-hold:'||id::text FROM crypto_orders WHERE namespace=$1 AND customer_id=$2 AND kind='card_transfer' AND ('crypto-hold:'||id::text)=ANY($3)`, s.NS(), customer, keys)
+		if err != nil {
+			return nil, err
+		}
+		for holds.Next() {
+			var cardID, key string
+			if err = holds.Scan(&cardID, &key); err != nil {
+				break
+			}
+			n, ok := new(big.Int).SetString(heldByKey[key], 10)
+			if !ok {
+				err = errors.New("invalid escrow amount")
+				break
+			}
+			if transit[cardID] == nil {
+				transit[cardID] = new(big.Int)
+			}
+			transit[cardID].Add(transit[cardID], n)
+		}
+		if err == nil {
+			err = holds.Err()
+		}
+		holds.Close()
+		if err != nil {
+			return nil, err
+		}
+	}
 	out := []map[string]any{}
 	for _, id := range ids {
 		c, e := s.card(ctx, tx, customer, id, false)
@@ -98,7 +136,20 @@ func (s *Service) Cards(ctx context.Context, tx pgx.Tx, customer string, snapsho
 				c.Available = &v
 			}
 		}
-		out = append(out, map[string]any{"id": c.ID, "name": c.Name, "last4": c.Last4, "availableMinor": c.Available, "canOperate": c.CanOperate && c.Available != nil, "reason": c.Reason})
+		out = append(out, map[string]any{"id": c.ID, "name": c.Name, "last4": c.Last4, "availableMinor": c.Available, "canOperate": c.CanOperate && c.Available != nil, "reason": c.Reason, "ledgerAccountId": c.AccountID, "inTransitMinor": func() any {
+			if snapshot.Reconciliation != "matched" {
+				return nil
+			}
+			if transit[c.ID] != nil {
+				return transit[c.ID].String()
+			}
+			return "0"
+		}(), "heldMinor": func() any {
+			if c.Authorizations && c.Observed != nil && time.Since(*c.Observed) >= 0 && time.Since(*c.Observed) < 30*time.Second {
+				return c.Held
+			}
+			return nil
+		}()})
 	}
 	return out, nil
 }

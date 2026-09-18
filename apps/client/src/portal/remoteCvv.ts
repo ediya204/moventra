@@ -9,6 +9,8 @@ export type CvvStatus = {
 };
 type Options = {
   remoteCardId: string;
+  endpoint?: string;
+  authorization?: () => Promise<string>;
   write: (value: string) => void;
   status: (status: CvvStatus) => void;
   isActive: () => boolean;
@@ -70,16 +72,19 @@ export function createCvvSession(options: Options) {
       options.status({ phase: "error", message: "请求超时，请重新查看。" });
     }, REQUEST_TIMEOUT_MS);
     try {
+      const authorization = options.authorization ? await options.authorization() : undefined;
+      if (disposed || request !== sequence || signal.aborted || !options.isActive()) return;
       const response = await fetcher(
-        `/client-api/cards/${encodeURIComponent(options.remoteCardId)}/cvv/reveal`,
+        options.endpoint || `/client-api/cards/${encodeURIComponent(options.remoteCardId)}/cvv/reveal`,
         {
           method: "POST",
-          credentials: "same-origin",
+          credentials: options.authorization ? "omit" : "same-origin",
           cache: "no-store",
           redirect: "error",
           referrerPolicy: "no-referrer",
           signal,
           headers: {
+            ...(authorization ? {Authorization: authorization} : {}),
             Accept: "application/json",
             "Content-Type": "application/json",
             "X-Requested-With": "Moventra-Portal",
@@ -91,7 +96,7 @@ export function createCvvSession(options: Options) {
       if (!response.ok) {
         // Do not read or echo upstream error bodies; they could contain card secrets.
         if (response.status === 401 || response.status === 403)
-          throw new Error("需要重新登录或完成安全验证后才能查看。");
+          throw new Error("登录已失效或无此卡查看权限，请重新登录后重试。");
         throw new Error(failure);
       }
       if (
@@ -145,7 +150,7 @@ export function createCvvSession(options: Options) {
         phase: "error",
         message:
           cause instanceof Error &&
-          cause.message === "需要重新登录或完成安全验证后才能查看。"
+          cause.message === "登录已失效或无此卡查看权限，请重新登录后重试。"
             ? cause.message
             : failure,
       });

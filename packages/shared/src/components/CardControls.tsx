@@ -6,6 +6,7 @@ import type {CardSyncInfo} from '../auth/cardSnapshotContract';
 type Action='activate'|'pause'|'close';
 const labels:Record<Action,string>={activate:'启用卡片',pause:'停用卡片',close:'注销卡片'};
 export default function CardControls({path,row,onRefresh}:{path:string;row:CardSyncInfo&{cardStatus?:string;last4?:string;cardLast4?:string};onRefresh:()=>void}){
+ const [more,setMore]=useState(false);
  const [selected,setSelected]=useState<Action|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const attempt=useRef<{fingerprint:string;key:string}>();
  if(!row.controlsEnabled)return null;
@@ -26,7 +27,8 @@ export default function CardControls({path,row,onRefresh}:{path:string;row:CardS
   {row.cardStatus==='closed'?<Typography color="text.secondary">卡片已注销，历史记录继续保留。</Typography>:<Stack direction="row" spacing={1} flexWrap="wrap">
    {['paused','inactive'].includes(row.cardStatus||'')&&<Button variant="outlined" disabled={pending||busy} onClick={()=>choose('activate')}>启用卡片</Button>}
    {row.cardStatus==='active'&&<Button variant="outlined" disabled={pending||busy} onClick={()=>choose('pause')}>停用卡片</Button>}
-   {['active','paused','inactive'].includes(row.cardStatus||'')&&<Button color="error" disabled={pending||busy} onClick={()=>choose('close')}>注销卡片</Button>}
+   {['active','paused','inactive'].includes(row.cardStatus||'')&&<Button disabled={pending||busy} onClick={()=>setMore(v=>!v)}>更多操作</Button>}
+   {more&&['active','paused','inactive'].includes(row.cardStatus||'')&&<Button color="error" disabled={pending||busy} onClick={()=>choose('close')}>注销卡片</Button>}
   </Stack>}
   <Dialog open={Boolean(selected)} onClose={()=>{if(!busy)setSelected(null)}} aria-labelledby="card-control-title" fullWidth maxWidth="xs">
    <DialogTitle id="card-control-title">{selected?labels[selected]:''} · 尾号 {row.cardLast4||row.last4||'未知'}</DialogTitle>

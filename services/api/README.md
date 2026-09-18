@@ -178,3 +178,5 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 ## 全局管理员
 
 019新增动态全局范围，readyz要求其checksum；受控global-admin-plan/grant/revoke通过Firebase核验指定身份，不接受HTTP自报身份。详见[流程与发布顺序](../../docs/business/global-administrator.md)。
+
+2026-09-19卡片详情本地扩展：精确返回fundingCardId与cvvAvailable，资金卡增加已知授权预占及订单归属在途查询；crypto列表支持UTC from/to及direction筛选。CVV独立客户POST默认关闭，服务端`CARD_CVV_ENABLED=true`配合既有`SLASH_API_KEY`才开放；无二次验证，但每次检查登录/归属并在渠道查询后再次核验。禁止请求/响应正文采集，审计无敏感值，配置与真实渠道未在本批生产启用。见[CVV合同](../../docs/frontend/client-cvv.md)。

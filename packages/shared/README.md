@@ -15,3 +15,8 @@
 2026-09-13 已联合发布：共用认证改用服务端 customer/admin 角色及站点专属身份端点，移除前端邮箱名单。共享 transport 同时保留已上线的开户 GET/POST 和渠道只读白名单。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。
 
 2026-09-17：`auth/ledgerApi.ts` 提供同域 `getShadowLedger`，复用 Firebase Bearer 与两端路由隔离。`ledgerContract.ts` 检查 shadow 标识、主体、精确字符串金额及汇总；不切换现有页面余额，不提供资金写方法。见 [Blnk 接入](../../docs/integrations/blnk.md)。
+
+2026-09-19（本地未部署）：`components/ChannelCardStatus` 供两端展示渠道原始卡片状态，采用紧凑浅色圆角标签与同色图标/文字，未知状态保留原值；不修改状态或权限。样式及验证见[卡片状态展示](../../docs/business/card-state-sync.md#2026-09-19-状态展示精简本地未部署)。
+
+
+2026-09-19：新增 `SectionNavigation` 路由分区导航与 `FundsNavigation`，支持手机横向滚动和选中入口可见；`SessionPage` 的 `embedded` 参数用于客户安全页，默认认证页保持独立。资金表单及记录采用一致的容器与响应式布局，见[客户端页面统一](../../docs/frontend/client-workspace-layout.md)。本地未部署。

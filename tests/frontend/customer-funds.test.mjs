@@ -3,10 +3,12 @@ const require=createRequire(import.meta.url),resolve=s=>pathToFileURL(require.re
 const state=globalThis.__fundsFlowFixture={reads:[],writes:[]},memory=new Map();globalThis.sessionStorage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)};globalThis.document={hidden:false};
 const shell=uri(`import React from ${JSON.stringify(resolve('react'))};const Pass=({children,...p})=>React.createElement('div',p,children);export const Box=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableContainer=Pass,TableBody=Pass,TableCell=Pass,TableHead=Pass,TableRow=Pass,Typography=Pass,MenuItem=Pass;export const TextField=p=>React.createElement('input',p);export const Chip=({label})=>React.createElement('span',null,label);export const Alert=({children,action})=>React.createElement('div',null,children,action);export const Button=({children,...p})=>React.createElement('button',p,children);`);
 const api=uri(`export const cryptoError=e=>e.message;export const cryptoRequest=(path,body,key)=>new Promise((resolve,reject)=>globalThis.__fundsFlowFixture[body===undefined?'reads':'writes'].push({path,body,key,resolve,reject}));`),auth=uri('export const useAuth=()=>({session:{id:"actor"}})'),live=uri('export class SessionError extends Error{}'),qr=uri(`import React from ${JSON.stringify(resolve('react'))};export const QRCodeSVG=p=>React.createElement('svg',{'data-value':p.value});`),contract=uri(compile('../../packages/shared/src/auth/cryptoContract.ts'));
-const deposit=uri(compile('../../packages/shared/src/finance/DepositAddress.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:n==='qrcode.react'?qr:n.endsWith('/cryptoApi')?api:resolve(n))));
-const component=uri(compile('../../packages/shared/src/finance/CustomerFunds.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='./DepositAddress'?deposit:n==='@mui/material'?shell:n==='qrcode.react'?qr:n.endsWith('/cryptoContract')?contract:n.endsWith('/cryptoApi')?api:n.endsWith('/AuthContext')?auth:n.endsWith('/liveApi')?live:resolve(n))));const Funds=(await import(component)).default;
+const sectionNav=uri(compile('../../packages/shared/src/components/SectionNavigation.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:resolve(n))));
+const fundsNav=uri(compile('../../packages/shared/src/finance/FundsNavigation.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:n.endsWith('/SectionNavigation')?sectionNav:resolve(n))));
+const deposit=uri(compile('../../packages/shared/src/finance/DepositAddress.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:n==='qrcode.react'?qr:n.endsWith('/FundsNavigation')?fundsNav:n.endsWith('/cryptoApi')?api:resolve(n))));
+const component=uri(compile('../../packages/shared/src/finance/CustomerFunds.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='./DepositAddress'?deposit:n.endsWith('/FundsNavigation')?fundsNav:n==='@mui/material'?shell:n==='qrcode.react'?qr:n.endsWith('/FundsNavigation')?fundsNav:n.endsWith('/cryptoContract')?contract:n.endsWith('/cryptoApi')?api:n.endsWith('/AuthContext')?auth:n.endsWith('/liveApi')?live:resolve(n))));const Funds=(await import(component)).default;
 const id='10000000-0000-0000-0000-000000000001',base={mode:'live',executionEligible:true,customerId:id,canOperate:true,settings:{},ledger:{accounts:[]},addresses:[],addressJobs:{},orders:[],total:0,networks:[{network:'TRC20',depositEnabled:true,withdrawEnabled:true},{network:'ERC20',depositEnabled:true,withdrawEnabled:true}]};const flush=()=>new Promise(r=>setImmediate(r));
-async function mount(path='/portal/funds/deposit'){let tree;await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(Funds,{customerId:id})));await flush()});return tree}
+async function mount(path='/portal/funds/deposit',props={}){let tree;await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(Funds,{customerId:id,...props})));await flush()});return tree}
 async function reply(call,v){await act(async()=>{call.resolve(v);await flush()})}
 test('standard deposit reuses address, clears QR on unavailable network and creates once',async()=>{state.reads=[];state.writes=[];const tree=await mount();assert.match(state.reads[0].path,/deposit-addresses$/);await reply(state.reads[0],{address:{network:'TRC20',state:'not_created',address:''},events:[]});assert.equal(state.writes.length,1);assert.deepEqual(state.writes[0].body,{network:'TRC20'});await reply(state.writes[0],{address:{network:'TRC20',state:'completed',address:'fixture-address'},events:[]});assert.equal(tree.root.findAllByType('svg')[0].props['data-value'],'fixture-address');await act(()=>tree.root.findAllByType('input').find(n=>n.props.label==='网络').props.onChange({target:{value:'ERC20'}}));assert.equal(tree.root.findAllByType('svg').length,0);assert.equal(state.writes.length,1);await act(()=>tree.unmount())});
 test('existing address and unknown request are never recreated after page refresh',async()=>{for(const status of ['completed','submitting','verifying','unknown']){state.reads=[];state.writes=[];const tree=await mount();await reply(state.reads[0],{address:{network:'TRC20',state:status,address:status==='completed'?'fixture-address':''},events:[]});assert.equal(state.writes.length,0);await act(()=>tree.unmount())}});
@@ -18,3 +20,33 @@ const walletModule=uri(compile('../../apps/client/src/portal/ProductionWallet.ts
 test('production wallet shows formal balances and never accepts a shadow response',async()=>{for(const mode of ['live','shadow']){state.reads=[];state.writes=[];let tree;await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,null,React.createElement(Wallet,{customerId:id})));await flush()});assert.match(state.reads[0].path,/\/crypto\?limit=5$/);await reply(state.reads[0],{...base,mode,ledger:{reconciliation:'matched',accounts:[{kind:'wallet',currency:'USDT',ledgerAvailableMinor:'100000'}]}});const text=JSON.stringify(tree.toJSON());if(mode==='live'){assert.match(text,/0.100000 USDT/);assert.match(text,/尚未开通/);assert.doesNotMatch(text,/"0\.00 USD"/)}else{assert.doesNotMatch(text,/0.100000/);assert.match(text,/正式资金暂不可用/)}assert.doesNotMatch(text,/测试钱包|测试资金/);await act(()=>tree.unmount())}});
 
 test('production deposit has no pilot cap and disabled channel explains its own limitation',async()=>{state.reads=[];state.writes=[];let tree=await mount('/portal/funds/deposit');await reply(state.reads[0],{address:{state:'completed',address:'fixture'},mode:'production',postingEnabled:true,events:[]});let text=JSON.stringify(tree.toJSON());assert.match(text,/TRC20 正式充值已开通/);assert.doesNotMatch(text,/剩余额度|请勿超额/);await act(()=>tree.unmount());state.reads=[];tree=await mount('/portal/funds/withdraw');await reply(state.reads[0],{...base,canOperate:true,networks:[{network:'TRC20',withdrawEnabled:false}]});text=JSON.stringify(tree.toJSON());assert.match(text,/出金渠道尚未完成核验/);assert.doesNotMatch(text,/资金服务尚未启用/);await act(()=>tree.unmount())});
+
+
+test('funds navigation includes manual records once and preserves selected route',async()=>{
+ state.reads=[];const tree=await mount('/portal/funds');await reply(state.reads[0],base);
+ const buttons=tree.root.findAllByType('button');
+ assert.equal(buttons.filter(b=>b.props.to==='/portal/funds/manual').length,1);
+ assert.equal(buttons.filter(b=>b.props.to==='/portal/funds/exchange').length,1);
+ assert.equal(buttons.find(b=>b.props.to==='/portal/funds').props['aria-current'],'page');
+ await act(()=>tree.unmount());
+});
+
+test('card detail fixes the server-mapped card and direction, preserves precision and return context',async()=>{
+ state.reads=[];state.writes=[];memory.clear();const cardId='20000000-0000-0000-0000-000000000002';
+ const tree=await mount('/portal/cards/channel-card?connection=source&tab=withdraw',{cardContext:{id:cardId,direction:'card_to_wallet',returnTo:'/portal/cards/channel-card?connection=source'}});
+ try{
+ assert.ok(state.reads[0].path.includes('cardId='+cardId));
+ await reply(state.reads[0],{...base,capabilities:{cardTransfersEnabled:true},cards:[{id:cardId,name:'Mapped',last4:'1234',availableMinor:'1000',canOperate:true}]});
+ const field=label=>tree.root.findAllByType('input').find(n=>n.props.label===label);
+ assert.equal(field('选择卡片').props.disabled,true);assert.equal(field('选择卡片').props.value,cardId);
+ await act(()=>field('金额（USD）').props.onChange({target:{value:'1.23'}}));
+ await act(async()=>{tree.root.findAllByType('button').find(n=>n.props.children==='查看费用').props.onClick();await flush()});
+ assert.deepEqual(state.writes[0].body,{currency:'USD',amountMinor:'123',cardId,direction:'card_to_wallet'});
+ assert.equal(tree.root.findAllByType('button').find(n=>n.props.children==='返回卡片概览').props.to,'/portal/cards/channel-card?connection=source');
+ }finally{await act(()=>tree.unmount());memory.clear()}
+});
+test('card funding history filters preserve the card scope and use server-side date and direction',async()=>{
+ state.reads=[];state.writes=[];memory.clear();const cardId='20000000-0000-0000-0000-000000000002';
+ const tree=await mount('/portal/cards/channel-card?connection=source&tab=funding&from=2026-09-01&to=2026-09-02&direction=card_to_wallet',{cardContext:{id:cardId,returnTo:'/portal/cards/channel-card?connection=source'}});
+ try{const q=new URL('https://fixture'+state.reads[0].path).searchParams;assert.equal(q.get('cardId'),cardId);assert.equal(q.get('from'),'2026-09-01T00:00:00.000Z');assert.equal(q.get('to'),'2026-09-03T00:00:00.000Z');assert.equal(q.get('direction'),'card_to_wallet');assert.equal(q.get('kind'),'card_transfer');assert.equal(state.writes.length,0)}finally{await act(()=>tree.unmount())}
+});

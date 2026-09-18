@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 客户端 `/` 与政策页 | 官网、咨询 POST /api/contact、隐私/条款/Cookie | 邮件受理不代表最终送达；见[咨询发布](../releases/2026-09-07-website-contact.md) |
 | `/register`、`/session`、`/forgot-password` | 注册预览、身份分流/资料补全、找回密码 | 预览页不直接创建身份；注册不自动生成真实资金 |
-| `/portal`、`/portal/accounts` | 本人个人主体首页、基础账户与交易、测试余额 | 基础账户/交易仍按默认前 50 条读取，不能当全量 |
-| `/portal/transactions` | 基础交易及授权卡交易查询 | 两种数据来源分开，不混入资金总计 |
+| `/portal`、`/portal/accounts` | 首页正式钱包、最近资金订单与授权卡片；基础账户/交易仅在 accounts 兼容页 | 2026-09-19本地修复未部署；资金最近5笔、卡片每来源前5张，基础账户/交易默认前50条 |
+| `/portal/transactions` | 最近正式资金订单及授权卡交易查询 | 2026-09-19本地修复未部署；资金与卡交易分开，不重复计入资金总计 |
 | `/portal/cards`、`/portal/cards/:id`、`/portal/card-transactions/:id` | 卡片及关联交易；connection 参数定位来源连接 | 按客户显式分配范围、服务端分页；真实资金操作未开放 |
 | `/portal/funds` 及 deposit/fiat-deposit/exchange/withdraw/history/orders/:id | OnlineFunds 测试充值、兑换、提现及订单 | online_test，服务资格和独立测试额度/授权；不是真实付款 |
 | `/portal/settings`、`/portal/security` | 开户/个人设置及认证安全 | 功能资格不等于每个业务后端已接通 |
@@ -99,3 +99,7 @@
 ## 生产资金展示路由（2026-09-18）
 
 客户端首页正式钱包及资金中心复用 GET crypto，缺失账户显示尚未开通。生产配置拒绝 test-wallet/test-funds API（404），旧 `/portal/test-funds` 及子路径跳转 `/portal/funds`，旧运营 `/finance/test-funds` 及子路径跳转 `/finance/balances`。隔离测试实现和历史数据保留，不在生产导航展示。限定充值服务只开放正式账本读取，不因页面切换开启提款、兑换或卡片充提；见[发布证据](../../deploy/2026-09-18-production-funds-view.md)。
+
+2026-09-19 卡片中心 UI 本地增量：`/portal/cards` 使用已有 `keyword/cardStatus` 服务端筛选，`cardSort` 仅前端当前页排序，不传入 API；来源、分页与条件保留 URL/详情返回。申请新卡与订单入口移至顶部，不新增路由、API 或权限。见[流程与验证](customer-card-binding.md#flow-card-center-ux-01--卡片中心布局与筛选2026-09-19本地)。
+
+2026-09-19本地卡片详情扩展（未部署）：`/portal/cards/:id?connection=…&tab=overview|transactions|funding|deposit|withdraw`，资金订单以受限站内returnTo恢复卡片上下文。新开卡经服务器唯一映射进入相同详情。详见[卡片详情FLOW](customer-card-binding.md#flow-card-detail-001卡片详情与充提2026-09-19)。

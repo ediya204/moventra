@@ -126,6 +126,7 @@
 - [客户资金中心：USDT 充值、兑换与提现](frontend/client-finance.md) — `docs/frontend/client-finance.md`
 - [客户端首期实现](frontend/client-portal.md) — `docs/frontend/client-portal.md`
 - [FLOW-CLIENT-TX-DRAWER：客户端交易详情抽屉](frontend/client-transaction-drawer.md) — `docs/frontend/client-transaction-drawer.md`
+- [客户端页面布局与导航](frontend/client-workspace-layout.md) — `docs/frontend/client-workspace-layout.md`
 - [FLOW-004 客户工作台布局一致性](frontend/client-workspace-parity.md) — `docs/frontend/client-workspace-parity.md`
 - [卡交易流水：双币种消费交付与验收](frontend/cross-currency-delivery.md) — `docs/frontend/cross-currency-delivery.md`
 - [跨币种卡消费字段差异与实施顺序](frontend/cross-currency-field-gap.md) — `docs/frontend/cross-currency-field-gap.md`

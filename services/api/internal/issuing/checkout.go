@@ -114,6 +114,14 @@ func (s *Service) Cards(ctx context.Context, tx pgx.Tx, customer, id string, off
 		return nil, e
 	}
 	result := map[string]any{"order": order, "currency": "USD", "balanceMinor": nil, "balanceStatus": "unavailable", "balanceKind": "internal_card_subaccount"}
+	// Only an explicit same-customer, same-account mapping can link the channel view.
+	var projectionConnection, projectionCard string
+	mappingErr := tx.QueryRow(ctx, `SELECT p.connection_id,p.external_card_id FROM issuing_orders o JOIN issuing_suppliers s ON s.id=o.supplier_id JOIN project_wallet_cards p ON p.customer_id=o.customer_id AND p.external_card_id=o.external_card_id JOIN project_wallets w ON w.connection_id=p.connection_id AND w.virtual_account_ref=p.virtual_account_ref AND w.account_ref=s.account_ref WHERE o.id=$1 AND o.customer_id=$2 AND EXISTS(SELECT 1 FROM channel_current_records r WHERE r.connection_id=p.connection_id AND r.kind='card' AND r.external_id=p.external_card_id AND r.data->>'accountId'=w.account_ref AND r.data->>'virtualAccountId'=w.virtual_account_ref) AND (SELECT count(*) FROM project_wallet_cards x JOIN project_wallets y ON y.connection_id=x.connection_id AND y.virtual_account_ref=x.virtual_account_ref WHERE x.customer_id=o.customer_id AND x.external_card_id=o.external_card_id AND y.account_ref=s.account_ref)=1`, id, customer).Scan(&projectionConnection, &projectionCard)
+	if mappingErr == nil {
+		result["projection"] = map[string]string{"connection": projectionConnection, "cardId": projectionCard}
+	} else if mappingErr != pgx.ErrNoRows {
+		return nil, mappingErr
+	}
 	if s.Blnk == nil {
 		return result, nil
 	}

@@ -1,10 +1,18 @@
 # 客户卡片 CVV：远程获取、临时展示
 
-## 当前仓库状态（2026-09-07）
+## 当前仓库状态（2026-09-19，本地实现，未部署）
 
-临时展示组件保留在 `apps/client/src/portal` 的开发原型中；生产没有卡详情或 CVV 接口。本文 HttpOnly 客户 BFF 是未实现的敏感字段合同，不能套用当前 Firebase Bearer 查询链路。
+客户正式卡片详情已接入临时 CVV 展示及独立 Go 查询接口。用户已决定本期不做二次验证：沿用现有 Firebase Bearer 登录，每次复核客户、连接、卡片当前归属及有效用户状态；不引入旧原型的 HttpOnly BFF 会话合同。下方历史正文保留原设计，不覆盖本节。
 
-本页为历史设计/实现档案。下方的“当前”“已实现”“本次”均指原记录当时；历史端口、脚本、迁移、数据及测试结果不代表现有仓库可复现或生产已验收。当前能力与可执行命令见 [文档索引](../README.md)、[开发总纲](../DEVELOPMENT.md)。
+`POST /client-api/v1/customers/:customerID/card-projections/:connection/cards/:id/cvv/reveal`，请求体仅 purpose=cardholder-view。当前来源须为正式项目钱包归属且存在有效 card_sync_links / slash_hook_connections。服务端配置 `CARD_CVV_ENABLED=true` 与既有 `SLASH_API_KEY` 才启用；默认关闭。本批没有配置生产环境或真实读取安全码。
+
+服务端每次实时 GET Slash Vault 单卡 include_cvv=true&include_pan=false，仅请求CVV并解析归属验证字段，丢弃上游任何额外PAN字段；不使用投影导入或来源事件持久化链。上游失败使用固定错误，网关不透传错误正文。响应 private, no-store，前端拒绝缺少no-store的成功响应。成功响应未套通用data封套，避免进入通用查询状态。
+
+数据库事务锁协调跨实例限速：每用户每分钟10次，每连接卡片每分钟3次；仅使用不含敏感值的审计事件计数。查询后再次核对归属，撤销授权不得返回安全码。审计只记录查看人、卡片范围、时间和结果，不记录响应正文。API/CDN/APM生产配置仍须上线时复核，本地代码不能证明外部采集系统配置正确。
+
+前端不预取，点击才带登录token查询；最多30秒展示，隐藏、失焦、切卡、离页及卸载清除并拒绝迟到响应。无复制、持久存储或查询缓存。浏览器展示期间存在临时内存，不保证物理内存清零或防截图。新开卡仅在服务端核实同客户、同供应商账户的渠道映射后进入相同详情；未映射不开放CVV。
+
+实现、测试和页面路由见[卡片详情流程](../business/customer-card-binding.md#flow-card-detail-001卡片详情与充提2026-09-19)。
 
 ## 历史记录正文
 

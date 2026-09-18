@@ -85,7 +85,7 @@ export const statuses: Record<string, string> = {
 export const orderStatuses = { ...statuses, active: "开卡成功", failed: "开卡未完成", funding_failed: "首充失败 · 可补充充值" };
 export type Terms = { version: string; text: string; digest: string };
 export type Wallet = { availableMinor: string; currency: "USD"; mode: string };
-export type IssuedCard = { order: Order; balanceMinor: string | null; balanceStatus: string; currency: "USD" };
+export type IssuedCard = { projection?:{connection:string;cardId:string}; order: Order; balanceMinor: string | null; balanceStatus: string; currency: "USD" };
 export const reasons: Record<string, string> = {
   consent_required: "请勾选合法用途声明和开卡条款",
   terms_changed: "开卡条款已更新，请重新阅读并确认",

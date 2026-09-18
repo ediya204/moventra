@@ -298,3 +298,9 @@ crypto快照capabilities新增otcEnabled/cardTransfersEnabled；前端同时检�
 ## 全局管理身份
 
 身份GET新增兼容布尔字段globalAdmin，只有active admin且完成MFA时可为true；字段仅用于界面标记，所有资源仍由服务端动态授权。既有customer/admin枚举不变，见[权限流程](../business/global-administrator.md)。
+
+## 2026-09-19 卡片详情扩展（本地，未部署）
+
+客户单卡详情新增`fundingCardId`（精确映射或null）与`cvvAvailable`，均由服务端授权判定。资金卡读取新增`heldMinor`（未近期核验为null）与`inTransitMinor`（核对未知为null），在途关联完整账本escrow及原卡片订单，不取最近页求和。crypto列表新增`from`、`to`（UTC订单创建时间，左闭右开）和`direction`（wallet_to_card/card_to_wallet）筛选，计数与分页使用相同条件。新开卡详情可返回唯一已验证`projection`链接，不按尾号猜测。
+
+CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应独立、禁止缓存和持久化，不加入普通卡片DTO。详见[CVV合同](../frontend/client-cvv.md)及[卡片流程](../business/customer-card-binding.md#flow-card-detail-001卡片详情与充提2026-09-19)。

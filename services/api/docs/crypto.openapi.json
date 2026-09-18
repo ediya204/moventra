@@ -76,6 +76,36 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Order creation time UTC; from inclusive and to exclusive."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Order creation time UTC; from inclusive and to exclusive."
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "wallet_to_card",
+                "card_to_wallet"
+              ]
+            },
+            "description": "Card transfer direction."
           }
         ],
         "responses": {
@@ -856,6 +886,36 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Order creation time UTC; from inclusive and to exclusive."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Order creation time UTC; from inclusive and to exclusive."
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "wallet_to_card",
+                "card_to_wallet"
+              ]
+            },
+            "description": "Card transfer direction."
           }
         ],
         "responses": {

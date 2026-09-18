@@ -24,7 +24,7 @@ test('card actions require confirmation, preserve retry identity and do not infe
  fixture.fail=false;await act(()=>button(v,'确认停用卡片').props.onClick());
  assert.equal(refresh,1);assert.deepEqual(fixture.calls[0],[path,{action:'pause',expectedStatus:'active',confirmClose:false},fixture.calls[1][2]]);
  assert.ok(button(v,'停用卡片'),'no optimistic change to provider status');
- await act(()=>button(v,'注销卡片').props.onClick());await act(()=>button(v,'确认注销卡片').props.onClick());
+ await act(()=>button(v,'更多操作').props.onClick());await act(()=>button(v,'注销卡片').props.onClick());await act(()=>button(v,'确认注销卡片').props.onClick());
  assert.equal(fixture.calls[2][1].confirmClose,true);assert.equal(fixture.calls[2][1].action,'close');
  await act(()=>v.unmount());
 });
