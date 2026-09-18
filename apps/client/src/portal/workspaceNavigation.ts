@@ -4,6 +4,7 @@ export const workspaceNavigation = [
   ["funds", "资金中心", "solar:wallet-money-linear"],
   ["cards", "卡片中心", "solar:card-linear"],
   ["transactions", "交易与账单", "solar:bill-list-linear"],
+  ["fund-records", "资金记录", "solar:wallet-money-linear"],
   ["messages", "消息中心", "solar:bell-linear"],
   ["support", "帮助与工单", "solar:chat-round-line-linear"],
   ["settings", "设置与开户", "solar:settings-linear"],
@@ -14,6 +15,7 @@ export const workspaceChartsGrid = { display: "grid", gridTemplateColumns: { xs:
 
 // Canonical sidebar section for child routes, including aliases and settings deep links.
 export function workspacePage(pathname: string, fallback = '工作台') {
+  if (/^\/portal\/fund-records(?:\/|$)/.test(pathname)) return { title: pathname === '/portal/fund-records' ? '资金记录' : '资金记录详情', section: '/portal/fund-records', description: '查询充值、提现、卡片充提和费用的处理进度。' };
   if (/^\/portal\/(funds|crypto)(?:\/|$)/.test(pathname)) return { title: '资金中心', section: '/portal/funds', description: '管理钱包余额、充值与兑换，查询每笔资金的处理进度。' };
   if (/^\/portal\/(cards|card-orders|issued-cards)(?:\/|$)/.test(pathname)) return { title: fallback, section: '/portal/cards', description: '查看卡片、消费记录与开卡申请，管理已授权的卡片。' };
   if (/^\/portal\/(transactions|card-transactions)(?:\/|$)/.test(pathname)) return { title: fallback, section: '/portal/transactions', description: '筛选卡片消费与退款，查看明细并导出交易记录。' };

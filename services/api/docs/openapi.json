@@ -3963,6 +3963,334 @@
           }
         }
       }
+    },
+    "/client-api/v1/fund-records": {
+      "get": {
+        "summary": "List authorized non-consumption business components, newest first",
+        "description": "Read-only. Each source retains its own customer grants; admin requires MFA. UTC from inclusive/to exclusive. Stable createdAt/id sorting; 20 components per page. Fees and initial funding separate; reserve/release omitted from list. Current namespace only, legacy issuing only in matching runtime mode. No 021/022 migration dependency; no provider calls or balance changes.",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized records; pending business state is not posted funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundRecordsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter or record ID"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Role, inactive identity or MFA refusal"
+          },
+          "404": {
+            "description": "Detail missing or not authorized"
+          },
+          "503": {
+            "description": "Funds query or audit unavailable; never an empty success"
+          }
+        }
+      }
+    },
+    "/client-api/v1/fund-records/{recordId}": {
+      "get": {
+        "summary": "Read one authorized non-consumption funding component and evidence",
+        "description": "Read-only. Each source retains its own customer grants; admin requires MFA. UTC from inclusive/to exclusive. Stable createdAt/id sorting; 20 components per page. Fees and initial funding separate; reserve/release omitted from list. Current namespace only, legacy issuing only in matching runtime mode. No 021/022 migration dependency; no provider calls or balance changes.",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(crypto|manual|issuing|issuing_deposit)_[0-9a-f-]{36}_(principal|fee|funding|refund-[0-9a-f-]{36})$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized records; pending business state is not posted funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundRecordsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter or record ID"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Role, inactive identity or MFA refusal"
+          },
+          "404": {
+            "description": "Detail missing or not authorized"
+          },
+          "503": {
+            "description": "Funds query or audit unavailable; never an empty success"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/fund-records": {
+      "get": {
+        "summary": "List authorized non-consumption business components, newest first",
+        "description": "Read-only. Each source retains its own customer grants; admin requires MFA. UTC from inclusive/to exclusive. Stable createdAt/id sorting; 20 components per page. Fees and initial funding separate; reserve/release omitted from list. Current namespace only, legacy issuing only in matching runtime mode. No 021/022 migration dependency; no provider calls or balance changes.",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized records; pending business state is not posted funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundRecordsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter or record ID"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Role, inactive identity or MFA refusal"
+          },
+          "404": {
+            "description": "Detail missing or not authorized"
+          },
+          "503": {
+            "description": "Funds query or audit unavailable; never an empty success"
+          }
+        }
+      }
+    },
+    "/admin-api/v1/fund-records/{recordId}": {
+      "get": {
+        "summary": "Read one authorized non-consumption funding component and evidence",
+        "description": "Read-only. Each source retains its own customer grants; admin requires MFA. UTC from inclusive/to exclusive. Stable createdAt/id sorting; 20 components per page. Fees and initial funding separate; reserve/release omitted from list. Current namespace only, legacy issuing only in matching runtime mode. No 021/022 migration dependency; no provider calls or balance changes.",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(crypto|manual|issuing|issuing_deposit)_[0-9a-f-]{36}_(principal|fee|funding|refund-[0-9a-f-]{36})$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized records; pending business state is not posted funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundRecordsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter or record ID"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Role, inactive identity or MFA refusal"
+          },
+          "404": {
+            "description": "Detail missing or not authorized"
+          },
+          "503": {
+            "description": "Funds query or audit unavailable; never an empty success"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4955,6 +5283,200 @@
           "coverage",
           "syncState"
         ]
+      },
+      "FundRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "orderId",
+          "customerId",
+          "createdAt",
+          "kind",
+          "direction",
+          "currency",
+          "amountMinor",
+          "status",
+          "sourceState",
+          "postingStatus"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "sourceState": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "postingStatus": {
+            "type": "string"
+          },
+          "fundingSource": {
+            "type": "string"
+          },
+          "amountMinor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Exact nonnegative integer minor units; USD scale 2, USDT scale 6; null means unknown."
+          },
+          "receiveMinor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "toCurrency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cardId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "network": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "txHash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "originalId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "FundRecordsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "records",
+              "total",
+              "pageSize",
+              "mode",
+              "coverage"
+            ],
+            "properties": {
+              "records": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FundRecord"
+                }
+              },
+              "record": {
+                "$ref": "#/components/schemas/FundRecord"
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pageSize": {
+                "const": 20
+              },
+              "mode": {
+                "type": "string"
+              },
+              "coverage": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "step": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "amountMinor": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

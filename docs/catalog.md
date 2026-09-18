@@ -40,6 +40,7 @@
 - [卡片详情与CVV发布（2026-09-19）](../deploy/2026-09-19-card-detail-cvv-release.md) — `deploy/2026-09-19-card-detail-cvv-release.md`
 - [卡片列表精简发布（2026-09-19）](../deploy/2026-09-19-card-list-refinement-release.md) — `deploy/2026-09-19-card-list-refinement-release.md`
 - [卡片历史与指标生产发布 — 2026-09-19](../deploy/2026-09-19-card-metrics-release.md) — `deploy/2026-09-19-card-metrics-release.md`
+- [统一资金记录第二批发布 — 2026-09-19](../deploy/2026-09-19-fund-records-release.md) — `deploy/2026-09-19-fund-records-release.md`
 - [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
 - [2026-09-19 交易页面发布](../deploy/2026-09-19-transaction-ui-release.md) — `deploy/2026-09-19-transaction-ui-release.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
@@ -86,6 +87,7 @@
 - [业务闭环开发与验收标准](business/delivery-standard.md) — `docs/business/delivery-standard.md`
 - [客户充值地址标准接入](business/deposit-address-integration.md) — `docs/business/deposit-address-integration.md`
 - [已有后台功能恢复记录](business/existing-modules-restoration-2026-09-13.md) — `docs/business/existing-modules-restoration-2026-09-13.md`
+- [统一资金记录](business/fund-records.md) — `docs/business/fund-records.md`
 - [资金、定价与运营业务说明](business/funds-and-operations.md) — `docs/business/funds-and-operations.md`
 - [资金中心四流程与正式接入准备](business/funds-center.md) — `docs/business/funds-center.md`
 - [生产全局管理员](business/global-administrator.md) — `docs/business/global-administrator.md`

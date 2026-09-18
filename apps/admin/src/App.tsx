@@ -1,3 +1,4 @@
+const FundRecordsPage=lazy(()=>import('./operations/FundRecordsPage'));
 const MessagesPage=lazy(()=>import('./operations/MessagesPage'));
 const BalancesPage=lazy(()=>import('./operations/BalancesPage'));
 import { lazy, Suspense } from 'react';
@@ -27,6 +28,8 @@ export default function App(){
   <Route path="/login" element={<Navigate to="/admin/login" replace/>}/>
   <Route path="/portal/*" element={<div role="alert">404 · 此站点不提供客户登录</div>}/>
   <Route path="/session" element={<SessionEntry/>}/>
+  <Route path="/finance/fund-records" element={<FundRecordsPage/>}/>
+  <Route path="/finance/fund-records/:recordId" element={<FundRecordsPage/>}/>
   <Route path="/transactions" element={<ChannelTransactionsPage/>}/>
   {['/finance/balances','/finance/balances/:customerId','/finance/balances/:customerId/orders/:orderId'].map(path=><Route key={path} path={path} element={<BalancesPage/>}/>)}
   <Route path="/operations/messages/*" element={<MessagesPage/>}/>

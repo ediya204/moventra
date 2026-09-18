@@ -9,5 +9,5 @@ export const productionNavigation = [{label:'运营管理',icon:'solar:letter-bo
     item.path === '/system/access' ? { ...item, path: '/session?security=1' } : item),
 }))];
 export function isProductionPath(path: string) {
-  return ['/operations/messages', '/finance/balances', '/finance/crypto-flows', '/finance/withdrawals', '/finance/otc', '/system/cregis', '/pricing', '/reports', '/card-bins', '/workbench', '/onboarding', '/user-groups/users', '/cards', '/customers', '/system/channels', '/transactions', '/session?security=1'].includes(path);
+  return ['/finance/fund-records', '/operations/messages', '/finance/balances', '/finance/crypto-flows', '/finance/withdrawals', '/finance/otc', '/system/cregis', '/pricing', '/reports', '/card-bins', '/workbench', '/onboarding', '/user-groups/users', '/cards', '/customers', '/system/channels', '/transactions', '/session?security=1'].includes(path);
 }

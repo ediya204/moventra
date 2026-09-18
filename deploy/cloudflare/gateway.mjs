@@ -1,3 +1,4 @@
+import { fundRecordsRoute } from './fund-records.mjs';
 import { messageRoute } from './messages.mjs';
 import { manualFundsRoute } from './manual-funds.mjs';
 import { cryptoRoute } from './crypto.mjs';
@@ -56,7 +57,8 @@ export async function handle(request, env, upstreamFetch = fetch) {
   if (crypto && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
   const messages = messageRoute(request.method, url.pathname+url.search);
   if (messages && request.method === 'POST' && request.headers.get('Origin') && request.headers.get('Origin') !== url.origin) return error(403, 'cross_origin_forbidden');
-  const readable = messages || cardCvv || cardSync || manual || crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
+  const fundRecords = fundRecordsRoute(request.method, url.pathname+url.search);
+  const readable = fundRecords || messages || cardCvv || cardSync || manual || crypto || issuing || fundsRead || fundsWrite || testWallet || cardSnapshots || onboarding.test(url.pathname) || users || projections || overview || registration || identity || lists.test(url.pathname) || upgrade.test(url.pathname);
   if (!readable) return error(404, 'api_not_available');
   if (registration ? request.method !== 'POST' : request.method !== 'GET' && !(request.method === 'POST' && (messages || cardCvv || cardSync || manual || crypto || issuing || fundsWrite || upgrade.test(url.pathname) || onboarding.test(url.pathname)))) return error(405, 'method_not_allowed');
 

@@ -40,3 +40,7 @@
 ## 2026-09-19 卡片中心发布
 
 ChannelCardStatus为双端卡片原始状态提供统一浅色标签与语义图标，不修改状态逻辑。
+
+## 统一资金记录组件（2026-09-19）
+
+`finance/FundRecords.tsx`由两端复用，独立GET transport与契约，按URL恢复筛选/分页/详情；金额格式沿用既有精确展示。见[资金记录](../../docs/business/fund-records.md)。

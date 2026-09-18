@@ -1,3 +1,4 @@
+import FundRecords from '../../../../packages/shared/src/finance/FundRecords';
 import MessageCenter, {MessageBell} from '../../../../packages/shared/src/messages/MessageCenter';
 import FundsNavigation from '../../../../packages/shared/src/finance/FundsNavigation';
 import SectionNavigation from '../../../../packages/shared/src/components/SectionNavigation';
@@ -109,7 +110,7 @@ export default function ClientHome() {
   if (!ready || !session || sessionError || !user) return <SessionPage />;
   if (pathname.startsWith("/portal/test-funds")) return <Navigate to="/portal/funds" replace />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
-  if (!/^\/portal\/messages\/[0-9a-f-]{36}$/.test(pathname) && !/^\/portal\/funds\/manual(?:\/orders\/[0-9a-f-]{36})?$/.test(pathname) && !/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/test-funds(?:\/(?:history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/crypto(?:\/(?:deposit|fiat|withdraw|exchange|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
+  if (!/^\/portal\/fund-records(?:\/[^/]+)?$/.test(pathname) && !/^\/portal\/messages\/[0-9a-f-]{36}$/.test(pathname) && !/^\/portal\/funds\/manual(?:\/orders\/[0-9a-f-]{36})?$/.test(pathname) && !/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/test-funds(?:\/(?:history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/crypto(?:\/(?:deposit|fiat|withdraw|exchange|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
   const data = snapshot?.customer === customer?.id ? snapshot : null;
   const error =
@@ -139,7 +140,7 @@ export default function ClientHome() {
         <Typography variant="caption" color="text.secondary">正式账户 · 授权数据</Typography>
       </Paper>
       <List disablePadding>
-        {links.slice(0, 7).map(([path, label, icon]) => (
+        {links.slice(0, workspaceNavigation.length).map(([path, label, icon]) => (
           <ListItemButton
             key={path}
             component={Link}
@@ -405,6 +406,7 @@ export default function ClientHome() {
                 </Box>
                 <Typography variant="body2" color="text.secondary">服务状态：{!customer?'尚未关联个人账户':!admission?'正在读取…':enabled?'账户已开通':admission.serviceStatus==='suspended'?'服务已暂停，请联系支持':'开户处理中，请查看上方提示'}</Typography></Stack>
               </Paper>}
+              {customer && /^\/portal\/fund-records(?:\/|$)/.test(pathname) && <FundRecords key={customer.id} recordId={pathname.split('/')[3]}/>}
               {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={`cards:${customer.id}`} customerId={customer.id}/> }
               {pathname.startsWith('/portal/crypto')&&customer&&<CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/crypto" orderId={pathname.split('/orders/')[1]}/>}
               {customer && (pathname === "/portal/cards" || pathname === "/portal/cards/new" || pathname.startsWith("/portal/card-orders") || pathname.startsWith("/portal/issued-cards/")) && <CardIssuing key={`issuing:${customer.id}`} customerId={customer.id} uid={user.uid}/> }

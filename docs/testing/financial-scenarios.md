@@ -266,3 +266,7 @@ F-PRODUCTION-ACTIVATION：隔离PG验证超原限额事件恢复、2 USDT入账�
 卡指标回归补充：分页失败保留游标、不完整不填零；重复导入/通知不重复统计；超JS安全整数精度；pending转posted、退款和旧通知回查；归属撤销停止采集；无资金账本变更。用例与执行证据见[卡指标](../business/card-metrics.md)。
 
 2026-09-19 本地额度接入验证：card-quota.test.mjs 覆盖同周期取值、零和未知区分、共享卡组不生成总额度、总额不匹配不画进度、大额精度；独立本机 PostgreSQL 下 TestMetricReadOnlyPipeline race 测试确认 cycleSpendMinor=123、totalLimitMinor=10000、availableMinor=0，且独立于近30天消费。未执行真实渠道请求或部署。
+
+## F-FUND-RECORDS-001（2026-09-19）
+
+`TestFundRecords`：在隔离PostgreSQL移除021/022模块结构后查询；逐来源权限/MFA/客户隔离、23笔跨页、UTC边界、OTC双币种、大额精度、手续费/首充拆分、历史专用开卡和统一账本退回、资金卡与账本账户不同UUID、真实充值证据结构、撤权及审计故障关闭。重复查询不得增加journal。前端测试覆盖筛选URL、详情刷新、未知金额、取消旧响应、错误重试和网关跨端/方法拒绝。运行结果见[本批证据](../business/fund-records.md)。

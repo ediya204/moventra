@@ -328,3 +328,7 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 已上线：渠道卡行增加metrics（金额字符串/null、时间窗口、覆盖及同步状态），交易列表支持metric=spending，逐卡metrics-sync仅排队只读补查。详见[卡指标合同](../business/card-metrics.md)和[发布记录](../../deploy/2026-09-19-card-metrics-release.md)。
 
 2026-09-19 额度数据接入（本地实现，未部署）：浅灰额度卡使用同一渠道快照的 availableMinor（剩余可消费额度）、cycleSpendMinor（本周期已用）和 totalLimitMinor（明确的单卡 utilizationLimit 总额度）。总额度仅提取已识别的单卡规则，卡组共享或其他规则显示未提供；只有总额度等于已用加剩余且大于零才显示进度，不用近30天消费或钱包余额推算。卡分户及统一 USD 钱包余额独立读取，保留核对状态与充提权限门槛。刷新沿用 metrics-sync，只排队只读查询；近30天消费明细区间保持。
+
+## 统一资金记录（2026-09-19，本地未部署）
+
+新增两端 `GET /{client|admin}-api/v1/fund-records` 与 `/{recordId}`。按来源授权、服务端联合筛选/分页，金额分项与入账状态独立；精确契约见 OpenAPI FundRecord/FundRecordsResponse，数据覆盖与兼容见[统一资金记录](../business/fund-records.md)。不依赖生产未应用的021/022。

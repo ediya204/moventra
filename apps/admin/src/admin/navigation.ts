@@ -33,6 +33,7 @@ export function navigationGroups(slash = false): NavGroup[] {
         item("卡BIN管理", "/card-bins", "layers-bold-duotone"),
         item("全部卡片", "/cards", "card-2-bold-duotone"),
         item("卡交易流水", "/transactions", "bill-list-bold-duotone"),
+        ...(slash ? [item("资金记录", "/finance/fund-records", "wallet-money-bold-duotone")] : []),
         ...(!slash
           ? [
               item("账户卡资产", "/cards/assets", "wallet-money-bold-duotone"),

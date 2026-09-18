@@ -113,3 +113,7 @@
 ## 2026-09-19 卡片中心发布
 
 卡片中心沿用card-projections查询链；keyword/cardStatus服务端筛选，cardSort仅本页排序。来源与页码随详情返回保留，不新增API、金融写操作或权限。
+
+## 统一资金记录入口（2026-09-19，本地）
+
+客户端 `/portal/fund-records[/:recordId]`、后台 `/finance/fund-records[/:recordId]`，分别在交易导航下方。查询 API 为 `/{client|admin}-api/v1/fund-records[/{recordId}]`，保留旧历史路由。权限、数据源与验证见[统一资金记录](fund-records.md)。

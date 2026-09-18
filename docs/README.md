@@ -145,3 +145,7 @@
 - [TRC20限额充值真实入账验收](../deploy/2026-09-18-deposit-pilot.md)：指定客户累计最多1 USDT，已完成0.1 USDT闭环及重启核对。
 
 - [卡片当前状态同步](business/card-state-sync.md)：通知回查、定时补查、手动核对及两端共同状态；[上线证据](../deploy/2026-09-18-card-state-sync.md)。
+
+## 资金记录
+
+- [统一资金记录与两端验收](business/fund-records.md)：非消费业务记录、筛选、权限与生产迁移兼容。
