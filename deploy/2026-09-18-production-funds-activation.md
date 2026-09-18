@@ -31,3 +31,9 @@
 回退仅暂停FUNDS_PRODUCTION_MODE或回退兼容应用版本；保留正式数据、订单和幂等标识，不自动恢复旧1 USDT处理器（额度放开后旧处理器不再适合处理新增订单）。暂停期间通知继续保存，恢复后按原事件核验。
 
 激活后复验任务job-damlnsp42hec739jt9bg再次确认：正式钱包0.100000 USDT、原订单仍1笔posted、Blnk仍APPLIED，政策revision1与零费用保持一致；无重复入账。
+
+## 2026-09-19 运营资金查询与费率授权
+
+用户指定edi@fideretrust.com。只读核验job-dammangu01pc73aqc5tg确认Firebase邮箱已验证、账号启用、存在1个MFA因子；应用身份为active admin且不是客户所有者。授权job-dammb2f40ujc73bg83s0再次核验身份并以事务写入：当前已接入客户范围的crypto read/configure、manual read与ledger read，全部回读一致，审计1条。未授予crypto review/recover或manual create/review/execute，未改角色、MFA、汇率、订单及余额。范围为既有正式资金客户，不自动扩展到未来客户。
+
+后台入口：/finance/otc?tab=settings（费用与双向成交价），/finance/balances（余额查询）。这是已执行配置，不需要应用重发；本人登录后浏览器流程本次未执行。
