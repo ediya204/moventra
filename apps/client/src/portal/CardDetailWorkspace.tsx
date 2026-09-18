@@ -17,7 +17,6 @@ const labels:Record<string,string>={deposit:'充值',withdrawal:'提款',otc:'�
 export default function CardDetailWorkspace({customerId,connection,card,reload,onRefresh}:{customerId:string;connection:string;card:Card;reload:number;onRefresh:()=>void}){
  const location=useLocation(),[params,setParams]=useSearchParams();const tab=params.get('tab')||'overview';
  const [metricError,setMetricError]=useState(''),[metricBusy,setMetricBusy]=useState(false);
- useEffect(()=>{if(card.metrics?.syncState!=='pending')return;const timer=setTimeout(onRefresh,5000);return()=>clearTimeout(timer)},[card.metrics?.syncState,reload,onRefresh]);
  const [funds,setFunds]=useState<Funds|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  const detail=`/portal/cards/${card.id}?${new URLSearchParams({connection,...(params.get('back')?{back:params.get('back')!}:{})})}`;
  const go=(value:string)=>{const q=new URLSearchParams(params);q.set('tab',value);q.delete('txPage');setParams(q)};
