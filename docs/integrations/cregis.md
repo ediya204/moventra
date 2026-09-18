@@ -27,7 +27,7 @@
 
 ## 待确认和接线
 
-用户已确认使用 **WaaS**，截图提供 Base URL `https://t-wsmbuuhb.cregis.io`、项目 ID `1455735316373504`。已写入 `services/api/.env.example`；API Key 留空。不能仅凭域名前缀推断测试/正式环境。本次工作区未找到实际 dotenv 配置，当前进程也没有 Cregis 环境变量；仍需用户提供凭据所在位置（不在聊天提供密钥）。
+用户已确认使用 **WaaS**，截图提供 Base URL `https://t-wsmbuuhb.cregis.io`、项目 ID `1455735316373504`。已写入 `services/api/.env.example`；API Key 留空。不能仅凭域名前缀推断测试/正式环境。用户随后确认三个变量已配置在 Render 的 moventra-api；尚未独立验证变量值或有效性，不需要在聊天提供密钥。
 
 只读客户端仅暴露官方 [流水查询接口](https://developers.cregis.com/en/reference/waas-api/tradePage/)，默认单页 20 条，上限 100；支持状态、链、代币、tx_id 筛选。请求间隔至少 2.1 秒（单客户端实例），多进程需额外协调限流。不自动重试；错误不返回上游原文；HTTPS、20 秒超时、禁止重定向、2 MiB 响应上限。该客户端返回渠道字段，尚未提供可直接暴露给浏览器的授权 DTO。
 
@@ -36,6 +36,12 @@
 ```bash
 go -C services/api run ./cmd/cregis-readonly
 ```
+
+Dockerfile 已补充打包 `/usr/local/bin/cregis-readonly`；新镜像部署后可在 Render Shell 运行 `cregis-readonly`。主服务入口仍为 `api`，启动不会自动查询 Cregis。
+
+打包增量验证：Linux amd64、CGO 关闭的命令编译通过；Cregis 测试通过（缓存），文档检查通过。系统 git 因 Xcode 许可无法运行，构建时使用 CommandLineTools 的 git。当前没有 Docker CLI，完整镜像构建未在本机执行。
+
+2026-09-18 配置后的平台检查：最新 live 部署 `dep-damet4u7bikc73bd0mvg` 仍运行旧提交 `a2fa1f6`，不是新增查询客户端版本。当前浏览器未登录 Render，本机 SSH 被 `Permission denied (publickey)` 拒绝，故没有读取环境变量或执行真实查询。需要部署包含核验命令的新镜像，并取得已登录 Render Shell 或既有 SSH 访问后再验证；此处不表示部署已获授权。
 
 命令不自动读取 dotenv，只输出首个查询页的数量信息，不输出地址、订单明细或密钥；不连接数据库。通过此命令不代表全量历史、后台页面或资金功能已接通。接下来仍需来源存储、连接/客户授权、地址归属及后台流水；真实 OTC 报价、出金审批执行和正式账本需分别完成业务契约与验收。
 
