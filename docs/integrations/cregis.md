@@ -43,6 +43,8 @@ Dockerfile 已补充打包 `/usr/local/bin/cregis-readonly`；新镜像部署后
 
 2026-09-18 配置后的平台检查：最新 live 部署 `dep-damet4u7bikc73bd0mvg` 仍运行旧提交 `a2fa1f6`，不是新增查询客户端版本。当前浏览器未登录 Render，本机 SSH 被 `Permission denied (publickey)` 拒绝，故没有读取环境变量或执行真实查询。需要部署包含核验命令的新镜像，并取得已登录 Render Shell 或既有 SSH 访问后再验证；此处不表示部署已获授权。
 
+后续正式部署（用户明确授权）：2026-09-18 16:05:22 香港时间，Render 部署 `dep-damf0mdbedkc73bguksg` 已 live，源码 `c5ff2c629ee6298093b74dcb19aa450818d9d603`。云端 Docker 构建通过，`/healthz` 返回 200/status=ok，`/readyz` 返回 200/status=ready；上线后至 08:06:05 UTC 的 error 日志查询为空。本次没有迁移、付款或部署前端。真实 Cregis 查询尚未执行；环境变量和白名单仍是用户配置确认，不能由健康检查推断渠道可用。可在该服务 Render Shell 执行 `cregis-readonly`，核验输出仅包含项目流水分页数量。
+
 命令不自动读取 dotenv，只输出首个查询页的数量信息，不输出地址、订单明细或密钥；不连接数据库。通过此命令不代表全量历史、后台页面或资金功能已接通。接下来仍需来源存储、连接/客户授权、地址归属及后台流水；真实 OTC 报价、出金审批执行和正式账本需分别完成业务契约与验收。
 
 本批 `CGO_ENABLED=0 go -C services/api test ./...` 通过，包含新增 TLS 模拟查询测试（无真实渠道请求），部分未变更包使用 Go 测试缓存。此前协议测试含官方 WaaS 向量、独立 HMAC 向量及 15 组回调类型/异常场景。真实渠道调用、数据库联调、浏览器流程及部署均未执行。旧 Cregis 候选代码仍未找到，本包是依据官方文档新增的实现。
