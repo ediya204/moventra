@@ -12,7 +12,7 @@ Slash 普通通知 → `POST /webhooks/slash` → 原始字节 RSA/SHA256 验签
 
 - `api slash-webhook-migrate`：先逐项校验 001–005、007–009；006 shadow ledger 缺省允许、存在则必须匹配，再仅应用 010，同事务及 advisory lock；重复执行验证 checksum。
 - `api slash-webhook-init`：使用服务端 `SLASH_API_KEY` 执行 GET /account，必须恰好一个账户且无后续分页；绑定不可变的 `trial_20260918` 及 `/webhooks/slash`。换账户重跑拒绝。
-- `api slash-webhook-status`：只输出 queued/done/ignored/review 数量，不输出密钥或金融对象。
+- `api slash-webhook-status`：只输出 queued/done/ignored/review 和投递、观察、启用连接数量，不输出密钥或金融对象。
 - API 存在密钥时每 5 秒处理一件；数据库队列跨重启保留，网络请求不占数据库事务。单个连接 advisory lock 防多实例重复处理。
 
 状态：queued 等待重试；done 已保存一次来源观察；ignored 为不支持事件；review 为冲突、账户不符、404 或 12 次尝试用尽。429/5xx 持久化退避。done 只代表采集完成，不代表资金结算。
@@ -52,4 +52,14 @@ Slash 普通通知 → `POST /webhooks/slash` → 原始字节 RSA/SHA256 验签
 
 备份：Render 2026-09-18T02:59Z 导出，461177 bytes，SHA256 `8fbe6ccf4080fe4b0c97ff3cfe962f0fe969db98b0edcb3b9034ee32c38fd324`，已在本地隔离 PostgreSQL 完整恢复（无错误）。备份确认线上版本为 1–5、7–9，006 未启用；定向迁移不得激活 shadow ledger。
 
-部署及真实通知待执行。
+- GitHub main 已发布实现提交 `ec1225eab2a93dd81e2dc7a41c9f6d68435b9b33`。
+- Render `dep-damakhgu01pc73ev763g` 于 2026-09-18T03:06:20Z live。
+- 定向迁移任务 `job-damalgrm8hqs73d4in50` succeeded，初始化任务 `job-damam2gu01pc73evcucg` succeeded；线上版本为 1–5、7–10，006 保持未启用。
+- 线上 `/readyz` 200，Webhook GET 405、无签名 POST 401、错误签名 POST 401。
+- Slash 页面 mo test 保持 Active / Delivering events / No active delivery hold，已有 63 个真实通知显示 Sent；它已处于启用状态，未重复修改。仍订阅 7 个事件，其中报销事件只记录 ignored，不做报销业务处理。
+- 2026-09-18T03:10:38Z 只读审计：card done 5、transaction done 27、transaction queued 34；32 条对应观察。无 last_error、无重复事件行、无重复观察行、无禁止字段。
+- 客户、账户、交易、5833 条既有渠道记录、用户和客户卡快照的行数及内容摘要均与发布前备份一致（时间戳统一 UTC 后比较）。
+- 旧 Apexis `:80` 通知保持 Active，`:8000` 保持 Paused。未创建真实金融写请求，未清理试用数据。
+- 2026-09-18T03:11:15Z 后续状态：68 次投递，39 done / 39 observations，29 queued，1 个启用连接；积压持续下降，无 review/ignored。队列由已部署进程继续处理，这不是全量历史同步完成声明。
+- 本次全量 Go/PostgreSQL race 测试通过；数据库故障、同事件重复压力与恢复测试为本地验证，不声称在线故障注入。
+
