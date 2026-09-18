@@ -44,3 +44,7 @@
 ## 2026-09-18 财务入口与 main 合并候选
 
 新增正式卡费率管理与 USD 投影报表入口，本地实现、未部署；数字货币、OTC、出金审批等仍待取得现有渠道代码与配置后接通。见[财务流程](business/admin-finance-migration.md)和[main 核对记录](releases/2026-09-18-main-consolidation.md)。
+
+## 2026-09-18 商户品牌图标补齐
+
+Apple 与 OpenRouter 的商户描述已在共享组件补齐，113 项测试、两端类型检查和构建通过；两个品牌图片 HTTP 探测成功。准备从两端各自线上基线单独发布，避免带入其他未发布功能。当前仍未部署本修复，本人登录浏览器验收未执行，见[Logo 流程及证据](frontend/merchant-logos.md)。

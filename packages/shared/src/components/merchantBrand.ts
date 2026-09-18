@@ -5,6 +5,8 @@ const brands: [RegExp, string][] = [
   [/^GOOGLE(?=$|[\s*._:/-])/i, 'Google'],
   [/^TIKTOK(?=$|[\s*._:/-])/i, 'TikTok'],
   [/^(?:OPENAI|CHATGPT)(?=$|[\s*._:/-])/i, 'OpenAI'],
+  [/^APPLE(?:\.COM)?(?=$|[\s*._:/-])/i, 'Apple'],
+  [/^OPENROUTER(?=$|[\s,*._:/-])/i, 'OpenRouter'],
   [/^(?:ANTHROPIC|CLAUDE)(?=$|[\s*._:/-])/i, 'Anthropic'],
   [/^JINA\s+AI(?=$|[\s*._:/-])/i, 'Jina AI'],
   [/^(?:AMAZON WEB SERVICES|AWS)(?=$|[\s*._:/-])/i, 'Amazon Web Services'],
@@ -26,7 +28,8 @@ export function merchantBrand(description?: string | null): string | undefined {
 export function companyLogoUrl(name: string, key: string): string | undefined {
   if (!name.trim() || !key.startsWith('pk_')) return undefined;
   const params = new URLSearchParams({ token: key, size: '64', format: 'png', theme: 'light', retina: 'true', fallback: '404' });
-  // Pin ambiguous Meta name searches to the selected brand domain.
-  const path = name === 'Meta' ? 'meta.com' : `name/${encodeURIComponent(name)}`;
+  // Pin selected brands to domains so name searches cannot choose a namesake.
+  const domains: Record<string, string> = { Meta: 'meta.com', Apple: 'apple.com', OpenRouter: 'openrouter.ai' };
+  const path = domains[name] ?? `name/${encodeURIComponent(name)}`;
   return `https://img.logo.dev/${path}?${params}`;
 }

@@ -13,7 +13,7 @@
 
 ## 图标来源与边界
 
-使用 Logo.dev 图标服务，Meta 固定使用 meta.com 域名，其余品牌沿用规范名称查询；品牌映射只用于展示。支持 FACEBK / FACEBOOK / FACEBOOKAD → Facebook、META ADS → Meta，以及 Google、TikTok、OpenAI 等既有品牌。映射不是渠道确认的商户身份。
+使用 Logo.dev 图标服务，Meta、Apple、OpenRouter 分别固定使用 meta.com、apple.com、openrouter.ai 域名，其余品牌沿用规范名称查询；品牌映射只用于展示。支持 FACEBK / FACEBOOK / FACEBOOKAD → Facebook、META ADS → Meta、APPLE.COM/BILL → Apple、OPENROUTER, INC → OpenRouter，以及 Google、TikTok、OpenAI 等既有品牌。映射不是渠道确认的商户身份。
 
 仅发送规范品牌名及公开 publishable key，不发送原始交易描述、金额、内部用户或卡片 ID；图片请求不带 Referrer。未知描述不会发起品牌查询。`VITE_LOGO_DEV_PUBLISHABLE_KEY` 可覆盖已有公开 key，空值禁用图片；不允许使用服务端秘密 key。
 
@@ -45,3 +45,15 @@ Meta 固定请求 `meta.com` 图标，避免模糊名称查询命中其他同名
 - 验证：`node --test tests/frontend/card-snapshot.test.mjs tests/frontend/merchant-logo.test.mjs` 11项通过，覆盖三个实际页面入口的图片、原文、尺寸、署名、加载失败以及既有分页/深链/错误恢复。`pnpm build:client` 类型检查及生产构建通过；`git diff --check` 通过。
 - 外部图片实测：沿用组件公开key请求规范 Facebook 品牌，HTTP 200、image/png、6976字节且PNG签名有效。未发送交易描述或用户/卡ID。
 - 交付：设计和本地实现完成；自动化通过；真实金融渠道验证不适用（纯展示修复）；浏览器人工验收未执行；未部署、未修改生产数据库。
+
+## FLOW-MERCHANT-LOGO-03 Apple / OpenRouter 补齐（2026-09-18）
+
+- 目标与范围：截图中的 APPLE.COM/BILL、OPENROUTER, INC 在两端共享商户列表和详情显示对应品牌；原文保留，未知品牌仍使用商店图标，加载失败仍用品牌首字母。
+- 基线：本地与远程 main 795573c，修改前工作区干净。线上后台版本 0f8213dd-5833-4c57-bb5e-beffa0f51fac（a2fa1f6），客户端 bdd6559d-ee8b-4f33-b411-1e8524d2b09b（c283b71）；线上后台资源确认缺少两个品牌映射。
+- 页面关系：后台 /transactions、/cards/:id；客户端 /portal/transactions、/portal/card-transactions/:id、/portal/cards/:id，沿用现有导航与返回上下文。
+- 身份、数据与接口链：沿用现有获授权渠道/客户投影及来源商户描述，经页面传入 MerchantCell/MerchantLogo，再由规范品牌域名请求 Logo.dev；本批只改末端品牌识别与图片地址，不改变 transport、网关、Go 查询、持久化、主体或连接范围。
+- 状态、权限与跨端：两端使用同一个映射模块；不改变运营 MFA、客户逐卡授权或资金状态。图片失败保持本地首字母兜底，未知商户不发请求；刷新到新产物后使用新映射。
+- 验收：E01/E04 通过共享组件回归覆盖截图原文、大小写/全角、域名、隐私和错误前缀；E06 沿用图片失败回退测试。E02/E03/E05/E07–E09 无业务逻辑改动，不新增导航、授权、写入、查询或金额验收结论。
+- 本地验证：113 项前端/网关测试通过；两端类型检查与生产构建通过，保留既有大 chunk 提示。两个域名图片本次均返回 HTTP 200、image/png。真实金融渠道验证不适用，未调用渠道接口。本人认证后的浏览器流程验收未执行。
+- 发布方案：main 含其他未发布前端增量，分别从两端已发布提交生成隔离候选，只应用本次品牌修复；部署结果待后续记录。
+- 待定业务决策：无。能力范围为商户图标展示，不代表渠道确认品牌身份。

@@ -27,6 +27,24 @@ const mock=uri(`import React from ${JSON.stringify(reactURL)};export const Box=(
 let {outputText}=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/MerchantLogo.tsx',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}});
 outputText=outputText.replace('import.meta.env.VITE_LOGO_DEV_PUBLISHABLE_KEY','undefined').replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?pathToFileURL(require.resolve(name)).href:name==='./merchantBrand'?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:mock)}`);
 const {MerchantLogo,MerchantCell}=await import(uri(outputText));
+test('Apple billing and OpenRouter descriptors render canonical domain logos and preserve source text',()=>{
+ for(const [description,brand,domain] of [
+  ['APPLE.COM/BILL','Apple','apple.com'],
+  ['OPENROUTER, INC','OpenRouter','openrouter.ai'],
+  [' apple.com/bill *PRIVATE-123 ','Apple','apple.com'],
+  ['ＯＰＥＮＲＯＵＴＥＲ， ＩＮＣ','OpenRouter','openrouter.ai'],
+ ]){
+  assert.equal(merchantBrand(description),brand);
+  const url=new URL(companyLogoUrl(merchantBrand(description),'pk_test'));
+  assert.equal(url.pathname,`/${domain}`);
+  assert.ok(!url.href.includes('PRIVATE'));
+  const html=renderToStaticMarkup(React.createElement(MerchantCell,{name:description}));
+  assert.ok(html.includes(description));
+  assert.ok(html.includes(`https://img.logo.dev/${domain}?`));
+  assert.doesNotMatch(html,/默认商户图标/);
+ }
+ for(const description of ['APPLETON','APPLEPAYMENT','OPENROUTERTOOLS','Store OPENROUTER, INC'])assert.equal(merchantBrand(description),undefined);
+});
 test('known brands render images; unknown descriptors stay local',()=>{
  const known=renderToStaticMarkup(React.createElement(MerchantLogo,{name:'Google'}));
  assert.match(known,/name\/Google/);assert.match(known,/referrerPolicy="no-referrer"/i);
