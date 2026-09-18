@@ -200,3 +200,5 @@ Go 运行提交 `3897fe1d3df5071f7aa572eb141c270ea753ba24`，部署 `dep-daeq33o
 字段与历史依赖保留范围见 [V1 范围](../docs/frontend/v1-personal-release.md)。需要回退时，客户端上一版本 `5eaa10ed-560b-4032-8c5c-4c742b54384e`；后台上一版本 `07421c0b-c911-4514-b157-ecfcfb48ad66`。
 
 2026-09-18 18:22：已发布[资金中心四流程](2026-09-18-funds-center-release.md)，正式资金保持未激活。
+
+2026-09-18 正式TRC20与OTC分能力激活见[本批记录](2026-09-18-production-funds-activation.md)，后台配置权限、出金及卡片能力边界分别记录。

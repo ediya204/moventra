@@ -86,4 +86,4 @@ API与独立开卡Worker已发布2b4a905；私有Blnk替代实例TLS5443连接�
 
 ## 正式资金分能力接入（2026-09-18）
 
-正式TRC20/OTC候选：用户指定双向0.99、费用0并取消1 USDT上限。独立生产模式与正式查询解耦；133项前端、隔离PG race通过。部署待记录；ERC20、出金、卡充提尚未完成验收。见[流程](business/funds-center.md)。
+正式TRC20/OTC已启用：双向0.99、费用0，原1 USDT上限取消。API859dda3及两端已发布，正式worker健康；136项前端、隔离PG race、vet、类型与构建通过。016已安装，未新增资金余额或权限。ERC20、出金、卡充提仍待验收；后台配置运营邮箱待用户提供。见[发布证据](../deploy/2026-09-18-production-funds-activation.md)。
