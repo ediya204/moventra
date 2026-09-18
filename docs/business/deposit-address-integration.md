@@ -1,6 +1,6 @@
 # 客户充值地址标准接入
 
-2026-09-18，FLOW-FUNDS-ADDRESS。范围为地址持久绑定、首次进入申请、已有地址导入、回调接收和客户通知查询；本批不激活资金账本或自动入账。
+2026-09-18，FLOW-FUNDS-ADDRESS。范围为地址持久绑定、首次进入申请、已有地址导入、回调接收和客户通知查询；地址观察批次不激活资金账本；后续指定客户限额自动入账已启用，见下方验收段落。
 
 ## 流程与接口
 
@@ -8,7 +8,7 @@
 
 自然幂等键为namespace/customer/network，渠道调用前提交submitting；并发或重复请求只查询原任务。断连、渠道响应丢失、服务崩溃后不得盲目再次创建；返回地址先保存verifying，再核验与绑定。未知任务需按Cregis归属证据恢复，当前没有按alias自动找回接口。
 
-GET默认返回最近5条本人地址充值通知；page按5条分页，event为可刷新详情ID。授权从登录身份与personal_owner_id关联，不接受前端声明的客户归属。未开户、停用与跨客户访问拒绝。这里记录渠道通知，不能显示为已完成入账或可用余额。
+GET默认返回最近5条本人地址充值通知；page按5条分页，event为可刷新详情ID。授权从登录身份与personal_owner_id关联，不接受前端声明的客户归属。未开户、停用与跨客户访问拒绝。观察模式仅记录渠道通知；限额验收模式须关联已完成账本订单后才显示入账和钱包余额。
 
 独立回调`POST /webhooks/cregis/address-deposit`校验项目和签名、限定TRC20 USDT，删除签名/nonce/timestamp后按事件ID与语义摘要去重并持久化，成功提交后才返回success。乱序通知保留原始事实；无账本调用，无提款接口。来源表与正式资金流程共用，未来须完成链上最终性及记账验收后再处理这些证据。
 
@@ -24,11 +24,11 @@ GET默认返回最近5条本人地址充值通知；page按5条分页，event为
 
 本地隔离PostgreSQL测试覆盖并发仅一次创建、未知结果不重试、重复导入及改绑拒绝、跨客户通知隔离、重复回调去重、错误签名拒绝和账本流水不变。组件测试覆盖首次进入、已绑定/未知状态不重建、错链二维码清除；此前OTC等测试继续运行。124项前端/网关、Go全包race/vet及两端类型检查/构建通过。API与客户端已发布45a0d67，原地址已导入、回调已配置，见[本次发布证据](../../deploy/2026-09-18-funds-center-release.md)。
 
-未完成：真实充值、链上最终性、自动入账、真实浏览器剪贴板及链上转账验收。页面明确显示此状态；不得用合成回调制造真实交易记录。
+地址观察批次未验证自动入账。后续0.1 USDT真实闭环已通过；真实浏览器剪贴板、扫码和移动端人工验收仍未完成，不得用合成回调制造真实记录。
 
 依据：[Cregis创建地址](https://developers.cregis.com/en/reference/waas-api/createAddress/)、[更新回调](https://developers.cregis.com/en/reference/waas-api/updateAddress/)。
 
-## TRC20 限额入账验收（2026-09-18，候选）
+## TRC20 限额入账验收（2026-09-18，指定客户已启用）
 
 FLOW-FUNDS-DEPOSIT-PILOT 衔接前述地址观察流程。用户已明确本次真实充值上限 **1 USDT**，实际转入由用户完成；完整资金启用认证仍未完成，不设置全量 FUNDS_LIVE_ACTIVATION。
 
@@ -43,7 +43,7 @@ FLOW-FUNDS-DEPOSIT-PILOT 衔接前述地址观察流程。用户已明确本次�
 | 状态及操作 | received→verified→processing→posted；无最终性不入账，累计超限保留错误及通知；账本响应未知按同一引用恢复，额度包括待记账订单，不重复扣额度 |
 | 跨端变化 | 客户最近记录及详情显示链确认/记账结果，当前钱包余额只在本地journal与Blnk一致时显示；后台余额查询使用既有权限，不开放人工批准此自动充值 |
 | 权限 | 固定客户与固定地址，开启开户资格检查；无Cregis出金writer，无卡接口，ERC20/OTC/提款不因验收开启；换客户ID继续拒绝 |
-| 验收 | 隔离PostgreSQL并发、多CID同交易、0.6+0.6超限、0.6+0.4达上限、错误网络/代币/地址/未最终确认、Blnk响应丢失恢复；真实到账待用户转入 |
+| 验收 | 隔离PostgreSQL并发、多CID同交易、0.6+0.6超限、0.6+0.4达上限、错误网络/代币/地址/未最终确认、Blnk响应丢失恢复；真实0.1 USDT已入账，剩余额度0.9 USDT |
 | 待定决策 | 无需提高限额；全量正式资金和其他能力保持各自验收门槛 |
 
 配置：`DEPOSIT_PILOT_MODE=prepare|enabled`，`DEPOSIT_PILOT_CUSTOMER/ADDRESS/CAP_MINOR/EVIDENCE`固定授权范围；上限代码强制≤1000000。`DEPOSIT_PILOT_DEPOSIT_FEE_MINOR=0`必须显式配置，本批免费；其他费用不推定为零。`DEPOSIT_PILOT_TRON_URL=https://api.trongrid.io`限定TRON主网，`TRON_NODE_KEY`可选。`DEPOSIT_PILOT_BLNK_URL/KEY/CA_PEM`使用服务端私网TLS连接，保留证书校验，不迁移测试额度。
@@ -53,3 +53,5 @@ FLOW-FUNDS-DEPOSIT-PILOT 衔接前述地址观察流程。用户已明确本次�
 GET新增mode=deposit_pilot、postingEnabled和pilot（capMinor、remainingMinor、walletMinor、reconciliation）。超过额度、账本不一致或任务健康检查过期时postingEnabled=false，页面提示勿继续转入；额度是允许自动入账的上限，无法阻止第三方向链地址转入。其他客户仍为observation。事件新增state、posting、error、orderId；只有posting=posted显示已入账。
 
 节点依据：[TRON最终确认接口](https://developers.tron.network/reference/gettransactioninfobyid-1)、[交易所/钱包接入](https://developers.tron.network/docs/exchangewallet-integrate-with-the-tron-network)。部署及真实到账证据单独记录，不能用隔离测试替代。
+
+最终API256df25及客户端已部署；实际0.1 USDT链上最终确认、Blnk和本地journal核对通过，重启后无重复。部署、任务、交易哈希及未验收项见[发布证据](../../deploy/2026-09-18-deposit-pilot.md)。

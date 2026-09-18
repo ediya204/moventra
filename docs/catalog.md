@@ -25,6 +25,7 @@
 - [BIN catalogue release — 2026-09-18](../deploy/2026-09-18-bin-catalog-sync.md) — `deploy/2026-09-18-bin-catalog-sync.md`
 - [客户端开卡与八个 BIN 目录发布](../deploy/2026-09-18-client-issuing-release.md) — `deploy/2026-09-18-client-issuing-release.md`
 - [已完成改动统一发布清单](../deploy/2026-09-18-completed-work-release.md) — `deploy/2026-09-18-completed-work-release.md`
+- [TRC20 限额充值自动入账发布与验收](../deploy/2026-09-18-deposit-pilot.md) — `deploy/2026-09-18-deposit-pilot.md`
 - [资金中心四流程发布](../deploy/2026-09-18-funds-center-release.md) — `deploy/2026-09-18-funds-center-release.md`
 - [客户端开卡结构生产迁移 — 2026-09-18](../deploy/2026-09-18-issuing-checkout-migration.md) — `deploy/2026-09-18-issuing-checkout-migration.md`
 - [开卡生产连接准备（已部署，只读）](../deploy/2026-09-18-issuing-preparation.md) — `deploy/2026-09-18-issuing-preparation.md`

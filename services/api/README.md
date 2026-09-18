@@ -1,6 +1,6 @@
 # Moventra Go API
 
-> 2026-09-18：客户端开卡应用与八个BIN目录已发布，真实金融执行仍关闭。当前能力及验证范围见[当前状态](../../docs/current-state.md)和[本次发布记录](../../deploy/2026-09-18-client-issuing-release.md)。下方带日期的历史段落保留当时实施状态。
+> 2026-09-18：客户端开卡应用与八个BIN目录已发布，全量真实金融执行仍关闭；指定客户TRC20限额充值进展见[验收发布](../../deploy/2026-09-18-deposit-pilot.md)。当前能力及验证范围见[当前状态](../../docs/current-state.md)和[本次发布记录](../../deploy/2026-09-18-client-issuing-release.md)。下方带日期的历史段落保留当时实施状态。
 
 更新日期：2026-09-07。独立 Go 模块 `moventra.local/api`，面向客户端与运营后台，部署于 Render。本服务提供身份授权、客户与渠道投影查询、开户、线上测试资金、BIN 目录和普通 Slash 通知来源观察。通知消费及受控来源核验包含 Slash 只读 GET；不开放真实资金执行。完整范围见 [业务与路由](../../docs/business/routes-and-api.md)。
 
@@ -154,7 +154,7 @@ API 初始化独立 issuing 服务；`issuing-worker` 运行持久化发卡任�
 
 复用ledger配置；shadow仅隔离验证，live额外要求`MANUAL_FUNDS_ENABLED=true`且不绕开已有live验收/Cregis/期初依赖。独立`go run ./cmd/manual-funds-worker drain`或`run`恢复持久订单，镜像包含二进制但不自动启动；不调用银行、Slash或链上付款。线下付款需人员另行付款并提交结果凭证。参见[机器契约](docs/manual-funds.openapi.json)及[完整流程/测试/交接](../../docs/business/platform-advance.md)。
 
-TRC20限额充值候选使用`api prepare-deposit-pilot`核验零期初，再开启`DEPOSIT_PILOT_MODE=enabled`；API内部每15秒执行指定客户/地址的最终性及入账任务，无出金writer。配置、限额、恢复及关闭见[地址流程](../../docs/business/deposit-address-integration.md)。不设置全量资金认证标志，不自动执行数据库迁移。
+TRC20限额充值使用`api prepare-deposit-pilot`核验零期初，再开启`DEPOSIT_PILOT_MODE=enabled`；API内部每15秒执行指定客户/地址的最终性及入账任务，无出金writer。配置、限额、恢复及关闭见[地址流程](../../docs/business/deposit-address-integration.md)。不设置全量资金认证标志，不自动执行数据库迁移。
 
 ## 卡片状态同步
 
