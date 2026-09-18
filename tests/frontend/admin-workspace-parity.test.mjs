@@ -9,6 +9,7 @@ test('production uses local navigation groups but only connected destinations ar
  assert.ok(items.some(i=>i.path==='/user-groups/users'&&isProductionPath(i.path)));
  assert.ok(items.some(i=>i.path==='/transactions'&&isProductionPath(i.path)));
  assert.ok(items.some(i=>i.path==='/session?security=1'&&isProductionPath(i.path)));
+ for(const path of ['/pricing','/reports'])assert.ok(items.some(i=>i.path===path&&isProductionPath(path)));
  for(const path of ['/finance/withdrawals','/approvals','/system/settings'])assert.equal(isProductionPath(path),false);
  assert.ok(!items.some(i=>i.path.startsWith('/demo')));
 });

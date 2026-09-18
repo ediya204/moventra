@@ -1,10 +1,12 @@
 # Moventra 文档索引与项目现状
 
+工程协作入口见 [Harness](harness/README.md)，文档更新方式见[维护规则](harness/documentation.md)，全部 Markdown 见[自动目录](catalog.md)。
+
 2026-09-18：开发交付遵循 [业务闭环标准](business/delivery-standard.md)。历史静态调查与最新 main 的差异见 [本次同步说明](releases/2026-09-18-local-sync.md)。
 
-更新日期：2026-09-07。以注明版本的源码与验证记录为准；本轮仅静态整理文档，GitHub 同步不等于重新部署或完成真实业务验收。
+更新日期：2026-09-18。静态核对本地 main `89ca9c3` 及已有发布记录；本轮未重新验证线上状态、测试或真实业务。最新运行代码记录见[统一发布](../deploy/2026-09-18-session-consolidation.md)。
 
-正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。优先阅读 [全站业务逻辑总览](business/README.md)，快速状态见 [V1 当前功能与接入状态](current-state.md)。旧工作区的私有 Node/Python 服务、数据和凭据不属于本仓库可直接运行的依赖。
+正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。优先阅读 [全站业务逻辑总览](business/README.md)，快速状态见 [V1 当前功能与接入状态](current-state.md)。隔离 Node/SQLite 服务和 Python 采集工具源码已恢复至 [services/local-workspace](../services/local-workspace/README.md)；真实数据、快照与凭据不随仓库提供。
 
 ## 现行域名
 
@@ -12,16 +14,15 @@
 
 ## 当前能力
 
-| 层 | 当前范围 | 尚未完成或仅历史原型 |
-| --- | --- | --- |
-| 客户端 `apps/client` | 官网、Firebase 密码/Google 登录、个人账户/交易查询、安全设置 | `/register` 仅预览；企业流程、团队、真实卡片、资金和消息业务未开放 |
-| 后台 `apps/admin` | 独立登录、批准邮箱前置检查、MFA、客户 USD 概览、渠道卡交易和只读卡资料 | 完整卡管理、审批、费率、资金执行为 DEV；新渠道功能发布进度见独立记录 |
-| Go `services/api` | Firebase、用户/主体授权、账户/交易/概览、独立渠道投影、企业升级意向、受控开通/导入 CLI、审计 | 无企业审核/激活、完整成员管理、资金账本或真实金融写入 |
-| 身份 | 两端命名 SDK 与内存会话独立；Go UID/资源授权及 MFA 最终校验 | 共用 Firebase 项目，不是独立身份库或 token audience；本人完整登录验收独立进行 |
-| 部署 | 两个 Cloudflare Worker；Render Go + PostgreSQL；API 手动发布 main | 推送文档不更新运行产物；迁移与真实渠道接入需单独授权 |
-| Slash | 本地只读采集；Go 支持独立授权的手动投影导入及查询 | 旧采集服务和私有数据未纳入仓库；尚无云端采集、Webhook 或自动持续更新 |
+完整能力、限制与证据统一见[当前状态](current-state.md)，项目定位与开发思路见[项目说明](../project.md)。当前包含身份与开户、双端授权查询、用户目录、卡片归属、线上测试资金、BIN 目录、普通 Webhook 来源观察及隔离影子账本；这些模块不共同构成真实资金执行系统。
 
-注册分两步理解：客户端登录后资料补全可调用 Go 创建 users；个人主体与指定客户运营授权由受控命令分别开通，不自动创建资金账户或授予全局权限。后端企业模型保留，但当前客户端 V1 只展示个人范围。
+- [后台归属及随机卡名代码发布](../deploy/2026-09-18-session-consolidation.md)
+- [BIN 目录发布与发卡关闭边界](../deploy/2026-09-18-bin-catalog-sync.md)
+- [普通 Webhook 上线与来源观察](../deploy/slash-webhook-online-2026-09-18.md)
+- [线上测试资金](business/online-test-funds.md)
+- [项目钱包及逐卡分配](business/project-wallet.md)
+- [卡片详情规划（DESIGN）](business/card-center-detail-plan-2026-09-18.md)
+- [Slash 白名单环境与复用规则](integrations/slash-allowlist.md)
 
 ## 文档阅读规则
 

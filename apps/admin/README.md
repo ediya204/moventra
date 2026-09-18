@@ -1,5 +1,7 @@
 # Moventra 运营后台
 
+> 2026-09-18 静态校对：能力及发布边界见[当前状态](../../docs/current-state.md)。下方带日期的增量段落保留当时实施状态；最新后台归属及随机卡名代码已发布，详见[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)。本次未重新运行测试或线上验收。
+
 更新日期：2026-09-07。独立入口在 [App.tsx](src/App.tsx)，开放 `/admin/login`（旧 `/login` 自动跳转）、`/forgot-password`、`/session`、`/workbench`、`/transactions`、`/cards/:id`；不引用客户端源码。完整流程见 [全站业务总览](../../docs/business/README.md)。
 
 从仓库根目录运行：
@@ -11,16 +13,16 @@ pnpm build:admin
 
 开发地址 127.0.0.1:8850，产物 `apps/admin/dist`。应用身份固定 admin，不使用 `VITE_SITE_KIND` 切换。管理员角色由服务端 users.role 确认，不再使用前端邮箱名单。后台关闭 Google 登录，没有自助注册入口。
 
-Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权后才能访问运营数据；拒绝/异常时退出 Firebase 并留在登录页。邮箱验证和 MFA 设置流程不代表已获业务权限。客户端和运营端共享 Firebase 项目，但 SDK 实例、内存会话、路由和网关分别处理。
+Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权后才能访问运营数据；拒绝/异常时退出 Firebase 并留在登录页。邮箱验证和 MFA 设置流程不代表已获业务权限。客户端和运营端共享 Firebase 项目，但 SDK 实例、会话、路由和网关分别处理。后台使用标签页会话，刷新后恢复身份并重新校验服务端准入，关闭标签页后结束会话；客户端仍使用内存会话。后台会话调整为本地修改，尚未部署，见 [验收记录](../../docs/business/admin-session-persistence.md)。
 
-[DemoApp.tsx](src/DemoApp.tsx) 仅在 DEV 且显式 Demo 模式加载，生产不打包该路由。完整卡片管理、审批、资金、用户组、渠道配置和来源分析仍属于 Demo；其历史服务及数据库不在仓库。正式渠道只读页面另由 Go 提供，不依赖 Demo 路由。
+[DemoApp.tsx](src/DemoApp.tsx) 仅在 DEV 且显式 Demo 模式加载，生产不打包该路由。完整历史卡片控制、费率和资金原型仍属于 Demo；隔离服务源码已恢复，私有数据库未迁入。正式开户审核、注册目录、测试资金审核及 BIN 目录按下方专题独立接通。正式渠道只读页面另由 Go 提供，不依赖 Demo 路由。
 
 参阅 [开发约束](../../AGENTS.md)、[文档索引](../../docs/README.md)、[认证配置](../../docs/frontend/firebase-setup.md)、[部署记录](../../deploy/README.md)。
 
 
 ## 当前 DEV 业务维护
 
-卡片/交易、BIN状态、内部用户绑定、费率方案和账户目录已按最新本地口径更新，详见 [V1现状](../../docs/current-state.md)。这些页面仍通过 DEV DemoApp 加载，生产入口与产物不包含完整业务原型。手动同步、卡关联资料和资金沙盒依赖未纳入本仓库的旧本地服务，不能在正式Go接口上直接调用。
+卡片/交易、BIN状态、内部用户绑定、费率方案和账户目录已按最新本地口径更新，详见 [V1现状](../../docs/current-state.md)。这些页面仍通过 DEV DemoApp 加载，生产入口与产物不包含完整业务原型。本地业务依赖已恢复的 services/local-workspace，真实采集仍需显式私有配置；这些接口不能直接替换正式 Go 契约。
 
 ## 资金流与运营概览
 
@@ -28,7 +30,7 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 
 ## 正式渠道卡交易
 
-`/transactions` 与 `/cards/:id?connection=...` 读取手动导入的独立渠道投影，除 staff 身份和 MFA 外还要求 `channel_read_grants`。交易每页 20 条，UTC 开始含、截止不含，默认不限日期；刷新只重读导入版本。卡资料未绑定内部用户，不提供资金余额或控制动作。商户 Logo 仅辅助展示，不改变来源身份。业务代码 `0d5158d` 及部署结果见 [独立发布记录](../../docs/releases/channel-projection-2026-09-07.md)，本人登录验收仍待完成；本轮仅整理文档。
+`/transactions` 与 `/cards/:id?connection=...` 读取手动导入的独立渠道投影，除 staff 身份和 MFA 外还要求 `channel_read_grants`。交易每页 20 条，UTC 开始含、截止不含，默认不限日期；刷新只重读导入版本。卡片归属从项目钱包分配或有效测试绑定读取，客户身份还要求 accounts:read；不提供真实资金余额或控制动作。商户 Logo 仅辅助展示，不改变来源身份。业务代码 `0d5158d` 及部署结果见 [独立发布记录](../../docs/releases/channel-projection-2026-09-07.md)，本人登录验收仍待完成；本轮仅整理文档。
 
 ## 2026-09-13 联合发布候选
 
@@ -48,12 +50,16 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 
 正式测试资金审核入口 `/finance/test-funds`：仅显示逐客户获授权的测试钱包，要求现有运营身份与 MFA。充值先确认、后模拟入账；提现审核与模拟结算分开，未知状态持续预占。审批不调用真实付款接口。见 [流程卡](../../docs/business/online-test-funds.md)。
 
-项目钱包候选：卡列表/详情的分配状态改为读取服务端 assignmentKind（项目钱包分配/历史测试快照/未分配）；字段未返回时显示“归属未查询”，不再硬编码未绑定。不暴露客户邮箱；未部署，见 [流程卡](../../docs/business/project-wallet.md)。
+项目钱包候选：卡列表/详情的分配状态改为读取服务端 assignmentKind（项目钱包分配/历史测试快照/未分配）；字段未返回时显示“归属未查询”，不再硬编码未绑定。不暴露客户邮箱；归属显示代码发布见[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)，项目配置及分配证据见 [流程卡](../../docs/business/project-wallet.md)。
 
 ## 2026-09-18 BIN catalog
 
 新增正式 `/card-bins` 管理页与 `/admin-api/v1/card-issuing` 契约；来源目录导入使用 `issuing-admin import-catalog`。未配置价格以空字符串传输、数据库 NULL 保存，与免费 `0` 区分。生产保持真实发卡执行关闭。详见 `docs/business/bin-catalog-sync-2026-09-18.md` 与 `services/api/docs/issuing.openapi.json`。
 
-## 2026-09-18：后台用户归属读取修复（本地，未部署）
+## 2026-09-18：后台用户归属读取修复（代码已发布）
 
 正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../../docs/business/card-owner-display.md)。
+
+## 财务入口增量（2026-09-18，未部署）
+
+正式 /pricing 与 /pricing/products/:productId 接通既有卡产品价格接口，支持客户/组覆盖及恢复继承；/reports 提供已授权 USD 交易投影明细和 CSV。数字货币流水、OTC 与出金审批尚未完成，不改变测试资金边界。见[流程卡](../../docs/business/admin-finance-migration.md)。

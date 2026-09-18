@@ -540,7 +540,7 @@ function MoneyField({
     />
   );
 }
-function PriceEditor({
+export function PriceEditor({
   id,
   revision,
   prices,

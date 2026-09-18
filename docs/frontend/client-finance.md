@@ -1,5 +1,7 @@
 # 客户资金中心：USDT 充值、兑换与提现
 
+> 2026-09-18 范围校正：下文按 9 月 7 日原型与旧基线记录；相应隔离业务服务及测试源码已恢复到 [services/local-workspace](../../services/local-workspace/README.md)，私有数据未迁入。正式开户、用户目录及 online_test 的独立后续实现见[当前状态](../current-state.md)，不能把原型规则直接套入正式接口。
+
 ## 当前仓库状态（2026-09-07）
 
 充值、提现、兑换与卡资金原型保留在 `apps/client/src/portal`；对应本地服务、钱包数据和测试未纳入当前仓库，生产 Go 无资金执行接口。

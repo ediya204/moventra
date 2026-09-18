@@ -1,6 +1,6 @@
 # Moventra 开发约束
 
-适用范围：本目录及子目录。更新日期：2026-09-07。
+适用范围：本目录及子目录。更新日期：2026-09-18。
 
 项目为 Moventra，正式仓库 `ediya204/moventra`，统一在 `main` 维护。客户端 `apps/client`、运营后台 `apps/admin`、Go 服务 `services/api` 独立构建；共享模块在 `packages/shared`。文档分类与实际能力见 [文档索引](./docs/README.md)。
 
@@ -8,7 +8,7 @@
 
 ### 项目身份与 ADSFLOW 边界（2026-09-13）
 
-- 本项目是 Moventra，目录 `/Users/edi/Documents/ChatGPT/moventra`；运营后台为 `apps/admin`，客户端为 `apps/client`，API 为 `services/api`。后续 Moventra 开发、预览、测试和发布均以这里为准，无需每轮重新讨论迁移。
+- 本项目是 Moventra，本次工作目录 `/Users/ediya/Documents/ChatGPT/moventra`（历史记录中的 `/Users/edi/...` 是旧路径，命令以实际仓库根目录为准）；运营后台为 `apps/admin`，客户端为 `apps/client`，API 为 `services/api`。后续 Moventra 开发、预览、测试和发布均以这里为准，无需每轮重新讨论迁移。
 - `/Users/edi/Documents/ChatGPT/adsflow 后台` 是另一个历史工作目录；其 `adsflow-admin-react`、`adsflow-api`、Demo、端口和部署记录不代表本项目当前实现。源码来源关系不等于目录、运行环境或验收结果相同。
 - 用户说本项目的“后台”，默认指 Moventra 的 `apps/admin`；只有明确提到 ADSFLOW 或要求历史比较时，才按需读取旧目录。不要把本项目称为 ADSFLOW 后台。
 - 项目目标优先沿用用户已明确的上下文；无明确上下文时以当前工作目录为依据。上下文与目录实际冲突且影响操作时才简短确认，不自动把所有 ADSFLOW 任务切换到 Moventra。
@@ -16,7 +16,7 @@
 
 ### 必读规范
 
-- 所有开发先读 [开发总纲](./docs/DEVELOPMENT.md)。
+- 所有开发先读 [开发总纲](./docs/DEVELOPMENT.md) 和 [当前状态](./docs/current-state.md)；工程执行入口见 [Harness](./docs/harness/README.md)。
 - 页面、交互和前后端开发同时遵守 [业务闭环开发与验收标准](./docs/business/delivery-standard.md)：先列完整流程与接口链，再按二三级导航、跨端一致性和异常恢复验收；页面存在或构建通过不代表业务闭环。
 - 交易、订单、账户余额、退款、费用、汇率、同步、对账相关变更，必须再读 [领域规则](./docs/domain/transactions-and-funds.md)、[接口契约草案](./docs/api/contract.md)、[资金场景验收](./docs/testing/financial-scenarios.md)。
 - Slash 相关变更必须读 [渠道接入规范](./docs/integrations/slash.md)，并核验本次涉及的官方文档。
@@ -44,3 +44,10 @@
 交付分别报告：设计、本地实现、自动化测试、真实渠道验证、部署。未经本次运行的历史测试记录只能引用为历史证据。
 
 - 白名单问题已由用户说明解决（2026-09-18）。涉及 Slash 时先读 [白名单处理状态与复用规则](./docs/integrations/slash-allowlist.md)：历史 MCP 403 不作为当前阻塞，不重复要求配置；先核对既有连接和调用环境，只有新的实际失败才排查。未复验应标明未复验，不宣称仍未解决。
+
+## 文档随变更维护
+
+- 每批开发或发布完成时，按 [文档维护规则](docs/harness/documentation.md) 同步更新对应专题及当前状态；不要等用户再次要求。
+- 现行指南直接修订正文，历史记录保留版本；不得仅修改日期，把历史测试或规划追认为当前已验证能力。
+- 新增或移动 Markdown 后运行 `pnpm docs:index`；每次文档变更运行 `pnpm docs:check`，并人工核对实现/部署语义。工具不验证线上状态。
+- 单次复杂任务使用 [任务与交接模板](docs/harness/task-template.md)，业务开发仍须填写完整 FLOW 流程卡。规则写在原领域文档，不另建相互矛盾的代理规则文件。

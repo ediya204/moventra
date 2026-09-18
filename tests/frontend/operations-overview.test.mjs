@@ -188,3 +188,14 @@ test('registered directory transport rejects cross-site, extra paths and writes'
  await assert.rejects(client.liveGet('/admin-api/v1/users?userId=11111111-1111-1111-1111-111111111111'),{code:'invalid_path'});
  await assert.rejects(admin.updateOnboarding('/admin-api/v1/users',{action:'x',revision:0,reason:'x'}),{code:'invalid_path'});assert.equal(calls,2);
 });
+
+test('financial report restores period from URL and opens exact daily table with export',async()=>{
+ state.requests=[];let view;
+ await act(async()=>{view=Renderer.create(React.createElement(MemoryRouter,{initialEntries:['/reports?days=30']},React.createElement(FundsOverview,{report:true})));});
+ assert.equal(state.requests[0].path,'/admin-api/v1/ops/overview?days=30');
+ await act(async()=>{state.requests[0].resolve(fixture(30,'9007199254740993'));await flush();});
+ const text=renderedText(view);
+ assert.match(text,/资金经营报表/);assert.match(text,/每日统计明细/);assert.match(text,/导出 CSV/);assert.match(text,/不包含测试资金、OTC 或链上流水/);
+ assert.equal(metricValues(view)[0],'90,071,992,547,409.93');
+ await act(()=>view.unmount());
+});

@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
-      // Pass the resolver explicitly because Auth uses initializeAuth with memory persistence.
+      // initializeAuth does not configure a popup resolver; pass it explicitly here.
       await signInWithPopup(getFirebaseAuth(), provider, browserPopupRedirectResolver);
     } catch (error) { handleMfaError(error); }
   }, [handleMfaError]);

@@ -1,5 +1,7 @@
 # Moventra 部署记录
 
+当前发布记录入口：[2026-09-18 归属与卡名统一发布](2026-09-18-session-consolidation.md)、[BIN 目录发布](2026-09-18-bin-catalog-sync.md)、[普通 Webhook 上线](slash-webhook-online-2026-09-18.md)。这些是历史执行证据，本次文档校对未查询云端实时状态。
+
 2026-09-18 已完成改动统一发布范围与验证见 [发布清单](2026-09-18-completed-work-release.md)。并行开发的未完成改动不在本次范围，部署结果以平台记录为准。
 
 2026-09-18 后续：已部署 Blnk 私有服务，复用现有 PostgreSQL 实例；详见 [资源与验证记录](../docs/releases/2026-09-18-blnk-private-service.md)。应用真实记账尚未切换。

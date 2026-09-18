@@ -12,6 +12,6 @@
 
 素材在 `packages/assets/public`，构建工具在 `packages/tooling/vite.ts`。更多见 [主题约定](../../docs/frontend/ui-theme.md)、[文档索引](../../docs/README.md)。
 
-2026-09-13 联合候选：共用认证改用服务端 customer/admin 角色及站点专属身份端点，移除前端邮箱名单。共享 transport 同时保留已上线的开户 GET/POST 和渠道只读白名单。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。
+2026-09-13 已联合发布：共用认证改用服务端 customer/admin 角色及站点专属身份端点，移除前端邮箱名单。共享 transport 同时保留已上线的开户 GET/POST 和渠道只读白名单。见[联合发布记录](../../docs/releases/2026-09-13-admin-login-joint.md)。
 
 2026-09-17：`auth/ledgerApi.ts` 提供同域 `getShadowLedger`，复用 Firebase Bearer 与两端路由隔离。`ledgerContract.ts` 检查 shadow 标识、主体、精确字符串金额及汇总；不切换现有页面余额，不提供资金写方法。见 [Blnk 接入](../../docs/integrations/blnk.md)。

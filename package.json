@@ -16,7 +16,9 @@
     "test:workspace": "npm test --prefix services/local-workspace",
     "workspace:api": "npm start --prefix services/local-workspace",
     "workspace:init": "node services/local-workspace/demo-server/slash/cli.mjs import",
-    "workspace:dev": "node services/local-workspace/dev.mjs"
+    "workspace:dev": "node services/local-workspace/dev.mjs",
+    "docs:index": "node scripts/check-docs.mjs --write-index",
+    "docs:check": "node scripts/check-docs.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

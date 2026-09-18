@@ -21,9 +21,9 @@ function VolumeChart({data}:{data:Overview}){
  const options:ApexOptions={...base,colors:[theme.palette.primary.main,theme.palette.warning.main,theme.palette.error.main],chart:{...base.chart,stacked:true},xaxis:{...base.xaxis,categories:data.daily.map(r=>r.date.slice(5)),labels:{rotate:0,hideOverlappingLabels:true}},yaxis:{labels:{formatter:v=>Math.round(v).toLocaleString()}},tooltip:{shared:true,intersect:false,y:{formatter:v=>v+' 笔'}}};
  return <Box role="img" aria-label={data.mode==='production'?'每日交易笔数，按已完成、待处理和失败区分':'每日交易笔数，按已入账、待处理和失败区分'}><Suspense fallback={<Empty text="正在加载图表"/>}><Chart type="bar" height={270} options={options} series={[{name:data.mode==='production'?'已完成':'已入账',data:data.daily.map(r=>r.posted)},{name:'待处理',data:data.daily.map(r=>r.pending)},{name:'失败',data:data.daily.map(r=>r.failed)}]}/></Suspense></Box>;
 }
-export default function FundsOverview({source='production'}:{source?:'local'|'production'}){
+export default function FundsOverview({source='production',report=false}:{source?:'local'|'production';report?:boolean}){
  const theme=useTheme(),[params,setParams]=useSearchParams(),days=[7,14,30].includes(Number(params.get('days')))?Number(params.get('days')):7;
- const [data,setData]=useState<Overview>(),[error,setError]=useState(''),[busy,setBusy]=useState(false),[refresh,setRefresh]=useState(0),[selected,setSelected]=useState<string|null>(null),[detail,setDetail]=useState(false),[basis,setBasis]=useState(false);
+ const [data,setData]=useState<Overview>(),[error,setError]=useState(''),[busy,setBusy]=useState(false),[refresh,setRefresh]=useState(0),[selected,setSelected]=useState<string|null>(null),[detail,setDetail]=useState(report),[basis,setBasis]=useState(report);
  useEffect(()=>{let active=true;setBusy(true);setError('');setData(undefined);setSelected(null);
  (source==='local'?get<Overview>('live/overview',{days}):liveGet<Overview>('/admin-api/v1/ops/overview?days='+days)).then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(source==='local'?e.message:e.code==='scope_required'?'当前账号没有交易统计范围，请检查客户交易读取授权。':authMessage(e));}).finally(()=>{if(active)setBusy(false);});
  return()=>{active=false;};},[days,source,refresh]);
@@ -32,7 +32,7 @@ export default function FundsOverview({source='production'}:{source?:'local'|'pr
  const statusColor=(s:string)=>s==='failed'?theme.palette.error.main:s==='pending'?theme.palette.warning.main:s==='posted'||s==='succeeded'?theme.palette.primary.main:theme.palette.grey[500];
  return <Stack spacing={3} component="section" aria-label="资金与运营总览" aria-busy={busy}>
  <Stack direction={{xs:'column',sm:'row'}} justifyContent="space-between" alignItems={{xs:'flex-start',sm:'center'}} gap={2}>
- <Box><Typography variant="h5">资金流与运营</Typography><Typography variant="body2" color="text.secondary" mt={.5}>查看收支趋势、交易状态与消费结构</Typography></Box>
+ <Box><Typography variant="h5">{report?'资金经营报表':'资金流与运营'}</Typography><Typography variant="body2" color="text.secondary" mt={.5}>{report?'已授权 USD 交易投影 · 每日收支明细与 CSV 导出；不包含测试资金、OTC 或链上流水':'查看收支趋势、交易状态与消费结构'}</Typography></Box>
  <Stack direction="row" gap={1.5}><Select size="small" value={days} inputProps={{'aria-label':'统计周期'}} onChange={e=>{const p=new URLSearchParams(params);p.set('days',String(e.target.value));setParams(p);}}>{[7,14,30].map(n=><MenuItem key={n} value={n}>最近 {n} 天</MenuItem>)}</Select><Button variant="outlined" onClick={()=>setRefresh(n=>n+1)} disabled={busy} startIcon={busy?<CircularProgress size={14}/>:<Icon icon="solar:refresh-linear"/>}>刷新</Button></Stack></Stack>
  <Stack direction="row" justifyContent="space-between" gap={1} flexWrap="wrap" alignItems="center"><Stack direction="row" gap={1} flexWrap="wrap"><Chip size="small" color="info" variant="outlined" label={source==='local'?'Slash 真实数据':'已授权交易投影'}/><Chip size="small" variant="outlined" label="USD · 香港时间"/><Chip size="small" variant="outlined" color="warning" label="覆盖尚未完整核实"/></Stack><Typography variant="caption" color="text.secondary">统计生成：{data?time(data.asOf):'—'}</Typography></Stack>
  {error&&<Alert severity="error" action={<Button color="inherit" onClick={()=>setRefresh(n=>n+1)}>重试</Button>}>{error}</Alert>}

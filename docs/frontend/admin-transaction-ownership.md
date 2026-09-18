@@ -1,5 +1,7 @@
 # FLOW-ADMIN-TX-OWNER：后台交易尾号与所属账户
 
+> 后续代码归属模型和发布结论以[统一归属修复](../business/card-owner-display.md)及[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)为准；下方 customerAssignment 和未部署描述属于本批历史方案，现行身份字段见 internal.ownershipStatus/assignmentKind 对应契约。
+
 2026-09-18。用户确认“所属账户”是卡片分配给的内部客户；放在所属卡片后的表格列。
 
 | 项目 | 内容 |

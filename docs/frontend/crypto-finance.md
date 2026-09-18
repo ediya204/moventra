@@ -1,5 +1,7 @@
 # 数字货币资金工作台（本地隔离实现）
 
+> 2026-09-18 范围校正：下文按 9 月 7 日原型与旧基线记录；相应隔离业务服务及测试源码已恢复到 [services/local-workspace](../../services/local-workspace/README.md)，私有数据未迁入。正式开户、用户目录及 online_test 的独立后续实现见[当前状态](../current-state.md)，不能把原型规则直接套入正式接口。
+
 ## 当前仓库状态（2026-09-07）
 
 以源码 `0d5158d` 为基线：数字货币页面保留在 `apps/admin/src/finance`；fn_* 数据、010 迁移、出金任务及合成通道服务未纳入仓库，正式代码没有 OTC、链上出金或资金审批执行能力。新增正式渠道卡交易/卡资料只读投影使用独立 `channel_*` 数据及 `channel_read_grants`，不写客户 `transactions/accounts`，也不进入 `/workbench` 客户交易总览；这不是资金工作台上线。投影的 Go/Worker 部署结果已追加到[发布记录](../releases/channel-projection-2026-09-07.md)，本人登录业务验收另行完成；本次仅核对源码与文档。

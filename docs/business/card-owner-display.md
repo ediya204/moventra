@@ -1,5 +1,7 @@
 # FLOW-CARD-OWNER-01：正式后台读取既有归属
 
+> 后续发布状态：本页初次本地验收后，归属修复已随 `a2fa1f6` 发布 API 与后台，见[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)。下方“未部署”仅描述当时批次；本次文档更新未重新部署或完成本人登录验收。
+
 2026-09-18。基线 origin/main 812e5ae；独立 codex/card-owner-display 工作树，保留共享目录及其他任务的改动。
 
 ## 范围与接口链

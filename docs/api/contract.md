@@ -1,6 +1,6 @@
 # 交易与资金 API 契约草案
 
-当前 Go 基础及生产范围见 [文档索引](../README.md)。下方金融设计、F 场景不是已实现或全部已通过的能力；旧 Node/SQLite 本地服务的最新契约与验证见 [当前状态](../current-state.md)；服务、迁移和私有数据未纳入当前仓库。本文目标场景不能视为正式 Go 已实现或本次全部重跑。
+当前能力见[状态摘要](../current-state.md)。下方 DESIGN 模型及 F/R 场景不是已实现或全部通过的能力；本地隔离业务源码已恢复至 [services/local-workspace](../../services/local-workspace/README.md)，私有数据与凭据未迁入。后续日期的实施补充保留其独立证据，不代表本次重跑测试。
 
 更新日期：2026-09-07。状态：DESIGN；下列 financial 路由未实现。本文件不修改现有 OpenAPI，也不授权自动切换前端。
 
@@ -240,7 +240,7 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 
 本地增量 011 为 APEXIS Op 项目共用钱包及逐卡归属增加配置；不属于客户余额。现有 `/client-api/v1/customers/{customerID}/card-projections` 路由兼容：未切换客户保留 test_snapshot，已切换客户返回 assigned_wallet_projection，按当前导入版本、明确 cardId 归属及父账户/virtualAccountId 同时隔离。未知钱包来源字段不授予读取权限，新卡不继承初始邮箱归属；共享钱包标识和余额不进入客户 DTO。列表、总数、详情遵循同一条件，版本冲突仍为 409。
 
-后台卡片 DTO 新增内部 assignmentKind（project_wallet / test_snapshot / unassigned），不暴露客户邮箱。生效范围和验证见 [项目钱包流程卡](../business/project-wallet.md)。未部署，未改线上数据。
+后台卡片 DTO 新增内部 assignmentKind（project_wallet / test_snapshot / unassigned），不暴露客户邮箱。项目分配范围和当时准备证据见 [项目钱包流程卡](../business/project-wallet.md)；后续代码及归属显示已纳入[统一发布](../../deploy/2026-09-18-session-consolidation.md)，不能把原候选批次的未部署状态用于当前代码。具体绑定执行结果须另看对应业务证据。
 
 ## 2026-09-18 BIN catalog
 
@@ -249,7 +249,9 @@ React/Node演示已实现 `/local-slash-demo/management/fx/{transactions,report,
 ## 2026-09-18：开卡名称与默认持卡人（LOCAL）
 
 `card-issuing/orders` 增加 `cardName`：服务端首次提交时从100个姓名选取并持久化，重试/补充首充保持；历史无名称返回空字符串。Slash name 使用该值；新请求省略 cardholderId。Enrollment 新调用只需 customerId/groupId/enabled/revision，旧 supplierId/cardholderRef/evidenceRef 输入弃用，GET 不再返回 cardholders。见[流程与兼容边界](../business/card-issuing-2026-09-18.md)。
-## 2026-09-18：后台用户归属读取修复（本地，未部署）
+## 2026-09-18：后台用户归属读取修复（代码已发布）
+
+API/后台发布见[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)，本次没有重新执行线上验收。
 
 正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../business/card-owner-display.md)。
 

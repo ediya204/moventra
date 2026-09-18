@@ -1,6 +1,6 @@
 # 卡交易详情抽屉与关联卡
 
-更新日期：2026-09-07。适用于本地 Slash 只读页面；GitHub 保存前端实现，Node/Python 查询服务位于旧工作区。正式 Go 未接入这些详情接口。
+更新日期：2026-09-07。适用于本地 Slash 只读页面；本地 Node/Python 查询服务源码已恢复至 services/local-workspace，私有数据未迁入；正式 Go 使用独立的 channel-projections/card-projections 契约，不能直接调用本页历史本地路径。
 
 ## 查询与页面
 

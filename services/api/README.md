@@ -1,6 +1,8 @@
 # Moventra Go API
 
-更新日期：2026-09-07。独立 Go 模块 `moventra.local/api`，面向客户端与运营后台，部署于 Render。本服务查询客户投影与手动导入的独立渠道投影，不调用旧生产 API、Slash 上游或真实资金写接口。完整范围见 [业务与路由](../../docs/business/routes-and-api.md)。
+> 2026-09-18 静态校对：能力及发布边界见[当前状态](../../docs/current-state.md)。下方带日期的增量段落保留当时实施状态；最新后台归属及随机卡名代码已发布，详见[统一发布记录](../../deploy/2026-09-18-session-consolidation.md)。本次未重新运行测试或线上验收。
+
+更新日期：2026-09-07。独立 Go 模块 `moventra.local/api`，面向客户端与运营后台，部署于 Render。本服务提供身份授权、客户与渠道投影查询、开户、线上测试资金、BIN 目录和普通 Slash 通知来源观察。通知消费及受控来源核验包含 Slash 只读 GET；不开放真实资金执行。完整范围见 [业务与路由](../../docs/business/routes-and-api.md)。
 
 ## 正式卡交易只读投影增量
 
@@ -18,9 +20,9 @@
 
 ## 尚未完成 / 禁止作为生产验收结论
 
-Firebase 密码/TOTP 登录、Go 身份与范围查询已有真实签名联调记录，基础设施已部署；个人/企业自助开通、客户范围授权管理、企业材料审核与激活、卡片和资金执行、云端渠道采集及 Webhook 尚未完成。企业升级提交中的 `legalName` 只是第一阶段意向申请，不是完整 KYB 材料。
+Firebase 密码/TOTP 登录、Go 身份与范围查询已有真实签名联调记录，基础设施已部署；个人开户申请、运营审核及功能资格已有后续实现；企业材料审核/激活、完整成员权限管理及真实卡片/资金执行仍未完成。普通 Webhook 与异步只读采集已上线，前端投影持续更新与历史全量同步不能据此视为完成。企业升级提交中的 `legalName` 只是第一阶段意向申请，不是完整 KYB 材料。
 
-数据库 `transactions` 是只读业务查询投影，不是资金账本；没有余额及资金写入接口。审批通过与服务激活为独立状态，不会自动迁移个人资金。企业成员当前三个角色都只有整个所属企业的查询能力；受限子账户成员权限与写权限后续单独实现，不能提前分配给需要更小范围的成员。
+数据库 `transactions` 是只读业务查询投影，不是资金账本；独立线上测试余额及模拟命令不写该投影，也不构成真实资金执行。审批通过与服务激活为独立状态，不会自动迁移个人资金。企业成员当前三个角色都只有整个所属企业的查询能力；受限子账户成员权限与写权限后续单独实现，不能提前分配给需要更小范围的成员。
 
 ## 本地启动
 
@@ -35,7 +37,7 @@ go run ./cmd/api migrate
 go run ./cmd/api
 ```
 
-默认端口 8870，`GET /healthz` 检查进程，`GET /readyz` 在 2 秒内核验迁移 001–005 的存在及 checksum，启用 ledger 时额外核验 006。API 启动不自动执行迁移，也不自动创建用户/成员/运营权限。
+默认端口 8870，`GET /healthz` 检查进程；当前 `database.Ready` 在 2 秒内核验 001–005、007、011、012 的存在及 checksum，启用 ledger 时额外核验 006。这不是全部模块迁移检查，不能由 readyz 成功推断 008–010 或上游业务已验收。API 启动不自动执行迁移，也不自动创建用户/成员/运营权限。
 
 认证 API 使用 `Authorization: Bearer <Firebase ID token>`。选定第一阶段为 Bearer 模式，尚未实现此前讨论的 Cookie 会话交换。Go 用可信 UID 映射本地用户，不接受客户端邮箱、角色或自报 UID 作为授权依据。仅在已验证 token 上读取 MFA 因子；每次请求检查 Firebase 撤销状态，因此也依赖 Firebase 网络可用性。
 
@@ -66,7 +68,7 @@ Dockerfile 已提供；需本机 Docker daemon 可用后才能验证容器构建
 
 下一阶段需实现企业资料、审核、成员权限细化及独立服务激活，并接入客户端相应流程；当前 V1 客户端只开放个人范围。
 
-旧本地 Slash Python 预览/同步工具、私有 SQLite 及凭据未纳入此仓库；历史记录见 [Slash 本地投影档案](../../docs/frontend/slash-live-data.md)，不能按其旧路径运行本服务。当前机器契约仍有“未部署”的陈旧 servers 描述；实际部署以 [部署记录](../../deploy/README.md) 为准，本次 Markdown 校对不修改 JSON 契约。
+Slash Python 采集工具及隔离 Node 服务源码已恢复到 services/local-workspace，私有 SQLite 及凭据未迁入；历史记录见 [Slash 本地投影档案](../../docs/frontend/slash-live-data.md)，不能按其旧路径运行本服务。当前机器契约仍有“未部署”的陈旧 servers 描述；实际部署以 [部署记录](../../deploy/README.md) 为准，本次 Markdown 校对不修改 JSON 契约。
 
 ## 2026-09-13 开户审批权限授权
 
@@ -126,6 +128,6 @@ Docker 镜像包含 api、ledger、worker 三个程序，默认入口仍为 api�
 
 新增正式 `/card-bins` 管理页与 `/admin-api/v1/card-issuing` 契约；来源目录导入使用 `issuing-admin import-catalog`。未配置价格以空字符串传输、数据库 NULL 保存，与免费 `0` 区分。生产保持真实发卡执行关闭。详见 `docs/business/bin-catalog-sync-2026-09-18.md` 与 `services/api/docs/issuing.openapi.json`。
 
-## 2026-09-18：后台用户归属读取修复（本地，未部署）
+## 2026-09-18：后台用户归属读取修复（代码已发布）
 
 正式 channel-projections 卡列表、卡详情及交易查询从既有 project_wallet_cards / 有效 customer_card_bindings 读取归属，返回 assignmentKind 与 internal.ownershipStatus/customerId/userId/customerName。后台列表、详情和交易抽屉显示同一用户；新导入保留绑定，客户端原有范围与字段裁剪不变。无新迁移、改绑或资金操作。实现与验收见 [流程卡](../../docs/business/card-owner-display.md)。

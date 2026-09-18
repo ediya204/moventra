@@ -1,5 +1,7 @@
 # Moventra
 
+项目定位见[项目说明](project.md)，当前能力见[状态摘要](docs/current-state.md)，AI 工程协作与文档维护见[Harness](docs/harness/README.md)。
+
 运营后台、个人客户端与 Go API，共用一个 GitHub 仓库，统一在 `main` 维护，各自独立构建与发布。
 
 ```text
@@ -51,18 +53,12 @@ bash services/api/scripts/test-postgres.sh
 
 ## 当前能力与文档
 
-更新日期：2026-09-07。全站逻辑从 [业务总览](docs/business/README.md) 开始阅读，覆盖身份开户、卡片交易、资金订单、审批、风控、对账和系统管理。快速状态见 [当前功能与接入状态](docs/current-state.md)，专题入口见 [文档索引](docs/README.md)。
+更新日期：2026-09-18。当前能力与证据统一见[状态摘要](docs/current-state.md)，开发思路见[项目说明](project.md)，专题见[文档索引](docs/README.md)。本次按本地 main `89ca9c3` 静态核对，未重新检查线上服务。
 
-- V1 面向个人账户，不提供客户团队创建、邀请或协作；后台内部管理员、运营、财务和审批权限保留。费率方案统一从“费率管理”进入，底层继承关系保留。
-- 正式后台 `/workbench` 已提供授权 USD 交易的资金流、活跃度与状态概览，沿用客户范围和 MFA；本地概览读取另一套 Slash 缓存。
-- 已上传的正式 `/transactions` 和 `/cards/:id` 读取手动导入的渠道投影，另需渠道读取授权与 MFA；商户 Logo 仅辅助展示。源码、导入和部署证据见 [接入记录](docs/releases/channel-projection-2026-09-07.md)。
-- 本地 Slash 仅手动同步。卡交易支持 7/14/30 天和自定义 UTC 日期、六类状态筛选；来源 status 与 detailedStatus 独立保留。
-- 交易抽屉展示卡片名称和后四位，按来源连接内的精确卡片 ID 打开关联详情。本地所属用户读取内部绑定；正式渠道投影尚无客户绑定，不从 Slash 卡名推断。
-- 卡 BIN 详情提供草稿、已上架、暂停开卡、已归档的状态维护；这是本站产品配置，不代表修改上游卡片状态或真实开卡。
-- 卡片管理、BIN、费率、审批和资金原型在 DEV 模式保留；五标签卡工作台、解冻申请仍有本地未合入增量。正式构建提供身份、个人查询、运营概览及渠道只读页面，真实卡片控制和资金执行尚未接入。
+身份、开户、客户/渠道查询、注册用户目录、后台卡片归属、测试资金和 BIN 目录各按独立授权开放。Slash 普通通知已有上线记录，但来源观察不自动更新页面投影或记账；真实资金、真实开卡及生产 Blnk 账本未因这些功能发布而启用。最新 API/后台运行代码记录为 `a2fa1f6`，见[发布证据](deploy/2026-09-18-session-consolidation.md)。
 
 ## 本地运行与 GitHub 边界
 
-本仓库包含两端前端、共享模块、Go 基础和文档。旧本地 Node/SQLite Demo 与 Python Slash 采集服务位于旧工作区，未迁入本仓库；其私有数据和凭据也不提交。克隆本仓库不等于拥有 8852 的完整业务后端。
+本仓库已恢复 `services/local-workspace` 的 Node/SQLite 隔离业务服务及 Python 采集工具。运行 `pnpm workspace:dev` 启动合成数据 API（8868）和后台（8850）；详情及环境限制见[服务 README](services/local-workspace/README.md)。私有配置、真实数据库、快照与凭据未迁入；旧 ADSFLOW 端口和数据不代表此项目环境。
 
-文档中的旧 LOCAL 接口、迁移和测试命令需要相应本地服务；Go 渠道投影是独立契约，不兼容旧路径。GitHub 推送、构建、云部署和真实业务验收分别报告；本次文档整理不构成生产部署。
+正式 Go `/admin-api/v1`、`/client-api/v1` 与旧本地 `/local-slash-demo` 契约分别维护。源码、自动化测试、浏览器验收、真实渠道验证与部署分别报告；文档更新不构成新的发布或授权。

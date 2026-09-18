@@ -1,12 +1,10 @@
 # Moventra 开发总纲
 
-2026-09-18：开发交付遵循 [业务闭环标准](business/delivery-standard.md)。历史静态调查与最新 main 的差异见 [本次同步说明](releases/2026-09-18-local-sync.md)。
+更新日期：2026-09-18。本文维护长期开发规则；当前实现、工作区增量及发布边界统一见[当前状态](current-state.md)，工程执行和文档维护见[Harness](harness/README.md)。本次按本地 main `89ca9c3` 及工作区静态整理，不新增运行验收。
 
-当前源码结构：`apps/client` 为独立客户端，`apps/admin` 为独立运营后台，`services/api` 为 Go 服务，`packages/shared` 为共用认证/UI/类型。统一在 `main` 维护，构建入口见根目录 README。文档全量分类见 [文档索引](./README.md)。
+`apps/client`、`apps/admin`、`services/api` 独立构建，`packages/shared` 共享认证/UI/类型；`services/local-workspace` 提供已恢复的隔离 Node/SQLite 业务与 Python 工具。真实配置、数据库和快照不随源码提供。统一维护 main，命令见[根 README](../README.md)。
 
-更新日期：2026-09-07。状态：身份、个人查询、授权运营概览及部署基础已落地；`0d5158d` 另加入正式渠道只读投影、卡交易页面与手动导入工具。跨渠道金融目标仍为草案。部署版本及历史验证见发布记录，不将本次文档校对当作新的业务验收。
-
-旧本地环境当前采用 Slash 手动同步，见 [现状](current-state.md) 和 [手动同步规范](frontend/slash-manual-sync.md)。旧采集服务、私有数据和凭据未纳入当前仓库；正式 Go 的独立投影导入不把采集器或 Slash 密钥搬到云端，见 [渠道接入记录](releases/channel-projection-2026-09-07.md)。
+本地手动采集、正式手动投影导入、普通 Webhook 来源观察分别维护，不能把通知处理完成等同页面更新或入账。依据见[手动同步](frontend/slash-manual-sync.md)与[通知上线记录](../deploy/slash-webhook-online-2026-09-18.md)。
 
 ## 1. 文档入口与证据分类
 
@@ -24,20 +22,15 @@
 
 规则冲突时记录证据并提出兼容变更。现有 OpenAPI 是现有调用方契约，不能由本草案静默替换；新模型以本规范为设计目标，实施前补充迁移和契约测试。
 
-## 2. 当前仓库基线（LOCAL）
+## 2. 当前代码边界（LOCAL）
 
-| 子项目 | 本次检查依据 | 已有边界 |
-| --- | --- | --- |
-| `services/api` | [README](../services/api/README.md)、[账户模型](../services/api/docs/account-model.md)、[SQL](../services/api/internal/database/001_initial.sql)、[渠道结构](../services/api/internal/database/002_channel_projection.sql)、[OpenAPI](../services/api/docs/openapi.json) | 身份、客户账户/交易、运营汇总、企业升级意向及独立渠道只读投影；两套交易来源不混账 |
-| `apps/client` | [README](../apps/client/README.md) | 官网、Firebase 登录、个人主体账户/交易查询；注册页为预览，登录后资料补全可创建用户 |
-| `apps/admin` | [README](../apps/admin/README.md) | 独立运营登录、MFA、资金概览、渠道卡交易与只读卡资料；旧管理 Demo 仅 DEV 加载 |
-| `packages/shared` | [README](../packages/shared/README.md) | 共用认证、主题、UI 和类型；无跨应用源码依赖 |
+子项目的启动、路由及接口依据见 [API](../services/api/README.md)、[客户端](../apps/client/README.md)、[后台](../apps/admin/README.md)、[共享模块](../packages/shared/README.md)和[隔离服务](../services/local-workspace/README.md)。能力和发布进度不在本页重复维护。
 
-Go 当前 `transactions` 仅允许 USD/USDT、正数 `amount_minor` 加方向、pending/succeeded/failed，来源唯一约束为 `(source, external_id)`。不能不经迁移设计直接装入多渠道、多状态、零值或其他币种交易。
+Go 基础 `transactions` 采用 USD/USDT、正数 amount_minor 加方向、pending/succeeded/failed；来源唯一约束为 `(source, external_id)`。多渠道、多状态及其他币种需显式迁移/适配，不静默替换既有契约。
 
-独立 `channel_records` 按连接、导入版本、资源类型及外部 ID 保存来源白名单；读取需要现有 staff 身份及独立 `channel_read_grants`，不由客户 `transactions:read` 自动推导。渠道金额不写入原 `transactions`、账户余额或资金分录；前端刷新只读当前导入版本，不采集上游。
+独立 channel_records 按连接、导入版本、资源和外部 ID 保存白名单。后台渠道权限、客户逐卡分配、客户身份读取权限各自校验；渠道金额不写入基础 transactions 或余额。online_test、Blnk shadow 和来源观察有独立数据与职责，不能混账。
 
-旧本地 Demo 的历史记录包含来源白名单、内部扩展、部分场景和查询投影；对应后端未纳入当前仓库。应复用其经验和测试，不应把 Demo 的模拟版本号、客户归属、冻结推演或同步行为当作渠道保证。
+已恢复的本地 Demo 可复用机制及测试，不把模拟版本号、预算、冻结或同步行为当作真实渠道保证。源码存在不证明对应生产功能可用。
 
 ## 3. 目标及不在范围内的事项（DESIGN）
 

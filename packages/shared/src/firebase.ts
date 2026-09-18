@@ -1,5 +1,5 @@
 import { getApps, initializeApp } from 'firebase/app';
-import { initializeAuth, inMemoryPersistence, type Auth } from 'firebase/auth';
+import { initializeAuth, browserSessionPersistence, inMemoryPersistence, type Auth } from 'firebase/auth';
 import { isAdminSite } from './auth/site';
 import config from './config/firebase.web.json';
 
@@ -9,9 +9,12 @@ const appName = isAdminSite ? 'moventra-admin' : 'moventra-client';
 export const firebaseApp = getApps().find((app) => app.name === appName)
   ?? initializeApp(config, appName);
 
-// Memory-only persistence; Go validates identity, membership, and operator MFA.
+// Admin identity survives reloads in this tab; the client remains memory-only.
+// Restored identity still requires Go admission, resource permissions, and MFA.
 let auth: Auth | undefined;
 export function getFirebaseAuth(): Auth {
-  auth ??= initializeAuth(firebaseApp, { persistence: inMemoryPersistence });
+  auth ??= initializeAuth(firebaseApp, {
+    persistence: isAdminSite ? browserSessionPersistence : inMemoryPersistence,
+  });
   return auth;
 }

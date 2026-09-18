@@ -16,7 +16,7 @@ export const clearAccessToken=()=>{},setAccessToken=()=>{},login=()=>{};
 export const getFirebaseAuth=()=>m.auth;
 export const liveGet=()=>m.pending;
 export class SessionError extends Error {constructor(code,status){super(code);this.code=code;this.status=status;}}
-export const onIdTokenChanged=(a,cb)=>{m.listener=cb;cb(null);return ()=>{};};
+export const onIdTokenChanged=(a,cb)=>{m.listener=cb;cb(a.currentUser);return ()=>{};};
 export const signOut=async()=>{m.signouts++;m.auth.currentUser=null;m.listener(null);};
 export const signInWithEmailAndPassword=()=>{m.passwordCalls++;throw {code:'auth/multi-factor-auth-required'};},signInWithPopup=()=>{m.googleCalls++;},getMultiFactorResolver=()=>({hints:[{uid:'totp-fixture',factorId:'totp'}]});
 export class GoogleAuthProvider {setCustomParameters(){}}
@@ -31,6 +31,47 @@ const {AuthProvider,useAuth}=await import(uri(outputText));
 let state;
 function Probe(){state=useAuth();return null;}
 const flush=()=>new Promise(r=>setImmediate(r));
+test('admin session uses tab persistence while client remains memory-only', async()=>{
+ const source=readFileSync(new URL('../../packages/shared/src/firebase.ts',import.meta.url),'utf8');
+ for(const kind of ['admin','client']){
+  const sdk=uri(`
+   export const isAdminSite=${kind==='admin'};
+   export default {};
+   export const getApps=()=>[],initializeApp=(config,name)=>({name});
+   export const browserSessionPersistence={type:'SESSION'},inMemoryPersistence={type:'NONE'};
+   export const initializeAuth=(app,options)=>({app,...options});
+  `);
+  let {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}});
+  outputText=outputText.replace(/from ["']([^"']+)["']/g,()=>`from ${JSON.stringify(sdk)}`);
+  const {getFirebaseAuth}=await import(uri(outputText));
+  const auth=getFirebaseAuth();
+  assert.equal(auth.app.name,`moventra-${kind}`);
+  assert.equal(auth.persistence.type,kind==='admin'?'SESSION':'NONE');
+  assert.equal(getFirebaseAuth(),auth);
+ }
+});
+test('restored admin identity is rechecked on mount before business access',async()=>{
+ for(const scenario of ['operator','mfa-missing','revoked']){
+  const user={email:'fixture@example.invalid',emailVerified:true};
+  m.auth.currentUser=user;m.signouts=0;
+  let resolve,reject;m.pending=new Promise((a,b)=>{resolve=a;reject=b;});
+  let view;await act(async()=>{view=Renderer.create(React.createElement(AuthProvider,null,React.createElement(Probe)));});
+  assert.equal(state.ready,false);assert.equal(state.authenticated,false);assert.equal(state.user,null);
+  await act(async()=>{
+   if(scenario==='revoked')reject({code:'user_disabled',status:403});
+   else resolve({role:'admin',operator:true,mfaVerified:scenario==='operator',customers:[],staffScopes:[]});
+   await flush();
+  });
+  assert.equal(state.ready,true);
+  assert.equal(state.authenticated,scenario==='operator');
+  assert.equal(m.signouts,scenario==='revoked'?1:0);
+  if(scenario==='operator'){
+   await act(async()=>{state.signOut();await flush();});
+   assert.equal(m.auth.currentUser,null);assert.equal(state.authenticated,false);
+  }
+  await act(async()=>view.unmount());
+ }
+});
 test('admin admission waits for Go and signs out denied identities',async()=>{
  for(const scenario of ['customer','operator','mfa-setup','outage']){
   m.signouts=0;m.auth.currentUser=null;
