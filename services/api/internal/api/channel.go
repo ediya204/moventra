@@ -280,7 +280,7 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var hook string
-		e = tx.QueryRow(r.Context(), `SELECT l.hook_connection_id FROM card_sync_links l JOIN slash_hook_connections h ON h.id=l.hook_connection_id AND h.enabled JOIN channel_connections c ON c.id=l.connection_id AND c.account_ref=h.account_ref WHERE l.connection_id=$1 AND l.enabled`, connection).Scan(&hook)
+		e = tx.QueryRow(r.Context(), `SELECT l.hook_connection_id FROM card_sync_links l JOIN slash_hook_connections h ON h.id=l.hook_connection_id AND h.enabled JOIN channel_connections c ON c.id=l.connection_id AND c.account_ref=h.account_ref WHERE l.connection_id=$1 AND l.enabled AND EXISTS(SELECT 1 FROM project_wallet_cards b JOIN project_wallets w ON w.connection_id=b.connection_id AND w.virtual_account_ref=b.virtual_account_ref WHERE b.connection_id=l.connection_id AND b.external_card_id=$2 AND w.account_ref=h.account_ref)`, connection, id).Scan(&hook)
 		if e == pgx.ErrNoRows {
 			fail(w, 409, "card_sync_disabled")
 			return

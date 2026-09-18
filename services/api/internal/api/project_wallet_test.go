@@ -181,6 +181,18 @@ func TestProjectWalletAssignments(t *testing.T) {
 			t.Fatalf("sync auth %s %s: %d %s", test.uid, test.card, w.Code, w.Body.String())
 		}
 	}
+	for _, test := range []struct {
+		uid, card string
+		code      int
+	}{{"staff", "old-card", 202}, {"staff-no-mfa", "old-card", 403}, {"staff", "outside-card", 409}} {
+		r := httptest.NewRequest("POST", "/admin-api/v1/channel-projections/wallet-source/cards/"+test.card+"/sync", nil)
+		r.Header.Set("Authorization", "Bearer "+test.uid)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != test.code {
+			t.Fatalf("admin sync scope %s %s: %d %s", test.uid, test.card, w.Code, w.Body.String())
+		}
+	}
 	// Importing a new card does not give it to the initial user; assign explicitly to Bob.
 	b.SourceAt = "2026-09-18T01:00:00Z"
 	b.Records = append(b.Records, card("new-card", "apexis"), trans("new-history", "new-card", "apexis"))
