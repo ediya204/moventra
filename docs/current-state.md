@@ -20,7 +20,7 @@
 | Slash 投影 | 已导入来源版本查询、客户卡片范围隔离、项目钱包与逐卡分配机制 | 手动导入与普通通知来源观察是两条链；刷新页面不触发上游采集，不宣称全历史覆盖 |
 | Slash 普通通知 | 验签、持久化收件箱、异步只读 GET 与来源观察已有上线及真实投递记录 | 独立于前端查询投影和账本；done 不等于入账或前端已更新。见[上线记录](../deploy/slash-webhook-online-2026-09-18.md) |
 | BIN 与开卡模块 | 正式供应商/BIN 目录、来源导入及三级价格；持久化随机卡名和默认 holder 请求规则代码已发布 | 8个产品已active，开卡费10 USD、最低首充20 USD；供应商仍暂停。真实发卡与首充未启用，独立 issuing-worker 已按prepare只读模式运行，默认 holder 真实行为未验收。见[BIN 发布](../deploy/2026-09-18-bin-catalog-sync.md)、[统一发布](../deploy/2026-09-18-session-consolidation.md) |
-| Blnk | 本地 shadow 多卡分户、持久化任务、Worker、观测和恢复工具；有私有服务基础设施记录 | 生产账本未激活，不能作为真实可消费余额；不代表完成上游资金池对账。见[接入规范](integrations/blnk.md)、[私有服务记录](releases/2026-09-18-blnk-private-service.md) |
+| Blnk | 本地 shadow 多卡分户、持久化任务、Worker、观测和恢复工具；有私有服务基础设施记录 | 全量资金未激活；指定客户TRC20限额充值已入账0.1 USDT，其他消费/出金能力未因此开放；不代表完成上游资金池对账。见[接入规范](integrations/blnk.md)、[私有服务记录](releases/2026-09-18-blnk-private-service.md) |
 | 客户卡片详情扩展 | 四标签、资金记录与敏感展示方案 | DESIGN；不能由规划推断 PAN/CVV、充值或转出已接通。见[详情规划](business/card-center-detail-plan-2026-09-18.md) |
 
 ## 当前工作区增量（未部署）
@@ -64,7 +64,7 @@ API与独立开卡Worker已发布2b4a905；私有Blnk替代实例TLS5443连接�
 
 ## 客户充值地址标准接入（已部署，观察模式）
 
-45a0d67已发布API与客户端，006/013/015迁移及原TRC20地址导入完成，Cregis回调已配置。地址管理与正式账本执行解耦，提供客户绑定、二维码复制与最近通知/详情；正式账本与自动入账继续关闭，见[发布记录](../deploy/2026-09-18-funds-center-release.md)。详见[流程及部署边界](business/deposit-address-integration.md)。
+45a0d67已发布API与客户端，006/013/015迁移及原TRC20地址导入完成，Cregis回调已配置。地址管理与正式账本执行解耦，提供客户绑定、二维码复制与最近通知/详情；该地址批次未开启自动入账；后续限额入账进展见下方，原发布见[发布记录](../deploy/2026-09-18-funds-center-release.md)。详见[流程及部署边界](business/deposit-address-integration.md)。
 
 ## 余额查询与人工资金代码发布（2026-09-18）
 
@@ -72,9 +72,9 @@ API与独立开卡Worker已发布2b4a905；私有Blnk替代实例TLS5443连接�
 
 2026-09-18 22:52香港时间：余额查询与人工资金代码60d3295已推送main，API与客户端/后台均部署成功；128项前端回归及隔离PG race通过，20项线上HTTP和6份静态产物核验通过。016生产迁移、独立资金权限及金融执行未启用，指定账户10,000 USD未入账。见[发布证据](../deploy/2026-09-18-balance-query-release.md)。
 
-### TRC20最多1 USDT入账验收候选
+### TRC20最多1 USDT入账验收已启用
 
-已实现固定客户/地址、累计额度、主网最终性和正式Blnk零期初准备，复用渠道通知及经济幂等记录。隔离并发/重复/超限/丢失记账响应恢复测试通过；线上TRON solidified节点只读检查成功。候选部署、正式账户准备和用户真实转入尚待执行，不能视为全量资金启用。见[限定验收流程](business/deposit-address-integration.md)。
+已实现固定客户/地址、累计额度、主网最终性和正式Blnk零期初准备，复用渠道通知及经济幂等记录。隔离并发/重复/超限/丢失记账响应恢复测试通过；线上TRON solidified节点只读检查成功。API256df25、客户端已部署，正式账户零创建，真实0.1 USDT已自动入账；Blnk与journal一致，重启无重复，剩余额度0.9 USDT。真实浏览器人工流程未复验，不能视为全量资金启用。发布证据见[本批记录](../deploy/2026-09-18-deposit-pilot.md)。见[限定验收流程](business/deposit-address-integration.md)。
 
 ## 卡片当前状态同步（2026-09-18，本地待发布）
 

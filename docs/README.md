@@ -137,3 +137,5 @@
 - [客户充值地址标准接入](business/deposit-address-integration.md)：地址复用、回调和入账边界。
 
 - [余额查询与人工出入金](business/platform-advance.md)：人工订单、独立审核与资金预占，真实资金启用边界独立验证。
+
+- [TRC20限额充值真实入账验收](../deploy/2026-09-18-deposit-pilot.md)：指定客户累计最多1 USDT，已完成0.1 USDT闭环及重启核对。
