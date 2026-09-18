@@ -348,6 +348,9 @@ func (s *Service) ProcessDeposit(ctx context.Context, id string) error {
 	return tx.Commit(ctx)
 }
 func (s *Service) Tick(ctx context.Context) error {
+	if !s.Enabled || s.Blnk == nil {
+		return ErrBlocked
+	}
 	rows, e := s.DB.Query(ctx, `SELECT id::text,'order' FROM issuing_orders WHERE state NOT IN ('active','failed','funding_failed','review_required') AND next_attempt_at<=now() UNION ALL SELECT id::text,'deposit' FROM issuing_deposits WHERE state='approved' LIMIT 20`)
 	if e != nil {
 		return e

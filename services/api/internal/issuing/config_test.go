@@ -42,3 +42,32 @@ func TestIssuingLocalConfig(t *testing.T) {
 		t.Fatal("default must be disabled")
 	}
 }
+
+func TestPreparationCannotExecute(t *testing.T) {
+	t.Setenv("ISSUING_MODE", "prepare")
+	t.Setenv("ISSUING_BLNK_URL", "https://moventra-blnk:5443")
+	t.Setenv("ISSUING_BLNK_KEY", "synthetic")
+	t.Setenv("ISSUING_BLNK_CA_PEM", "")
+	t.Setenv("LEDGER_MODE", "")
+	t.Setenv("BLNK_URL", "")
+	db, err := pgxpool.New(context.Background(), "postgresql:///moventra?host=/tmp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	svc, err := FromEnv(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if svc.Enabled || svc.Mode != "prepare" || len(svc.Providers) != 0 || svc.Blnk == nil {
+		t.Fatal("preparation capability incorrect")
+	}
+	if svc.Tick(context.Background()) != ErrBlocked {
+		t.Fatal("preparation executed work")
+	}
+	t.Setenv("ISSUING_MODE", "live")
+	t.Setenv("ISSUING_CERTIFICATION_FILE", "/nonexistent")
+	if _, err = FromEnv(db); err == nil {
+		t.Fatal("live bypassed evidence")
+	}
+}

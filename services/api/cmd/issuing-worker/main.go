@@ -20,6 +20,9 @@ func run() error {
 	if e != nil {
 		return e
 	}
+	if os.Getenv("ISSUING_MODE") == "prepare" {
+		cfg.ConnConfig.RuntimeParams["default_transaction_read_only"] = "on"
+	}
 	db, e := pgxpool.NewWithConfig(ctx, cfg)
 	if e != nil {
 		return e
@@ -29,7 +32,7 @@ func run() error {
 	if e != nil {
 		return e
 	}
-	if !svc.Enabled {
+	if !svc.Enabled && svc.Mode != "prepare" {
 		return errors.New("issuing_execution_disabled")
 	}
 	check, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -39,13 +42,23 @@ func run() error {
 		return e
 	}
 	ticker := time.NewTicker(3 * time.Second)
+	if svc.Mode == "prepare" {
+		ticker.Reset(time.Minute)
+	}
 	defer ticker.Stop()
 	for {
-		batch, done := context.WithTimeout(ctx, 45*time.Second)
-		e = svc.Tick(batch)
-		done()
-		if e != nil {
-			slog.Warn("issuing batch incomplete; durable retry retained")
+		if svc.Mode == "prepare" {
+			probe, done := context.WithTimeout(ctx, 5*time.Second)
+			e = svc.Blnk.CheckLedger(probe)
+			done()
+			slog.Info("issuing preparation", "ledgerReachable", e == nil, "executionEnabled", false)
+		} else {
+			batch, done := context.WithTimeout(ctx, 45*time.Second)
+			e = svc.Tick(batch)
+			done()
+			if e != nil {
+				slog.Warn("issuing batch incomplete; durable retry retained")
+			}
 		}
 		observation, end := context.WithTimeout(ctx, 2*time.Second)
 		var pending, unknown int

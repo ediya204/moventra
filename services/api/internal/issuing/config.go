@@ -21,7 +21,7 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	if mode == "local" {
 		return localService(s)
 	}
-	if mode != "live" {
+	if mode != "live" && mode != "prepare" {
 		return nil, errors.New("invalid_issuing_mode")
 	}
 	if os.Getenv("LEDGER_MODE") == "shadow" || strings.HasPrefix(db.Config().ConnConfig.Database, "moventra_shadow_") {
@@ -31,11 +31,15 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	if e != nil || u.Scheme != "https" || u.Host == "" || os.Getenv("ISSUING_BLNK_URL") == os.Getenv("BLNK_URL") {
 		return nil, errors.New("dedicated_tls_blnk_required")
 	}
-	c, e := blnk.New(u.String(), os.Getenv("ISSUING_BLNK_KEY"))
+	c, e := blnk.NewWithCA(u.String(), os.Getenv("ISSUING_BLNK_KEY"), os.Getenv("ISSUING_BLNK_CA_PEM"), mode == "prepare")
 	if e != nil {
 		return nil, e
 	}
 	s.Blnk = c
+	if mode == "prepare" {
+		s.Mode = "prepare"
+		return s, nil // No provider, execution flag, certification claim or posting.
+	}
 	path := os.Getenv("ISSUING_CERTIFICATION_FILE")
 	raw, e := os.ReadFile(path)
 	if e != nil {

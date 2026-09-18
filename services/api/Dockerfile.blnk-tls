@@ -1,0 +1,10 @@
+FROM golang:1.26.5-alpine AS build
+WORKDIR /src
+COPY cmd/blnk-tls ./
+RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /blnk-tls main.go
+
+# Same immutable Blnk version and data stores as the existing private service.
+FROM docker.io/jerryenebeli/blnk:0.15.4@sha256:741665b0d7d5a1c6dc0a989aacf249c05637c52dcf96163c67f9d7a7010ec22d
+COPY --from=build /blnk-tls /usr/local/bin/blnk-tls
+EXPOSE 5443
+CMD ["/usr/local/bin/blnk-tls"]

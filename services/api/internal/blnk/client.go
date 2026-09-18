@@ -4,6 +4,8 @@ package blnk
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"io"
@@ -24,6 +26,7 @@ var token = regexp.MustCompile(`^[A-Za-z0-9_-]{1,180}$`)
 type Client struct {
 	base, key string
 	http      *http.Client
+	readOnly  bool
 }
 type Balance struct {
 	ID            string   `json:"balance_id"`
@@ -69,6 +72,9 @@ func New(base, key string) (*Client, error) {
 	return &Client{base: u.Scheme + "://" + u.Host, key: key, http: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
 func (c *Client) call(ctx context.Context, method, path string, input, output any) error {
+	if c.readOnly && method != http.MethodGet {
+		return errors.New("blnk_read_only")
+	}
 	var body io.Reader
 	if input != nil {
 		data, err := json.Marshal(input)
@@ -110,6 +116,43 @@ func (c *Client) call(ctx context.Context, method, path string, input, output an
 	}
 	if output != nil && json.Unmarshal(data, output) != nil {
 		return ErrUnknown
+	}
+	return nil
+}
+
+// NewWithCA trusts only the supplied private CA, preserving hostname and expiry
+// verification. A preparation client cannot submit any Blnk writes.
+func NewWithCA(base, key, caPEM string, readOnly bool) (*Client, error) {
+	c, err := New(base, key)
+	if err != nil {
+		return nil, err
+	}
+	if caPEM != "" {
+		u, _ := url.Parse(base)
+		roots := x509.NewCertPool()
+		if u.Scheme != "https" || !roots.AppendCertsFromPEM([]byte(caPEM)) {
+			return nil, errors.New("invalid_blnk_ca")
+		}
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.Proxy = nil
+		transport.TLSClientConfig = &tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12}
+		c.http.Transport = transport
+	}
+	c.readOnly = readOnly
+	return c, nil
+}
+
+// CheckLedger authenticates with a read-only request; /health alone does not
+// prove the API key or ledger identity is usable.
+func (c *Client) CheckLedger(ctx context.Context) error {
+	var ledger struct {
+		ID string `json:"ledger_id"`
+	}
+	if err := c.call(ctx, http.MethodGet, "/ledgers/general_ledger_id", nil, &ledger); err != nil {
+		return err
+	}
+	if ledger.ID != "general_ledger_id" {
+		return ErrConflict
 	}
 	return nil
 }
