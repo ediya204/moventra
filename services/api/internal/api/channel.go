@@ -328,7 +328,10 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		coverage = "项目钱包内已明确归属本用户的卡片及对应交易；不含其他用户或其他钱包。仅已导入来源记录，不代表完整历史或个人可用资金。"
 	}
 	if kind == "card" && (!client || walletScoped) {
-		coverage += " 已启用同步的卡片由渠道通知和定时回查更新状态；每卡标示核验时间，交易仍按原导入范围。"
+		coverage = "卡片基础资料保留导入版本；已启用同步的卡片由渠道通知和定时回查更新状态，每卡标示核验时间。交易仍按原导入范围，不代表资金余额。"
+		if client {
+			coverage = "仅展示正式归属本用户的项目钱包卡片。" + coverage
+		}
 	}
 	respond(w, 200, map[string]any{"data": map[string]any{"rows": data, "total": total, "page": page, "revision": revision, "sourceAt": sourceAt, "importedAt": importedAt, "complete": false, "syncMode": mode, "coverageReason": coverage}})
 }
