@@ -1,5 +1,7 @@
 # Moventra 部署记录
 
+2026-09-18 已完成改动统一发布范围与验证见 [发布清单](2026-09-18-completed-work-release.md)。并行开发的未完成改动不在本次范围，部署结果以平台记录为准。
+
 2026-09-18 后续：已部署 Blnk 私有服务，复用现有 PostgreSQL 实例；详见 [资源与验证记录](../docs/releases/2026-09-18-blnk-private-service.md)。应用真实记账尚未切换。
 
 2026-09-18 Blnk 集成发布见 [本次记录](../docs/releases/2026-09-18-blnk-shadow.md)；生产账本保持关闭，未迁移生产余额。

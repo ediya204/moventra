@@ -34,3 +34,14 @@ Meta 固定请求 `meta.com` 图标，避免模糊名称查询命中其他同名
 接口形式核验：[域名图标](https://www.logo.dev/docs/logo-images/get)、[名称匹配](https://www.logo.dev/docs/logo-images/name)。名称查询取首个搜索结果，内部别名映射不代表渠道确认的商户身份。
 
 本次修复验证：正式仓库 37 项测试通过，两端类型检查与构建通过；旧本地 9 项相关测试及构建通过。浏览器确认 METAPAY 记录实际加载 Meta 图片（32px），未触发手动同步或金融写入。
+
+
+## FLOW-MERCHANT-LOGO-02 正式客户快照补齐（2026-09-18）
+
+- 基线：5cdc929；独立工作树 `/private/tmp/moventra-fix-card-snapshot-logos`，分支 `codex/fix-card-snapshot-logos`。原客户绑定工作树和主目录不修改。
+- 目标与页面：`/portal/transactions` 卡片交易区 → `/portal/card-transactions/:id` → `/portal/cards/:id` 关联交易，恢复列表32px及详情56px图标。沿用原有深链、分页、返回上下文。
+- 接口链及身份：沿用 FLOW-CARD-TEST-01 的 liveGet → 同域网关 → Go 客户主体/逐卡快照授权 → 来源投影；仅将返回 merchant 交给现有 MerchantCell/MerchantLogo。没有接口、金额、状态、授权、审计或持久化变化。运营端仍用相同共享组件。
+- 图片链：规范品牌名 → Logo.dev；保留原始商户文字，原始交易描述不进入图片URL。未知商户为本地商店图标，图片失败为品牌首字母，页面显示 Logo.dev 署名。
+- 验证：`node --test tests/frontend/card-snapshot.test.mjs tests/frontend/merchant-logo.test.mjs` 11项通过，覆盖三个实际页面入口的图片、原文、尺寸、署名、加载失败以及既有分页/深链/错误恢复。`pnpm build:client` 类型检查及生产构建通过；`git diff --check` 通过。
+- 外部图片实测：沿用组件公开key请求规范 Facebook 品牌，HTTP 200、image/png、6976字节且PNG签名有效。未发送交易描述或用户/卡ID。
+- 交付：设计和本地实现完成；自动化通过；真实金融渠道验证不适用（纯展示修复）；浏览器人工验收未执行；未部署、未修改生产数据库。

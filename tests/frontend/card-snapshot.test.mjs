@@ -37,9 +37,10 @@ const {pathToFileURL}=await import('node:url');
 const require=createRequire(import.meta.url);
 const uri=value=>'data:text/javascript;base64,'+Buffer.from(value).toString('base64');
 const fixture=globalThis.__cardSnapshotUI={requests:[]};
-const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({children,...props})=>React.createElement('div',props,children);export const Alert=Pass,Box=Pass,CircularProgress=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
+const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
 const api=uri(`export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,resolve,reject}));`);
-const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
+const logo=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/MerchantLogo.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace('import.meta.env.VITE_LOGO_DEV_PUBLISHABLE_KEY','undefined').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./merchantBrand'?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:pathToFileURL(require.resolve(name)).href));
+const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
 const CardSnapshots=(await import(uri(component))).default;
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const content=node=>typeof node==='string'?node:Array.isArray(node)?node.map(content).join(''):node?.children?content(node.children):'';
@@ -57,4 +58,27 @@ test('direct card and transaction links load authoritative details and linked ro
  let view=await mount('/portal/cards/c1?connection=slash');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests[1].path,base+'/slash/cards/c1');assert.match(fixture.requests[2].path,/transactions\?cardId=c1/);
  await act(async()=>{fixture.requests[1].resolve(page([{id:'c1',cardName:'Card one'}]));fixture.requests[2].resolve(page([{id:'t1',cardId:'c1',amountCents:'-9007199254740993',detailedStatus:'settled'}]));await flush()});assert.match(content(view.toJSON()),/90071992547409\.93/);await act(()=>view.unmount());
  view=await mount('/portal/card-transactions/t1?connection=slash');await act(async()=>{fixture.requests[0].resolve(connections);await flush()});assert.equal(fixture.requests[1].path,base+'/slash/transactions/t1');await act(async()=>{fixture.requests[1].resolve(page([{id:'t1',cardId:'c1',amountCents:'0',status:'posted',detailedStatus:'refund'}]));await flush()});assert.match(content(view.toJSON()),/USD 0\.00/);assert.match(content(view.toJSON()),/退款/);await act(()=>view.unmount());
+});
+
+test('merchant images appear in snapshot list, card-linked rows and transaction detail',async()=>{
+ for(const path of ['/portal/transactions?connection=slash','/portal/cards/c1?connection=slash','/portal/card-transactions/t1?connection=slash']){
+  const view=await mount(path);
+  await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+  const row={id:'t1',cardId:'c1',merchant:'FACEBK *PRIVATE-ORDER-123',amountCents:'0'};
+  await act(async()=>{
+   fixture.requests[1].resolve(page(path.startsWith('/portal/cards/')?[{id:'c1',cardName:'Card one'}]:[row]));
+   if(fixture.requests[2])fixture.requests[2].resolve(page([row]));
+   await flush();
+  });
+  const img=view.root.findByType('img');
+  assert.match(img.props.src,/name\/Facebook/);
+  assert.ok(!img.props.src.includes('PRIVATE-ORDER'));
+  assert.equal(img.props.width,path.includes('/card-transactions/')?56:32);
+  assert.match(content(view.toJSON()),/FACEBK \*PRIVATE-ORDER-123/);
+  assert.match(content(view.toJSON()),/Logos provided by Logo.dev/);
+  await act(()=>img.props.onError());
+  assert.equal(view.root.findAllByType('img').length,0);
+  assert.match(content(view.toJSON()),/FACEBK \*PRIVATE-ORDER-123/);
+  await act(()=>view.unmount());
+ }
 });
