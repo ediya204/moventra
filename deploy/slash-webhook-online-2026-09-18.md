@@ -62,4 +62,3 @@ Slash 普通通知 → `POST /webhooks/slash` → 原始字节 RSA/SHA256 验签
 - 旧 Apexis `:80` 通知保持 Active，`:8000` 保持 Paused。未创建真实金融写请求，未清理试用数据。
 - 2026-09-18T03:11:15Z 后续状态：68 次投递，39 done / 39 observations，29 queued，1 个启用连接；积压持续下降，无 review/ignored。队列由已部署进程继续处理，这不是全量历史同步完成声明。
 - 本次全量 Go/PostgreSQL race 测试通过；数据库故障、同事件重复压力与恢复测试为本地验证，不声称在线故障注入。
-
