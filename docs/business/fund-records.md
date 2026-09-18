@@ -1,6 +1,6 @@
 # 统一资金记录
 
-2026-09-19，FLOW-FUND-RECORDS-001。本地实现，尚未部署；真实渠道与真实登录未验收。
+2026-09-19，FLOW-FUND-RECORDS-001。运行源码b1b27fb已发布API及两端Worker；真实渠道与真实登录后的数据查询未验收。精确版本与本轮验证见[发布记录](../../deploy/2026-09-19-fund-records-release.md)。
 
 ## 目标与数据口径
 
@@ -25,7 +25,7 @@
 | 权限 | 客户 personal_owner_id；后台角色/MFA，crypto read、manual read、issuing customer:read 分别校验；直接换 ID 返回404；审计失败503 |
 | 异常恢复 | 加载、空集、筛选空集、无权限/不存在、API故障与重试；旧响应被取消并忽略，不覆盖新筛选 |
 | 验收 | E01–E06、E08–E09；E07验证重复读取不增分录、同单不同证据不重复生成列表；不涉及资金写入 |
-| 待定决策 | 本批无未定业务政策；生产发布交给唯一发布入口，真实认证和线上查询另行验收 |
+| 待定决策 | 本批无未定业务政策；已由唯一发布入口完成发布；真实认证和线上查询仍待验收 |
 
 ## 查询与兼容
 
@@ -91,3 +91,7 @@ tests/frontend/client-workspace.test.mjs
 tests/frontend/fund-records-preview.mjs
 tests/frontend/fund-records.test.mjs
 ```
+
+## 发布补充
+
+本发布任务复跑191项前端/网关、隔离PG race、两端构建、Go vet/build与文档检查均通过；线上74份JS/CSS与产物一致，API健康、未认证拒绝及跨端隔离通过。没有生产迁移或真实资金操作，前文“未提交/部署”属于实现任务结束时的历史证据。
