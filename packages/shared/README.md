@@ -20,3 +20,8 @@
 
 
 2026-09-19：新增 `SectionNavigation` 路由分区导航与 `FundsNavigation`，支持手机横向滚动和选中入口可见；`SessionPage` 的 `embedded` 参数用于客户安全页，默认认证页保持独立。资金表单及记录采用一致的容器与响应式布局，见[客户端页面统一](../../docs/frontend/client-workspace-layout.md)。本地未部署。
+
+
+## 2026-09-19 卡片中心发布
+
+ChannelCardStatus为双端卡片原始状态提供统一浅色标签与语义图标，不修改状态逻辑。

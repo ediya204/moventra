@@ -103,3 +103,8 @@
 2026-09-19 卡片中心 UI 本地增量：`/portal/cards` 使用已有 `keyword/cardStatus` 服务端筛选，`cardSort` 仅前端当前页排序，不传入 API；来源、分页与条件保留 URL/详情返回。申请新卡与订单入口移至顶部，不新增路由、API 或权限。见[流程与验证](customer-card-binding.md#flow-card-center-ux-01--卡片中心布局与筛选2026-09-19本地)。
 
 2026-09-19本地卡片详情扩展（未部署）：`/portal/cards/:id?connection=…&tab=overview|transactions|funding|deposit|withdraw`，资金订单以受限站内returnTo恢复卡片上下文。新开卡经服务器唯一映射进入相同详情。详见[卡片详情FLOW](customer-card-binding.md#flow-card-detail-001卡片详情与充提2026-09-19)。
+
+
+## 2026-09-19 卡片中心发布
+
+卡片中心沿用card-projections查询链；keyword/cardStatus服务端筛选，cardSort仅本页排序。来源与页码随详情返回保留，不新增API、金融写操作或权限。
