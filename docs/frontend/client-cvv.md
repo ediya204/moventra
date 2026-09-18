@@ -4,7 +4,7 @@
 
 客户正式卡片详情已接入临时 CVV 展示及独立 Go 查询接口。用户已决定本期不做二次验证：沿用现有 Firebase Bearer 登录，每次复核客户、连接、卡片当前归属及有效用户状态；不引入旧原型的 HttpOnly BFF 会话合同。下方历史正文保留原设计，不覆盖本节。
 
-`POST /client-api/v1/customers/:customerID/card-projections/:connection/cards/:id/cvv/reveal`，请求体仅 purpose=cardholder-view。当前来源须为正式项目钱包归属且存在有效 card_sync_links / slash_hook_connections。服务端配置 `CARD_CVV_ENABLED=true` 与既有 `SLASH_API_KEY` 才启用；默认关闭。本批没有配置生产环境或真实读取安全码。
+`POST /client-api/v1/customers/:customerID/card-projections/:connection/cards/:id/cvv/reveal`，请求体仅 purpose=cardholder-view。当前来源须为正式项目钱包归属且存在有效 card_sync_links / slash_hook_connections。服务端配置 `CARD_CVV_ENABLED=true` 与既有 `SLASH_API_KEY` 才启用；默认关闭。2026-09-19已获授权配置生产开关并部署，真实安全码未读取，见[发布记录](../../deploy/2026-09-19-card-detail-cvv-release.md)。
 
 服务端每次实时 GET Slash Vault 单卡 include_cvv=true&include_pan=false，仅请求CVV并解析归属验证字段，丢弃上游任何额外PAN字段；不使用投影导入或来源事件持久化链。上游失败使用固定错误，网关不透传错误正文。响应 private, no-store，前端拒绝缺少no-store的成功响应。成功响应未套通用data封套，避免进入通用查询状态。
 
