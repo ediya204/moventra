@@ -1,6 +1,6 @@
 # FLOW-CLIENT-ISSUING-001：客户端开卡闭环
 
-当前（2026-09-19）：第一批统一资金中心 USD 开卡已在本地实现，使用现有 Blnk 主钱包和卡分户，详见本文后半部分 FLOW-ISSUING-UNIFIED-001。尚未部署；以下2026-09-18内容保留为独立钱包阶段的历史基线。
+当前（2026-09-19）：第一批统一资金中心 USD 开卡代码已部署，生产022已迁移；API与开卡Worker配置`ISSUING_FUNDING_SOURCE=funds_wallet`、`ISSUING_MODE=prepare`，保留旧开卡账本连接。真实发卡、扣款和首充仍关闭，渠道验收未完成。详见[生产迁移及开关记录](../../deploy/2026-09-19-production-migrations-and-switches.md)及本文后半部分 FLOW-ISSUING-UNIFIED-001。以下2026-09-18内容保留为独立钱包阶段的历史基线。
 
 历史日期：2026-09-18。隔离资金闭环已验收；生产目录与应用发布进度见[发布记录](../../deploy/2026-09-18-client-issuing-release.md)，真实执行未开放。实现基线为 main `1ed842a`，发布代码 `92cad84`。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，独立发布保留并行数字货币模块改动。
 
@@ -100,11 +100,11 @@ API与独立Worker已发布2b4a905，Blnk私有CA认证连接及Worker重启检�
 
 本轮完成代码、隔离测试数据和账户路径盘点，未连接生产数据库。生产两套钱包余额、在途订单、历史卡授权占用及归属仍须逐笔只读盘点。旧开卡钱包退出统一模式下的新入金业务，历史记录保留；未完成旧入金留待核查，不能直接转入主钱包。历史余额迁移必须使用有来源、审批和审计的迁移分录，禁止覆盖余额。拥有旧快照但尚无项目归属的客户由 `card_scope_migration_required` 阻止隐式迁移。
 
-### 配置、迁移与回退候选
+### 配置、迁移与回退
 
 统一模式显式配置 `ISSUING_FUNDING_SOURCE=funds_wallet`，复用资金中心 `DEPOSIT_PILOT_BLNK_*` 连接及 `DEPOSIT_ADDRESS_NAMESPACE`；正式模式还要求既有资金执行开关和验收证据，开卡验收文件必须固定同一资金来源和 namespace。旧开卡 Blnk 连接需继续保留供历史订单恢复。prepare 只读模式不会发卡或扣款。
 
-迁移022仅增加新卡归属回执及来源投影兼容视图，不搬迁余额。受控命令 `api migrate-issuing-unified` 核验001–020校验和，仅执行022，不顺带执行消息迁移021。后续生产方案依次为：获授权后只读盘点、备份校验与隔离恢复、执行022、关闭执行开关部署、指定客户与产品验收、核对真实扣款/发卡/启用/退款证据后扩大。回退先关闭执行，保留022、原订单快照和账本，继续查询和核查；不得删除在途记录或改退款账户。
+迁移022仅增加新卡归属回执及来源投影兼容视图，不搬迁余额。受控命令 `api migrate-issuing-unified` 核验001–020校验和，仅执行022，不顺带执行消息迁移021。2026-09-19已完成备份校验与隔离恢复、生产022及prepare配置部署，89项原表/视图迁移前后摘要一致，开卡订单0。后续仍须指定客户与产品验收，核对真实扣款/发卡/启用/退款及对账证据；存量卡逐笔授权与余额盘点没有由本批结构校验替代。回退先关闭执行，保留022、原订单快照和账本，继续查询和核查；不得删除在途记录或改退款账户。
 
 ### 本轮验证边界
 
@@ -114,4 +114,4 @@ API与独立Worker已发布2b4a905，Blnk私有CA认证连接及Worker重启检�
 
 复现统一专项：新的本地 Blnk 数据库与 Redis、设置 BLNK_TEST_URL/KEY 后，在新建 moventra_test_ 应用库运行 `go test -race -count=1 -run '^TestIssuingUnifiedFunds$' ./internal/api`。浏览器增加 `ISSUING_BROWSER_UNIFIED=1`；使用模拟 Blnk 时同时设置 `ISSUING_BROWSER_FAKE_BLNK=1`。`live_issuing_test_` namespace 仅在本地隔离模式及 loopback 检查通过后用于正式响应结构测试，不代表启用生产。
 
-本轮未执行生产迁移、部署、真实渠道发卡或真实资金操作。
+以上隔离实施阶段未执行生产迁移或部署；后续生产022与prepare部署以本文开头的发布记录为准。真实渠道发卡与资金执行仍未验收。

@@ -192,6 +192,8 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 ## 统一 USD 开卡增量（2026-09-19，本地）
 
 统一开卡配置与资金路径见 [流程说明](../../docs/business/client-card-issuing.md)。`ISSUING_FUNDING_SOURCE=funds_wallet` 复用资金中心 Blnk；API/Worker要求022校验通过。`api migrate-issuing-unified` 只执行022，保留旧单账本。测试本地 loopback 模式不授权生产执行。
+
+2026-09-19生产已显式执行021/022，消息查询及自动OTC处理启用、主动发送关闭；API/开卡Worker使用统一钱包prepare模式。准确配置、备份恢复与部署证据见[生产迁移及开关记录](../../deploy/2026-09-19-production-migrations-and-switches.md)，不代表真实发卡验收。
 ## 2026-09-19 卡片历史与指标
 
 已上线：card-metrics-plan/enroll/status/retry、migrate-card-metrics及只读回填任务/交易指标投影。020已定向迁移，CARD_METRICS_ENABLED=true，指定23张卡初始化完成；见[流程与命令](../../docs/business/card-metrics.md)。

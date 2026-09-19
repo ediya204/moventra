@@ -36,7 +36,8 @@
 
 ## 全站业务逻辑
 
-- [统一消息中心：OTC通知与运营站内信（本地实现，未部署）](business/message-center.md)
+- [统一消息中心：自动OTC通知已启用，运营主动发送关闭](business/message-center.md)
+- [2026-09-19 生产021/022迁移与统一钱包prepare配置](../deploy/2026-09-19-production-migrations-and-switches.md)
 
 - [业务总览：角色、流程、模块与数据边界](business/README.md)
 - [身份、开户与正式访问流程](business/identity-and-production.md)

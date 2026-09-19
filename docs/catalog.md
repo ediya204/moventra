@@ -41,6 +41,7 @@
 - [卡片列表精简发布（2026-09-19）](../deploy/2026-09-19-card-list-refinement-release.md) — `deploy/2026-09-19-card-list-refinement-release.md`
 - [卡片历史与指标生产发布 — 2026-09-19](../deploy/2026-09-19-card-metrics-release.md) — `deploy/2026-09-19-card-metrics-release.md`
 - [统一资金记录第二批发布 — 2026-09-19](../deploy/2026-09-19-fund-records-release.md) — `deploy/2026-09-19-fund-records-release.md`
+- [生产消息与统一钱包迁移、开关调整 — 2026-09-19](../deploy/2026-09-19-production-migrations-and-switches.md) — `deploy/2026-09-19-production-migrations-and-switches.md`
 - [会话修复上线与换机交接](../deploy/2026-09-19-session-and-handoff.md) — `deploy/2026-09-19-session-and-handoff.md`
 - [2026-09-19 交易页面发布](../deploy/2026-09-19-transaction-ui-release.md) — `deploy/2026-09-19-transaction-ui-release.md`
 - [Moventra 部署记录](../deploy/README.md) — `deploy/README.md`
