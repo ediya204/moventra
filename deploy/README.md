@@ -1,5 +1,7 @@
 # Moventra 部署记录
 
+2026-09-19 最新统一发布：63371c7、两端Cloudflare、Render API/开卡Worker及023卡备注迁移均完成；见[统一发布记录](2026-09-19-consolidated-ui-release.md)。
+
 2026-09-19 最新运维批次：生产021/022、消息查询及自动OTC通知、统一钱包prepare配置与API/开卡Worker部署完成。真实发卡和运营主动发送保持关闭，详见[迁移、备份与开关证据](2026-09-19-production-migrations-and-switches.md)。下方记录保留各自历史发布范围。
 
 2026-09-18 正式资金展示已发布，测试入口及API关闭，历史数据保留隔离；见[生产资金展示](2026-09-18-production-funds-view.md)。

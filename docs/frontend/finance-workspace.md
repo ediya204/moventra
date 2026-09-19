@@ -1,5 +1,7 @@
 # 资金与财务工作台
 
+2026-09-19 发布补充：财务工作台已随 `63371c7` 发布；迁移、测试、平台版本和验收限制见[统一发布记录](../../deploy/2026-09-19-consolidated-ui-release.md)。下方较早的“本地未部署”段落保留原实现阶段证据，不代表本批当前部署状态。
+
 2026-09-19，本地实现，待统一发布。范围为后台正式财务路由；不调整客户端业务、账本计算、接口或生产开关。沿用 [UI 规则](ui-theme.md)、[人工资金](../business/platform-advance.md)、[数字货币资金](../business/cregis-funds.md)与[资金记录](../business/fund-records.md)。
 
 ## FLOW-FINANCE-UI-002

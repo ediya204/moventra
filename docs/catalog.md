@@ -40,6 +40,7 @@
 - [卡片详情与CVV发布（2026-09-19）](../deploy/2026-09-19-card-detail-cvv-release.md) — `deploy/2026-09-19-card-detail-cvv-release.md`
 - [卡片列表精简发布（2026-09-19）](../deploy/2026-09-19-card-list-refinement-release.md) — `deploy/2026-09-19-card-list-refinement-release.md`
 - [卡片历史与指标生产发布 — 2026-09-19](../deploy/2026-09-19-card-metrics-release.md) — `deploy/2026-09-19-card-metrics-release.md`
+- [2026-09-19 会话改动统一发布](../deploy/2026-09-19-consolidated-ui-release.md) — `deploy/2026-09-19-consolidated-ui-release.md`
 - [统一资金记录第二批发布 — 2026-09-19](../deploy/2026-09-19-fund-records-release.md) — `deploy/2026-09-19-fund-records-release.md`
 - [正式人工出入金启用与原单入账 — 2026-09-19](../deploy/2026-09-19-manual-funds-activation.md) — `deploy/2026-09-19-manual-funds-activation.md`
 - [生产消息与统一钱包迁移、开关调整 — 2026-09-19](../deploy/2026-09-19-production-migrations-and-switches.md) — `deploy/2026-09-19-production-migrations-and-switches.md`

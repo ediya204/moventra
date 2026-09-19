@@ -1,5 +1,7 @@
 # FLOW-CLIENT-ISSUING-001：客户端开卡闭环
 
+2026-09-19 发布补充：开卡页面排版已随 `63371c7` 发布；迁移、测试、平台版本和验收限制见[统一发布记录](../../deploy/2026-09-19-consolidated-ui-release.md)。下方较早的“本地未部署”段落保留原实现阶段证据，不代表本批当前部署状态。
+
 当前（2026-09-19）：第一批统一资金中心 USD 开卡代码已部署，生产022已迁移；API与开卡Worker配置`ISSUING_FUNDING_SOURCE=funds_wallet`、`ISSUING_MODE=prepare`，保留旧开卡账本连接。真实发卡、扣款和首充仍关闭，渠道验收未完成。详见[生产迁移及开关记录](../../deploy/2026-09-19-production-migrations-and-switches.md)及本文后半部分 FLOW-ISSUING-UNIFIED-001。以下2026-09-18内容保留为独立钱包阶段的历史基线。
 
 历史日期：2026-09-18。隔离资金闭环已验收；生产目录与应用发布进度见[发布记录](../../deploy/2026-09-18-client-issuing-release.md)，真实执行未开放。实现基线为 main `1ed842a`，发布代码 `92cad84`。工作目录为 `/Users/ediya/Documents/ChatGPT/moventra`，独立发布保留并行数字货币模块改动。
