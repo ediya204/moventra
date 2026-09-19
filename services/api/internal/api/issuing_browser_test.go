@@ -170,12 +170,53 @@ func TestIssuingBrowserHarness(t *testing.T) {
 	} else if e = svc.ProcessDeposit(ctx, dep); e != nil {
 		t.Fatal(e)
 	}
+	if os.Getenv("ISSUING_BROWSER_PILOT") == "1" {
+		if !unified {
+			t.Fatal("pilot browser requires unified isolated wallet")
+		}
+		_, e = db.Exec(ctx, `UPDATE issuing_products SET bin='43612080',fee_minor=1000,minimum_minor=2000 WHERE id=$1`, product.ID)
+		if e != nil {
+			t.Fatal(e)
+		}
+		svc.Pilot = &issuing.PilotAuthorization{CustomerID: personal, ProductID: product.ID, SupplierID: sid, OrderID: uuid.NewString(), BIN: "43612080", FundsNamespace: svc.Funds.Namespace, FeeCapMinor: "1000", FundingMinor: "2000", TotalCapMinor: "3000", ExpiresAt: time.Now().Add(time.Hour), EvidenceRef: "isolated-browser-only", KeyEnv: "ISSUING_SLASH_KEY_FIXTURE", Entity: "fixture_entity", Account: "fixture_account"}
+		svc.Mode = "pilot" // Only this opt-in loopback test; no production env bypass.
+		tx, e := db.Begin(ctx)
+		if e != nil {
+			t.Fatal(e)
+		}
+		if e = svc.ConfigurePilot(ctx, tx, "00000000-0000-0000-0000-000000000003"); e != nil {
+			tx.Rollback(ctx)
+			t.Fatal(e)
+		}
+		if e = tx.Commit(ctx); e != nil {
+			t.Fatal(e)
+		}
+	}
 	var isolatedFunds *cryptofunds.Service
 	if unified {
 		isolatedFunds = &cryptofunds.Service{Ledger: svc.Funds, Live: &cryptofunds.LiveRuntime{Networks: map[string]cryptofunds.NetworkConfig{}}}
 	}
 	server := httptest.NewServer((&Server{DB: db, Verifier: issuingVerifier{}, Issuing: svc, Ledger: svc.Funds, ProductionFunds: isolatedFunds}).Handler())
 	defer server.Close()
+	if svc.Pilot != nil {
+		data, _ := json.Marshal(map[string]string{"api": server.URL, "customerId": personal, "productId": product.ID})
+		if e = os.WriteFile(output, data, 0600); e != nil {
+			t.Fatal(e)
+		}
+		fmt.Println("isolated pilot browser harness ready")
+		deadline := time.Now().Add(15 * time.Minute)
+		for time.Now().Before(deadline) {
+			if _, err := os.Stat(output + ".stop"); err == nil {
+				return
+			}
+			if e = svc.Tick(ctx); e != nil {
+				t.Fatal(e)
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+		t.Fatal("pilot browser harness timed out")
+		return
+	}
 	workerPath := os.Getenv("ISSUING_WORKER_BINARY")
 	if workerPath == "" {
 		t.Fatal("separate worker binary required")

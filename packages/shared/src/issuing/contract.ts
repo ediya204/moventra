@@ -43,6 +43,7 @@ export type Quote = {
   expiresAt: string;
 };
 export type Order = {
+  pilot?: boolean;
   fundingSource?: "funds_wallet" | "issuing_wallet";
   fundingAccountId?: string | null;
   consent?: { version: string; digest: string; text: string; acceptedAt: string } | null;
@@ -86,9 +87,15 @@ export const statuses: Record<string, string> = {
 };
 export const orderStatuses = { ...statuses, active: "开卡成功", failed: "开卡未完成", funding_failed: "首充失败 · 可补充充值" };
 export type Terms = { version: string; text: string; digest: string };
-export type Wallet = { availableMinor: string; currency: "USD"; mode: string; fundingSource?: "funds_wallet" | "issuing_wallet"; executionEnabled?: boolean };
+export type Wallet = { availableMinor: string; currency: "USD"; mode: string; fundingSource?: "funds_wallet" | "issuing_wallet"; executionEnabled?: boolean; pilot?: {bin: string; maxCards: number; fundingMinor: string; feeCapMinor: string; totalCapMinor: string; expiresAt: string} | null };
 export type IssuedCard = { projection?:{connection:string;cardId:string}; order: Order; balanceMinor: string | null; balanceStatus: string; currency: "USD" };
 export const reasons: Record<string, string> = {
+  pilot_scope_required: "本次真实验收仅开放指定账号与产品",
+  pilot_expired: "本次验收申请时间已结束，已有订单仍可查询",
+  pilot_amount_limit: "本次仅支持20 USD首充，合计最多30 USD",
+  pilot_not_authorized: "验收授权尚未配置完成",
+  pilot_already_used: "本次验收名额已使用，请查看原开卡订单",
+
   consent_required: "请勾选合法用途声明和开卡条款",
   terms_changed: "开卡条款已更新，请重新阅读并确认",
   product_unconfigured: "产品费用或最低首充未配置",

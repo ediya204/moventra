@@ -37,7 +37,7 @@ func (s *Server) fundRecordAPI(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "fund_records_unavailable")
 		return
 	}
-	dedicated := s.Issuing != nil && ((svc.Ledger.IsLive() && (s.Issuing.Mode == "live" || s.Issuing.Mode == "prepare")) || (!svc.Ledger.IsLive() && s.Issuing.Mode == "isolated"))
+	dedicated := s.Issuing != nil && ((svc.Ledger.IsLive() && (s.Issuing.Mode == "live" || s.Issuing.Mode == "prepare" || s.Issuing.Mode == "pilot")) || (!svc.Ledger.IsLive() && s.Issuing.Mode == "isolated"))
 	tx, err := s.DB.Begin(r.Context())
 	if err != nil {
 		fail(w, 503, "fund_records_unavailable")

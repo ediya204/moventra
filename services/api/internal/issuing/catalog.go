@@ -219,6 +219,9 @@ func (s *Service) snapshot(ctx context.Context, tx pgx.Tx, customer, id string) 
 		}
 		err = nil
 	}
+	if s.Pilot != nil {
+		v.PilotAuthorization = hash(s.Pilot)
+	}
 	v.FeeMinor = v.Product.FeeMinor
 	v.PriceSource = "default"
 	var enabled, active bool
@@ -282,6 +285,9 @@ func (s *Service) snapshot(ctx context.Context, tx pgx.Tx, customer, id string) 
 		blocked = "execution_disabled"
 	case s.Providers[v.Supplier.ID] == nil:
 		blocked = "provider_not_verified"
+	}
+	if blocked == "" {
+		blocked, err = s.pilotAvailability(ctx, tx, customer, v)
 	}
 	return
 }

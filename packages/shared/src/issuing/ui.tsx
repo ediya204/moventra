@@ -63,7 +63,7 @@ export function orderPending(order: Order) {
 }
 export function OrderSummary({ order }: { order: Order }) {
   const status =
-    (orderStatuses as Record<string, string>)[order.state] || order.state;
+    order.pilot && order.state === "funding_failed" ? "首充失败 · 待核查" : (orderStatuses as Record<string, string>)[order.state] || order.state;
   const explanation: Record<string, string> = {
     queued: "订单已保存，等待钱包资金预占。",
     reserved: "开卡费和首充已转入订单在途分户。",
@@ -76,7 +76,7 @@ export function OrderSummary({ order }: { order: Order }) {
     active: "发卡、费用、首充记账和启用核验均已完成。",
     releasing: "正在退回预占资金，尚未确认退款完成。",
     funding_failed:
-      "开卡费已收取，首充已退回钱包。可对原卡补充首充，不再收开卡费。",
+      order.pilot ? "开卡费已收取，首充已退回钱包。本次验收不开放补充首充，请联系运营核查。" : "开卡费已收取，首充已退回钱包。可对原卡补充首充，不再收开卡费。",
     review_required: "需要运营核查；当前资金状态保持不变。",
     failed: "本次开卡未完成。未预占或已退回预占金额，详见处理记录。",
   };

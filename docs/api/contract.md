@@ -342,3 +342,9 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 ### 人工资金无需审核契约（2026-09-19，已发布）
 
 列表、详情及余额响应增加 `approvalRequired`。`MANUAL_FUNDS_REQUIRE_REVIEW=false` 时新建要求read/create/execute，入金创建为processing，出金先reserving；线下出金预占后awaiting_payment，须实际付款凭证。旧pending_review不会自动执行，有execute权限者可通过原单reconcile显式继续。审计保存approvalRequired=false，不伪造reviewer。缺省配置保留旧审核流程，接口revision和幂等规则不变。
+
+## 单卡试运行契约增量（2026-09-19）
+
+既有issuing钱包DTO的mode新增`pilot`，`pilot`为null或指定客户的`bin/maxCards=1/fundingMinor/feeCapMinor/totalCapMinor/expiresAt`；executionEnabled按客户范围计算。订单增加`pilot`布尔值，来自持久化快照，客户端与后台同义。机器契约见[issuing.openapi.json](../../services/api/docs/issuing.openapi.json)。
+
+产品阻塞原因增加`pilot_scope_required`、`pilot_expired`、`pilot_amount_limit`、`pilot_not_authorized`、`pilot_already_used`，沿用既有错误码及中文映射。Checkout接口和两项声明保持，无后台订单审批API；提交即queued，受限Worker自动处理。pilot禁止Topup与通用SyncCard；幂等重放仅返回原单。范围配置/审计仅经受信CLI，浏览器不能授予试运行额度。详见[流程](../business/client-card-issuing.md#flow-issuing-pilot-001单张真实试运行2026-09-19)。

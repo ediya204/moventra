@@ -169,7 +169,7 @@ func (s *Server) issuingAPI(w http.ResponseWriter, r *http.Request) {
 			case "wallet":
 				var balance string
 				balance, e = svc.Wallet(ctx, tx, customer)
-				result = map[string]any{"currency": "USD", "availableMinor": balance, "mode": svc.Mode, "fundingSource": svc.FundingSource(), "executionEnabled": svc.Enabled}
+				result = map[string]any{"currency": "USD", "availableMinor": balance, "mode": svc.Mode, "fundingSource": svc.FundingSource(), "executionEnabled": svc.ExecutionFor(customer), "pilot": svc.PilotView(customer)}
 			case "orders":
 				result, e = issuing.CustomerRead(ctx, tx, customer, resource, id, offset)
 			default:

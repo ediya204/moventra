@@ -133,6 +133,12 @@ func (s *Service) Process(ctx context.Context, id string) error {
 	if e = json.Unmarshal(raw, &o.Snapshot); e != nil {
 		return e
 	}
+	if supplierID != o.Snapshot.Supplier.ID {
+		return ErrBlocked
+	}
+	if e = s.pilotOrderAllowed(ctx, tx, o); e != nil {
+		return e
+	}
 	s, e = s.forSnapshot(o.Snapshot)
 	if e != nil {
 		return e
@@ -373,6 +379,23 @@ func (s *Service) ProcessDeposit(ctx context.Context, id string) error {
 func (s *Service) Tick(ctx context.Context) error {
 	if !s.Enabled || s.Blnk == nil {
 		return ErrBlocked
+	}
+	if s.Pilot != nil {
+		var due bool
+		if err := s.DB.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM issuing_orders WHERE id=$1 AND state NOT IN ('active','failed','funding_failed','review_required') AND next_attempt_at<=now())`, s.Pilot.OrderID).Scan(&due); err != nil {
+			return err
+		}
+		if !due {
+			return nil
+		}
+		err := s.Process(ctx, s.Pilot.OrderID)
+		if err != nil {
+			_, scheduleErr := s.DB.Exec(ctx, `UPDATE issuing_orders SET retry_count=LEAST(retry_count+1,10),next_attempt_at=now()+make_interval(secs => LEAST(300,5*power(2,LEAST(retry_count,6)))::double precision) WHERE id=$1`, s.Pilot.OrderID)
+			if scheduleErr != nil {
+				return scheduleErr
+			}
+		}
+		return err
 	}
 	rows, e := s.DB.Query(ctx, `SELECT id::text,'order' FROM issuing_orders WHERE state NOT IN ('active','failed','funding_failed','review_required') AND next_attempt_at<=now() UNION ALL SELECT id::text,'deposit' FROM issuing_deposits WHERE state='approved' LIMIT 20`)
 	if e != nil {

@@ -49,7 +49,7 @@ func (s *Slash) Transactions(ctx context.Context, card, cursor string) ([]Source
 var signedMinor = regexp.MustCompile(`^-?(0|[1-9][0-9]{0,17})$`)
 
 func (s *Service) SyncCard(ctx context.Context, id string) error {
-	if !s.Enabled || s.Blnk == nil {
+	if !s.Enabled || s.Blnk == nil || s.Pilot != nil {
 		return ErrBlocked
 	}
 	tx, e := s.DB.Begin(ctx)

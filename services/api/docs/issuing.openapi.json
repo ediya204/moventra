@@ -3189,6 +3189,7 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "pilot": {"type": "boolean"},
           "fundingSource": {"enum": ["funds_wallet", "issuing_wallet"]},
           "fundingAccountId": {"type": ["string", "null"], "format": "uuid"},
           "id": {
@@ -3322,7 +3323,8 @@
               "",
               "live",
               "prepare",
-              "isolated"
+              "isolated",
+              "pilot"
             ]
           },
           "fundingSource": {
@@ -3333,6 +3335,46 @@
           },
           "executionEnabled": {
             "type": "boolean"
+          },
+          "pilot": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "bin": {
+                "type": "string"
+              },
+              "maxCards": {
+                "type": "integer",
+                "const": 1
+              },
+              "fundingMinor": {
+                "type": "string",
+                "const": "2000"
+              },
+              "feeCapMinor": {
+                "type": "string",
+                "const": "1000"
+              },
+              "totalCapMinor": {
+                "type": "string",
+                "const": "3000"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "bin",
+              "maxCards",
+              "fundingMinor",
+              "feeCapMinor",
+              "totalCapMinor",
+              "expiresAt"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

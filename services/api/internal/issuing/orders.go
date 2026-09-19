@@ -26,13 +26,16 @@ func (s *Service) Quote(ctx context.Context, tx pgx.Tx, customer, productID, fun
 	if number(funding).Cmp(number(v.Product.MinimumMinor)) < 0 {
 		return q, ErrInvalid
 	}
+	if s.Pilot != nil && !s.Pilot.amountAllowed(v.FeeMinor, funding) {
+		return q, ErrBlocked
+	}
 	q = Quote{TermsVersion: s.Terms().Version, ID: uuid.NewString(), ProductID: productID, FeeMinor: v.FeeMinor, FundingMinor: funding, TotalMinor: add(v.FeeMinor, funding), PriceSource: v.PriceSource, ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Format(time.RFC3339)}
 	raw, _ := json.Marshal(v)
 	_, e = tx.Exec(ctx, `INSERT INTO issuing_quotes(id,customer_id,product_id,fingerprint,snapshot,fee_minor,funding_minor,expires_at,terms_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, q.ID, customer, productID, hash(v), raw, q.FeeMinor, funding, q.ExpiresAt, q.TermsVersion)
 	return q, e
 }
 
-const orderJSON = `jsonb_build_object('fundingSource',CASE WHEN COALESCE(snapshot->>'fundsNamespace','')='' THEN 'issuing_wallet' ELSE 'funds_wallet' END,'fundingAccountId',NULLIF(snapshot->>'fundsWalletId',''),'id',id,'customerId',customer_id,'productId',product_id,'state',state,'feeMinor',fee_minor::text,'fundingMinor',funding_minor::text,'last4',last4,'errorCode',error_code,'createdAt',created_at,'cardId',CASE WHEN external_card_id<>'' THEN COALESCE(parent_id,id)::text ELSE '' END,'parentId',COALESCE(parent_id::text,''),'cardName',COALESCE(snapshot->>'cardName',''),'productName',snapshot->'product'->>'name','bin',snapshot->'product'->>'bin')`
+const orderJSON = `jsonb_build_object('pilot',COALESCE(snapshot->>'pilotAuthorization','')<>'','fundingSource',CASE WHEN COALESCE(snapshot->>'fundsNamespace','')='' THEN 'issuing_wallet' ELSE 'funds_wallet' END,'fundingAccountId',NULLIF(snapshot->>'fundsWalletId',''),'id',id,'customerId',customer_id,'productId',product_id,'state',state,'feeMinor',fee_minor::text,'fundingMinor',funding_minor::text,'last4',last4,'errorCode',error_code,'createdAt',created_at,'cardId',CASE WHEN external_card_id<>'' THEN COALESCE(parent_id,id)::text ELSE '' END,'parentId',COALESCE(parent_id::text,''),'cardName',COALESCE(snapshot->>'cardName',''),'productName',snapshot->'product'->>'name','bin',snapshot->'product'->>'bin')`
 
 func OrderRead(ctx context.Context, tx pgx.Tx, customer, id string) (any, error) {
 	if !ValidID(id) {
@@ -105,6 +108,9 @@ func (s *Service) Submit(ctx context.Context, tx pgx.Tx, customer, quoteID, key 
 	if used {
 		return nil, ErrConflict
 	}
+	if s.Pilot != nil && !s.Pilot.amountAllowed(fee, funding) {
+		return nil, ErrBlocked
+	}
 	balance, e := s.Wallet(ctx, tx, customer)
 	if e != nil {
 		return nil, e
@@ -121,6 +127,9 @@ func (s *Service) Submit(ctx context.Context, tx pgx.Tx, customer, quoteID, key 
 		return nil, e
 	}
 	id := uuid.NewString()
+	if s.Pilot != nil {
+		id = s.Pilot.OrderID
+	}
 	_, e = tx.Exec(ctx, `INSERT INTO issuing_orders(id,customer_id,product_id,quote_id,idempotency_key,snapshot,fee_minor,funding_minor,state,supplier_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,'queued',$9)`, id, customer, productID, quoteID, key, raw, fee, funding, v.Supplier.ID)
 	if e != nil {
 		return nil, e
@@ -128,6 +137,9 @@ func (s *Service) Submit(ctx context.Context, tx pgx.Tx, customer, quoteID, key 
 	return OrderRead(ctx, tx, customer, id)
 }
 func (s *Service) Topup(ctx context.Context, tx pgx.Tx, customer, parent, key, funding string) (any, error) {
+	if s.Pilot != nil {
+		return nil, ErrBlocked
+	}
 	if !ValidID(parent) || !ValidID(key) || !Money(funding, true) {
 		return nil, ErrInvalid
 	}

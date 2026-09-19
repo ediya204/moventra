@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"io"
 	"moventra.local/api/internal/database"
@@ -15,6 +16,63 @@ import (
 )
 
 func run() error {
+	if len(os.Args) == 2 && (os.Args[1] == "prepare-pilot" || os.Args[1] == "pilot-status") {
+		var v struct {
+			ActorID string `json:"actorId"`
+		}
+		d := json.NewDecoder(io.LimitReader(os.Stdin, 8192))
+		d.DisallowUnknownFields()
+		if os.Getenv("ISSUING_MODE") != "pilot" || (os.Args[1] == "prepare-pilot" && (d.Decode(&v) != nil || d.Decode(new(any)) != io.EOF || !issuing.ValidID(v.ActorID))) {
+			return errors.New("invalid_pilot_provisioning")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		cfg, err := database.PoolConfig(os.Getenv("DATABASE_URL"), os.Getenv("DB_MAX_CONNS"))
+		if err != nil {
+			return err
+		}
+		db, err := pgxpool.NewWithConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+		defer db.Close()
+		if err = database.ReadyIssuingUnified(ctx, db); err != nil {
+			return err
+		}
+		svc, err := issuing.FromEnv(db)
+		if err != nil {
+			return err
+		}
+		if os.Args[1] == "pilot-status" {
+			tx, err := db.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
+			if err != nil {
+				return err
+			}
+			defer tx.Rollback(ctx)
+			products, err := svc.ClientProducts(ctx, tx, svc.Pilot.CustomerID, "", 0)
+			if err != nil {
+				return err
+			}
+			balance, err := svc.Wallet(ctx, tx, svc.Pilot.CustomerID)
+			if err != nil {
+				return err
+			}
+			var count int
+			if err = tx.QueryRow(ctx, `SELECT count(*) FROM issuing_orders WHERE customer_id=$1`, svc.Pilot.CustomerID).Scan(&count); err != nil {
+				return err
+			}
+			return json.NewEncoder(os.Stdout).Encode(map[string]any{"mode": svc.Mode, "pilot": svc.PilotView(svc.Pilot.CustomerID), "products": products, "availableMinor": balance, "customerOrderCount": count})
+		}
+		tx, err := db.Begin(ctx)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback(ctx)
+		if err = svc.ConfigurePilot(ctx, tx, v.ActorID); err != nil {
+			return err
+		}
+		return tx.Commit(ctx)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "import-catalog" {
 		var v issuing.CatalogImport
 		d := json.NewDecoder(io.LimitReader(os.Stdin, 4<<20))
@@ -42,7 +100,7 @@ func run() error {
 	}
 
 	if len(os.Args) != 2 || (os.Args[1] != "grant" && os.Args[1] != "resume-supplier") {
-		return errors.New("usage: issuing-admin [grant|resume-supplier|import-catalog] < reviewed-input.json")
+		return errors.New("usage: issuing-admin [grant|resume-supplier|import-catalog|prepare-pilot] < reviewed-input.json; issuing-admin pilot-status")
 	}
 	var v struct {
 		ActorID     string `json:"actorId"`

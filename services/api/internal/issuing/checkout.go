@@ -30,6 +30,12 @@ func (s *Service) Terms() Terms {
 		t.Text = strings.Replace(t.Text, "独立 USD 开卡钱包", "资金中心 USD 钱包", 1)
 		t.Digest = hash(t.Text)
 	}
+	if s.Pilot != nil {
+		t.Version = "issuing-pilot-2026-09-19-v1"
+		t.Text = strings.Replace(t.Text, "可对原卡补充首充且不重复收取开卡费", "本次不开放补充首充", 1)
+		t.Text += " 本次为限定真实验收，仅指定产品一张卡，首充20 USD，开卡费最多10 USD，合计最多30 USD；失败或结果未知不自动另开新卡。"
+		t.Digest = hash(t.Text)
+	}
 	return t
 }
 

@@ -41,6 +41,7 @@ func hash(v any) string {
 }
 
 type Service struct {
+	Pilot          *PilotAuthorization
 	DB             *pgxpool.Pool
 	Blnk           *blnk.Client
 	Providers      map[string]Provider
@@ -88,17 +89,18 @@ type Enrollment struct {
 	EvidenceRef   string `json:"evidenceRef"`
 }
 type Snapshot struct {
-	FundsWalletID    string   `json:"fundsWalletId,omitempty"`
-	FundsNamespace   string   `json:"fundsNamespace,omitempty"`
-	ConnectionID     string   `json:"connectionId,omitempty"`
-	VirtualAccountID string   `json:"virtualAccountId,omitempty"`
-	CardName         string   `json:"cardName,omitempty"`
-	Product          Product  `json:"product"`
-	Supplier         Supplier `json:"supplier"`
-	FeeMinor         string   `json:"feeMinor"`
-	PriceSource      string   `json:"priceSource"`
-	CustomerRevision int64    `json:"customerRevision"`
-	CardholderRef    string   `json:"cardholderRef"`
+	PilotAuthorization string   `json:"pilotAuthorization,omitempty"`
+	FundsWalletID      string   `json:"fundsWalletId,omitempty"`
+	FundsNamespace     string   `json:"fundsNamespace,omitempty"`
+	ConnectionID       string   `json:"connectionId,omitempty"`
+	VirtualAccountID   string   `json:"virtualAccountId,omitempty"`
+	CardName           string   `json:"cardName,omitempty"`
+	Product            Product  `json:"product"`
+	Supplier           Supplier `json:"supplier"`
+	FeeMinor           string   `json:"feeMinor"`
+	PriceSource        string   `json:"priceSource"`
+	CustomerRevision   int64    `json:"customerRevision"`
+	CardholderRef      string   `json:"cardholderRef"`
 }
 type Quote struct {
 	TermsVersion string `json:"termsVersion"`

@@ -215,3 +215,11 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 ### 正式人工资金无需审核（2026-09-19）
 
 正式API使用 `MANUAL_FUNDS_ENABLED=true` 与 `MANUAL_FUNDS_REQUIRE_REVIEW=false`，经ProductionFunds健康校验后每5秒恢复可执行原单。创建要求create及execute授权；线下付款仍单独确认凭证。旧pending_review须显式reconcile。受控 `manual-funds-worker resume` 从stdin读取customerId/orderId/amountMinor/operatorUid/requestId/evidence，限定既有USD平台垫资原单，核对Firebase MFA登记、有效全局运营和相同幂等命令；不会新建订单或批量处理。该命令仅供明确授权运维，使用原请求键恢复，详见[本批证据](../../deploy/2026-09-19-manual-funds-activation.md)。
+
+## 单张发卡试运行（2026-09-19）
+
+`ISSUING_MODE=pilot`只接受统一`funds_wallet`、相同生产namespace及严格`ISSUING_PILOT_CONFIG`。JSON字段见`internal/issuing/pilot.go`，固定客户/产品/供应商/订单/BIN、entity/account、有效期/evidenceRef及金额字符串1000/2000/3000；`keyEnv`引用服务端`ISSUING_SLASH_KEY_*`，不在JSON存密钥，不能同时提供完整live验收文件。
+
+受信CLI `issuing-admin prepare-pilot < reviewed-input.json`接收唯一`actorId`，核对active admin、无既有订单及授权，事务写入资格、供应商状态和不可变授权审计。空entity可在该供应商无订单时绑定已核对的主体，非空不同绑定不能替换；无HTTP授权入口。`issuing-admin pilot-status`只读检查产品可用性、余额、名额与期限，不创建报价或订单。
+
+该配置不是逐单审批：客户完成报价声明并提交后直接进入原Worker。Worker仅处理固定订单，不扫描其他订单、入金或通用卡结算；失败仍占名额，不支持补首充。到期仅关闭新申请，不中断原单恢复。请见[流程与部署](../../deploy/2026-09-19-issuing-pilot.md)。无新增迁移，不删除历史授权或改原订单快照以重置名额。

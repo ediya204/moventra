@@ -22,7 +22,7 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	if mode == "local" {
 		return localService(s)
 	}
-	if mode != "live" && mode != "prepare" {
+	if mode != "live" && mode != "prepare" && mode != "pilot" {
 		return nil, errors.New("invalid_issuing_mode")
 	}
 	if os.Getenv("LEDGER_MODE") == "shadow" || strings.HasPrefix(db.Config().ConnConfig.Database, "moventra_shadow_") {
@@ -53,6 +53,9 @@ func FromEnv(db *pgxpool.Pool) (*Service, error) {
 	if mode == "prepare" {
 		s.Mode = "prepare"
 		return s, nil // No provider, execution flag, certification claim or posting.
+	}
+	if mode == "pilot" {
+		return s.pilotFromEnv()
 	}
 	path := os.Getenv("ISSUING_CERTIFICATION_FILE")
 	raw, e := os.ReadFile(path)

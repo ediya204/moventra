@@ -218,3 +218,9 @@ TRC20小额验收独立于全量正式资金认证：固定客户和原Cregis地
 2026-09-19 人工资金正式模式增量（已部署）：USD人工订单可经独立开关接入现有正式namespace；沿用最终充值证据和账本健康门槛，不创建期初或重放原充值。批准、线下付款确认、记账完成仍为独立状态；API恢复任务复用原幂等reference，不新增银行/链上付款能力。见[启用与回退](../business/platform-advance.md)。
 
 2026-09-19 manual-funding policy supersession: the user explicitly removed the review stage. New credits proceed directly to accounting; debits reserve then proceed, while offline payouts require separate evidence of actual payment. Original pending orders are not automatically swept into execution. The authorized 1,000 USD platform advance must retain its original order and effect reference, with exactly one journal credit; no reviewer identity is fabricated.
+
+## 单张发卡pilot约束（2026-09-19）
+
+已授权试运行固定一个客户/产品/供应商/BIN及订单ID，从原资金中心USD钱包扣款，费用≤1000、首充=2000、总额≤3000最小单位。先预占、零限额发卡并核验、收取开卡费及原卡首充；既有失败退款与未知预占机制不变。客户确认后自动执行，无逐单人工审批，保留完整订单和审计。
+
+不可变授权与订单快照绑定范围和资金namespace。任何已创建订单（含失败、未知）均消耗名额，禁止更换幂等键/配置重置或补首充。期限控制新申请，不中断原单恢复；pilot Worker不自动扩展到存量卡结算。pilot是受限实测授权，不是已完成渠道或全量对账认证。详见[流程](../business/client-card-issuing.md#flow-issuing-pilot-001单张真实试运行2026-09-19)。

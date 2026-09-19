@@ -301,6 +301,9 @@ function Checkout({
       {wallet.data?.mode === "isolated" && (
         <Alert severity="info">隔离验收环境 · 合成资金与模拟发卡</Alert>
       )}
+      {wallet.data?.pilot && (
+        <Alert severity="warning">真实开卡验收 · 仅 BIN {wallet.data.pilot.bin} 一张，首充 {money(wallet.data.pilot.fundingMinor)} USD，合计最多 {money(wallet.data.pilot.totalCapMinor)} USD。失败或结果未知请查看原订单，不会自动另开新卡。</Alert>
+      )}
       {wallet.data?.executionEnabled === false && (
         <Alert severity="info">开卡服务尚未开放，当前可查看产品与历史订单。</Alert>
       )}
@@ -419,7 +422,7 @@ function Checkout({
                 <TextField
                   label="初始卡余额 · USD"
                   value={funding}
-                  disabled={busy || !!pending || !!product.blockedReason}
+                  disabled={busy || !!pending || !!product.blockedReason || !!wallet.data?.pilot}
                   onChange={(e) => setFunding(e.target.value)}
                   helperText={`开卡后转入卡内，最低 USD ${money(product.minimumMinor)}`}
                   inputProps={{ inputMode: "decimal" }}
@@ -546,7 +549,7 @@ function RecordList({ base, cards }: { base: string; cards: boolean }) {
               {o.last4 ? `· 尾号 ${o.last4}` : ""}
             </Typography>
             <Typography>
-              {(orderStatuses as Record<string, string>)[o.state] || o.state} ·
+              {o.pilot && o.state === "funding_failed" ? "首充失败 · 待核查" : (orderStatuses as Record<string, string>)[o.state] || o.state} ·
               首充 USD {money(o.fundingMinor)}
             </Typography>
             <Button
@@ -591,7 +594,7 @@ function OrderDetail({
               查看卡片
             </Button>
           )}
-          {result.data.state === "funding_failed" && !result.data.parentId && (
+          {result.data.state === "funding_failed" && !result.data.parentId && !result.data.pilot && (
             <RetryFunding
               base={base}
               order={result.data}
