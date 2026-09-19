@@ -4,7 +4,7 @@
 
 2026-09-18：开发交付遵循 [业务闭环标准](business/delivery-standard.md)。历史静态调查与最新 main 的差异见 [本次同步说明](releases/2026-09-18-local-sync.md)。
 
-更新日期：2026-09-18。静态核对本地 main `89ca9c3` 及已有发布记录；本轮未重新验证线上状态、测试或真实业务。最新运行代码记录见[统一发布](../deploy/2026-09-18-session-consolidation.md)。
+更新日期：2026-09-19。本轮整理相关任务与仓库发布证据，详见[全会话交接](harness/session-handoff-2026-09-19.md)及[换机说明](harness/new-computer.md)。最近完整UI/API发布为[63371c7统一发布](../deploy/2026-09-19-consolidated-ui-release.md)，后续开卡状态见交接收尾；本轮文档整理未重新验证生产或真实业务。
 
 正式仓库：[ediya204/moventra](https://github.com/ediya204/moventra)，统一维护 `main`。优先阅读 [全站业务逻辑总览](business/README.md)，快速状态见 [V1 当前功能与接入状态](current-state.md)。隔离 Node/SQLite 服务和 Python 采集工具源码已恢复至 [services/local-workspace](../services/local-workspace/README.md)；真实数据、快照与凭据不随仓库提供。
 

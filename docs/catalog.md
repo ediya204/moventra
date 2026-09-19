@@ -174,6 +174,7 @@
 - [Moventra Harness：工程协作入口](harness/README.md) — `docs/harness/README.md`
 - [Markdown 状态维护规则](harness/documentation.md) — `docs/harness/documentation.md`
 - [换电脑继续开发](harness/new-computer.md) — `docs/harness/new-computer.md`
+- [2026-09-19 Moventra 全会话交接](harness/session-handoff-2026-09-19.md) — `docs/harness/session-handoff-2026-09-19.md`
 - [工程任务与交接模板](harness/task-template.md) — `docs/harness/task-template.md`
 
 ## docs/integrations
