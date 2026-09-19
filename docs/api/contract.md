@@ -275,7 +275,7 @@ card-issuing 新增 GET products/{id}、terms、cards、cards/{id}；报价增�
 
 订单 GET `/{admin|client}-api/v1/customers/{customerId}/manual-funds` 及 `/orders/{orderId}`；后台 POST `/orders` 和单号后的 approve/reject/cancel/confirm_payment/payment_failed/reconcile。USD金额使用最小单位字符串，创建带凭证引用，动作带 revision 与幂等键。冲正新建关联原单，不提供直接余额覆盖。后台要求MFA、独立read及对应create/review/execute授权；客户仅查询本人且裁剪内部字段。网关按站点、精确路径与方法放行，跨域POST拒绝。
 
-缺少016迁移/服务配置时此能力不可用；代码已发布，生产016迁移及资金授权未启用。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。
+缺少016迁移/服务配置时此能力不可用。2026-09-19正式人工资金已启用，生产016/019已有且本批只读校验；沿用既有授权。状态、作用范围和未验证边界见[FLOW](../business/platform-advance.md)。
 
 地址GET限定验收增量：mode可为deposit_pilot；postingEnabled反映指定客户额度、处理任务健康及账本一致性，不能用它推断提款/兑换已启用。pilot返回capMinor、remainingMinor、walletMinor（仅核对一致时）、reconciliation；全部金额为USDT六位精度的最小单位整数字符串。events新增state、posting、error、orderId，只有posting=posted表示入账。跨客户调用无变化，非验收客户无余额/额度信息。详见[地址流程](../business/deposit-address-integration.md)。
 
@@ -335,3 +335,8 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 
 
 2026-09-19 人工资金接通增量（本地未部署）：现有manual-funds DTO、状态和路由不变。enabled仅在显式人工开关、enabled生产资金模式及ProductionReady健康时返回true；pilot和prepare保持只读。后台订单由API内持久恢复任务处理，权限、MFA及显式审核保持；按本轮用户决定允许同一运营创建/审核/确认付款，各动作仍须对应权限和凭证，见[人工资金流程](../business/platform-advance.md)。
+
+
+### 人工资金无需审核契约（2026-09-19，已发布）
+
+列表、详情及余额响应增加 `approvalRequired`。`MANUAL_FUNDS_REQUIRE_REVIEW=false` 时新建要求read/create/execute，入金创建为processing，出金先reserving；线下出金预占后awaiting_payment，须实际付款凭证。旧pending_review不会自动执行，有execute权限者可通过原单reconcile显式继续。审计保存approvalRequired=false，不伪造reviewer。缺省配置保留旧审核流程，接口revision和幂等规则不变。

@@ -221,6 +221,6 @@ API与独立开卡Worker已发布2b4a905；私有Blnk替代实例TLS5443连接�
 资金记录第二批已上线：运行源码b1b27fb，API及两端Worker发布成功，191项回归与隔离PG race通过、线上74份JS/CSS一致；未认证与跨端拒绝检查通过。真实登录后的列表/详情读取未验收；没有生产迁移、执行开关调整或真实资金操作。平台ID见[本批发布记录](../deploy/2026-09-19-fund-records-release.md)。本条更新前述本地未发布状态。
 
 
-## 2026-09-19 人工出入金启用准备（本地未部署）
+## 2026-09-19 人工出入金正式启用（无需审核）
 
-已接通分能力正式资金模式的人工USD订单：显式MANUAL_FUNDS_ENABLED开关、ProductionReady健康门槛、API内持久订单恢复和只读迁移校验。沿用MFA、单人授权显式审核、现有权限和幂等账本；没有新增授权、迁移或订单。本轮隔离PostgreSQL全套race、go vet/build通过；真实Firebase、真实Blnk及专用浏览器夹具未配置，未作真实渠道或登录验收。用户已确认正式后台，本轮发布核验进行中，仅人工资金开关已配置；旧候选部署已取消，单人授权版本验证与发布中，详见[流程与回退](business/platform-advance.md#2026-09-19正式资金模式人工操作接通本地未部署)。
+API bf05e56 / dep-dan0fh3m8hqs739jc5e0 已live，后台Worker 8ef8b201-5133-4eeb-ba87-acffa9358912已发布。MANUAL_FUNDS_ENABLED=true、MANUAL_FUNDS_REQUIRE_REVIEW=false；新单直接处理，保留MFA、create/execute、客户范围、幂等与审计，线下出金仍需真实付款凭证。用户明确授权的旧1,000 USD原单已completed，钱包0.09→1,000.09 USD；其他旧单不自动执行。隔离PG race、vet/build、192项前端/网关回归及两端类型检查通过。本批无迁移、无新增授权、无外部付款。见[发布与入账证据](../deploy/2026-09-19-manual-funds-activation.md)。

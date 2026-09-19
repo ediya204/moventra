@@ -113,3 +113,6 @@ Go 确认 UID、有效本地用户、operator、MFA 和指定客户资源授权�
 ## 资金记录（2026-09-19，本地未部署）
 
 卡交易流水下新增 `/finance/fund-records`，同源查询并增加客户筛选；各来源授权与运营MFA分别校验。见[流程与验收](../../docs/business/fund-records.md)。
+
+
+2026-09-19正式人工出入金已启用无需审核：有create/execute权限的运营提交后直接处理；旧待审核单在详情选择“继续处理原单”。线下出金仍须真实付款凭证。见[发布证据](../../deploy/2026-09-19-manual-funds-activation.md)。

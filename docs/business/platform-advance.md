@@ -1,6 +1,6 @@
 # FLOW-PLATFORM-ADVANCE-001：余额查询与人工出入金
 
-核对日期：2026-09-19。状态：原API与两端代码已发布，生产016已由后续定向发布安装；人工资金执行尚未启用。本轮补充正式资金模式的独立启用与订单恢复，本地验证见下节，未执行正式入账或真实刷卡。基线为 Moventra main `1ed842adc1abd530dd32f5c123c277d40b41c633` 加本批未提交增量，保留其他任务改动。
+核对日期：2026-09-19。正式 API 与后台已发布无需审核版本 bf05e56，人工资金已启用。新单按授权直接处理，旧待审核单须显式继续原单。本次授权的 1,000 USD 原单已完成，钱包由 0.09 增至 1,000.09 USD；未执行其他历史计划或外部付款。完整证据见[发布记录](../../deploy/2026-09-19-manual-funds-activation.md)。
 
 用户采用“资金与财务 → 余额查询 → 用户详情 → 人工出入金”。不设置用途字段或仅刷卡限制；平台垫资是账务来源，资金使用沿用统一余额、预占及现有业务规则。本次指定账户 ediyanghk@gmail.com 的一次性合计 10,000 USD 仍为待执行事项，不是每张卡各加 10,000 USD。
 
@@ -15,11 +15,11 @@
 
 | 类型 | 已实现账务流程 | 边界 |
 | --- | --- | --- |
-| 平台垫资 | 待审核 → 运营批准 → 清算分户到钱包 → 完成 | 不证明平台外部资金已经到账或形成正式应收科目 |
-| 线下到账补录 | 凭证申请 → 运营批准 → 钱包入账 | 由人员核实真实到账且尚未入账；尚无银行自动核验或跨系统经济事项去重 |
-| 垫资回收 | 关联已完成垫资 → 钱包预占 → 审核 → 预占转清算 | 不超过原单及已申请回收限制；卡上金额必须先经原资金流程退回钱包 |
-| 线下付款登记 | 钱包预占 → 审核 → 待线下付款 → 真实结果凭证确认 → 结算 | 不调用银行/链上付款；批准不表示付款，未知结果不能确认失败或释放 |
-| 冲正 | 已完成垫资/回收的全额反向申请 → 审核及必要预占 | 原单不可删除；不支持线下收付款或冲正单再次冲正 |
+| 平台垫资 | 授权运营提交 → 清算分户到钱包 → 完成 | 不证明平台外部资金已经到账或形成正式应收科目 |
+| 线下到账补录 | 核实凭证后提交 → 钱包入账 | 由人员核实真实到账且尚未入账；尚无银行自动核验或跨系统经济事项去重 |
+| 垫资回收 | 关联已完成垫资 → 钱包预占 → 预占转清算 | 不超过原单及已申请回收限制；卡上金额必须先经原资金流程退回钱包 |
+| 线下付款登记 | 钱包预占 → 待线下付款 → 真实结果凭证确认 → 结算 | 不调用银行/链上付款；批准不表示付款，未知结果不能确认失败或释放 |
+| 冲正 | 已完成垫资/回收的全额反向申请 → 必要预占与处理 | 原单不可删除；不支持线下收付款或冲正单再次冲正 |
 
 拒绝、取消或确认付款失败通过独立释放分录退回预占。余额不足失败不会进入待审核。记账结果未知时保留处理中及错误提示，重试查询原操作；不得换单重复入账。入账前后余额来自实际钱包分录；出金显示预占时的变动，后续释放单独出现在流水。
 
@@ -35,15 +35,15 @@
 
 | 项目 | 本批实现与验证边界 |
 | --- | --- |
-| 起终点 | 运营查询用户 → 创建申请 → 运营确认 → 持久 Worker 记账 → 两端查询原单及余额；真实外部付款由人员另行执行 |
+| 起终点 | 运营查询用户 → 授权提交 → 持久 Worker 记账 → 两端查询原单及余额；真实外部付款由人员另行执行 |
 | 页面关系 | 资金与财务/余额查询 → 用户详情 → 订单；客户端资金中心 → 人工出入金记录 → 订单 |
 | 身份 | Firebase 会话 → 服务端用户/客户映射；父子客户与订单严格校验，不接受任意账本账户 ID |
 | 接口链 | 既有认证 transport → 同域网关精确方法/路径 → Go handler → 客户范围/MFA/动作权限 → PostgreSQL 订单/审计 → manual-funds-worker → ledger/Blnk → 查询原单 |
 | 状态 | pending_review、reserving、processing、awaiting_payment、releasing、completed、rejected、cancelled、failed；未决错误不当成付款失败 |
 | 跨端 | 两端查询同一订单与钱包；前台记录裁剪内部字段，后台状态定时刷新；提交后重新查询余额 |
-| 权限 | 运营 MFA＋独立 read/create/review/execute 授权，scope 为具体客户或全局；允许同一有权运营创建和审核；禁止给运营本人个人账户操作；客户端本人只读 |
+| 权限 | 运营 MFA＋独立 read/create/review/execute 授权，scope 为具体客户或全局；无需审核时创建另须execute；旧审核模式保留兼容；禁止给运营本人个人账户操作；客户端本人只读 |
 | 异常恢复 | 请求 UUID＋载荷哈希，同键异内容拒绝；revision 防旧页面动作；固定 ledger reference，崩溃后复查并推进原单；浏览器刷新保留待确认请求键 |
-| 验收 | 隔离 PostgreSQL＋模拟 Blnk 覆盖精确金额、并发、权限、幂等、审核、释放、故障恢复及分页；真实 Blnk/渠道未验证 |
+| 验收 | 隔离PostgreSQL与模拟Blnk覆盖权限、精确金额、幂等、预占、恢复及无需审核；正式1,000 USD原单已入账，外部付款/刷卡未验证 |
 | 文件边界 | 新 manualfunds 服务/Worker/016迁移/接口契约、共享记录组件、余额页及路由/网关定点接入；不覆盖其他任务代码，不改既有已应用迁移 |
 | 回退 | 关闭人工执行开关并停 Worker 前先核对未决单；保留已产生订单、审计及分录，不删除数据或直接改余额 |
 
@@ -81,16 +81,16 @@ Go 在本机需 `GOFLAGS=-buildvcs=false` 绕过系统 Git 的 Xcode 许可探�
 | --- | --- | --- |
 | 正式身份、现有垫资、实际卡归属及历史期初 | 运营/工程，正式资金启用前 | 未复验；不能仅凭 BIN 或历史测试资料确定 |
 | 平台真实资金、凭证、科目与偿还政策 | 财务，真实垫资前 | 待确认；不默认赠款、免息或自动回收 |
-| 016迁移、最小权限、运营审批与Worker | 工程/授权运营，上线前 | 后续发布已安装016/019；有效全局权限沿用019。人工执行待本轮发布核验，同一运营须实际具备对应动作授权 |
-| 正式 Blnk、资金池、存量卡占款、转卡与消费闭环 | 工程/持卡人，真实刷卡前 | 尚待受控验收，本批未调用真实金融写接口 |
+| 016迁移、最小权限、运营审批与Worker | 工程/授权运营，上线前 | 后续发布已安装016/019；有效全局权限沿用019。人工资金已正式启用，无需审核；同一运营须实际具备create和execute授权 |
+| 正式 Blnk、资金池、存量卡占款、转卡与消费闭环 | 工程/持卡人，真实刷卡前 | 尚待受控验收，本次仅已授权的1,000 USD原单完成真实Blnk内部入账；未验证转卡或刷卡 |
 
-上线验收后，授权人员可搜索指定邮箱，经人工入金“平台垫资”提交一次 10,000.00 USD，运营审核并确认分录。钱包入账不自动给所有卡加额；按实际卡归属与资金流程分配，并由持卡人完成小额刷卡验证。
+上线验收后，授权人员可搜索指定邮箱，经人工入金“平台垫资”提交一次 10,000.00 USD，授权运营提交并核对分录。钱包入账不自动给所有卡加额；按实际卡归属与资金流程分配，并由持卡人完成小额刷卡验证。
 
 ## 前期离线工具（保留）
 
 [配置模板](platform-advance-review.json) 与 `scripts/prepare-platform-advance.mjs` 仍只表达一次性计划，customerId/requestId/allocations 留空等待真实证据；不是 Worker 输入，也无 apply 模式。其历史6项测试仅验证配置结构、精确合计、重复卡和确定性，不替代上述资金测试或正式验收。
 
-## 2026-09-19：正式资金模式人工操作接通（本地，未部署）
+## 2026-09-19：正式资金模式人工操作接通（实现与启用规则）
 
 本轮用户请求“后台开启人工出入金”。差异：正式余额通过 `ProductionFunds` 读取，但人工服务强制 ReadOnly，且原独立 Worker 仅从 `LEDGER_MODE` 初始化；仅设置 `MANUAL_FUNDS_ENABLED=true` 无法完成接通。
 
@@ -101,10 +101,10 @@ Go 在本机需 `GOFLAGS=-buildvcs=false` 绕过系统 Git 的 Xcode 许可探�
 - 不额外启动原 manual-funds-worker，不修改充值、OTC、开卡、链上提现或卡充提开关；线下付款仍由人员核实并提交独立凭证。
 - 回退关闭人工开关并部署前先核对未决订单与预占；保留订单、审计及账本，不能删单或覆盖余额。开启前还须只读核对既有待处理订单，避免意外恢复历史事项。
 
-验收：本轮隔离PG验证正式模式下开关关闭/prepare拒绝、迁移校验错误拒绝、MFA、缺少动作权限拒绝、创建幂等、单人授权审核、Worker恢复和重复运行仅记账一次、生产不健康与pilot拒绝；原人工生命周期覆盖出金预占、失败释放及未知恢复。具体运行结果同步于当前状态。真实登录、真实Blnk、渠道验证与部署未执行；用户已确认正式后台；发布核验进行中。
+验收：本轮隔离PG验证正式模式下开关关闭/prepare拒绝、迁移校验错误拒绝、MFA、缺少动作权限拒绝、创建幂等、单人授权审核、Worker恢复和重复运行仅记账一次、生产不健康与pilot拒绝；原人工生命周期覆盖出金预占、失败释放及未知恢复。具体运行结果同步于当前状态。本段为接通阶段的本地证据。后续正式部署与已授权原单真实Blnk入账见发布记录；未调用银行、链上或Slash付款。
 
 
-### 2026-09-19 用户决定：单一授权
+### 2026-09-19 阶段决定：单一授权（审核步骤已被后续决定替代）
 
 用户明确要求“单一授权即可”，人工资金流程改为一名持有read/create/review/execute相应权限的运营即可完成创建、审批及线下付款确认。actor_id和reviewer_id可相同，审计仍记录每个动作；普通admin或只有create权限不因此获得review/execute。后台批准及确认付款按钮同步开放给原申请人。该决定仅适用于人工出入金，不改变开卡或其他渠道审批政策。
 
@@ -112,4 +112,4 @@ Go 在本机需 `GOFLAGS=-buildvcs=false` 绕过系统 Git 的 Xcode 许可探�
 
 ### 2026-09-19 revised decision: no review
 
-The user clarified that no review step is wanted and explicitly authorized the existing 1,000 USD platform advance. Production will set `MANUAL_FUNDS_REQUIRE_REVIEW=false`. New credits process after submission; debits reserve first, with offline payouts still requiring actual payment evidence. Creation requires create and execute grants, plus the existing MFA and customer checks. Audit records the policy, without inventing reviewer identities. Existing pending orders stay unchanged until explicitly resumed; only the identified 1,000 USD original order is authorized in this release. This supersedes the earlier same-operator approval step above. Release evidence is maintained in the manual-funds activation record.
+The user clarified that no review step is wanted and explicitly authorized the existing 1,000 USD platform advance. Production now uses `MANUAL_FUNDS_REQUIRE_REVIEW=false`. New credits process after submission; debits reserve first, with offline payouts still requiring actual payment evidence. Creation requires create and execute grants, plus the existing MFA and customer checks. Audit records the policy, without inventing reviewer identities. Existing pending orders stay unchanged until explicitly resumed; only the identified 1,000 USD original order is authorized in this release. This supersedes the earlier same-operator approval step above. Release evidence is maintained in the manual-funds activation record.

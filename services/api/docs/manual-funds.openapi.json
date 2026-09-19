@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Moventra balance inquiry and manual funds",
-    "version": "1.0.0",
-    "description": "Local implementation; deployment, grants and live activation are separate. USD manual accounting only. No bank or channel payment is sent."
+    "version": "1.1.0",
+    "description": "USD manual accounting. Production uses no-review policy when MANUAL_FUNDS_REQUIRE_REVIEW=false. Creation then requires create and execute grants. Offline payment confirmation remains separate; no bank or channel payment is sent."
   },
   "security": [
     {
@@ -47,7 +47,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success. mode and enabled describe ledger availability; approval is not settlement.",
+            "description": "Success. mode and enabled describe availability; approvalRequired describes the review policy. Accounting completion and actual external payment remain separate.",
             "content": {
               "application/json": {
                 "schema": {
@@ -57,7 +57,13 @@
                   ],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "approvalRequired": {
+                          "type": "boolean",
+                          "description": "False when submissions proceed without a separate review stage."
+                        }
+                      }
                     }
                   }
                 }
@@ -116,7 +122,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success. mode and enabled describe ledger availability; approval is not settlement.",
+            "description": "Success. mode and enabled describe availability; approvalRequired describes the review policy. Accounting completion and actual external payment remain separate.",
             "content": {
               "application/json": {
                 "schema": {
@@ -126,7 +132,13 @@
                   ],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "approvalRequired": {
+                          "type": "boolean",
+                          "description": "False when submissions proceed without a separate review stage."
+                        }
+                      }
                     }
                   }
                 }
@@ -178,7 +190,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success. mode and enabled describe ledger availability; approval is not settlement.",
+            "description": "Success. mode and enabled describe availability; approvalRequired describes the review policy. Accounting completion and actual external payment remain separate.",
             "content": {
               "application/json": {
                 "schema": {
@@ -188,7 +200,13 @@
                   ],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "approvalRequired": {
+                          "type": "boolean",
+                          "description": "False when submissions proceed without a separate review stage."
+                        }
+                      }
                     }
                   }
                 }
@@ -240,7 +258,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success. mode and enabled describe ledger availability; approval is not settlement.",
+            "description": "Success. mode and enabled describe availability; approvalRequired describes the review policy. Accounting completion and actual external payment remain separate.",
             "content": {
               "application/json": {
                 "schema": {
@@ -250,7 +268,13 @@
                   ],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "approvalRequired": {
+                          "type": "boolean",
+                          "description": "False when submissions proceed without a separate review stage."
+                        }
+                      }
                     }
                   }
                 }
@@ -302,7 +326,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success. mode and enabled describe ledger availability; approval is not settlement.",
+            "description": "Success. mode and enabled describe availability; approvalRequired describes the review policy. Accounting completion and actual external payment remain separate.",
             "content": {
               "application/json": {
                 "schema": {
@@ -312,7 +336,13 @@
                   ],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "approvalRequired": {
+                          "type": "boolean",
+                          "description": "False when submissions proceed without a separate review stage."
+                        }
+                      }
                     }
                   }
                 }
@@ -364,7 +394,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success. mode and enabled describe ledger availability; approval is not settlement.",
+            "description": "Success. mode and enabled describe availability; approvalRequired describes the review policy. Accounting completion and actual external payment remain separate.",
             "content": {
               "application/json": {
                 "schema": {
@@ -374,7 +404,13 @@
                   ],
                   "properties": {
                     "data": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "approvalRequired": {
+                          "type": "boolean",
+                          "description": "False when submissions proceed without a separate review stage."
+                        }
+                      }
                     }
                   }
                 }
@@ -471,7 +507,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Requires read/create and, under no-review policy, execute. New credits process directly; debits reserve first. Existing pending orders are unchanged."
       }
     },
     "/admin-api/v1/customers/{customerID}/manual-funds/orders/{orderID}/approve": {
@@ -957,7 +994,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Requires execute. Explicitly resumes an existing pending_review order under no-review policy, or recovers an existing processing order with the original idempotent effect."
       }
     }
   },

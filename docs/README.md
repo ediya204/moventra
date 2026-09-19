@@ -22,7 +22,7 @@
 - [Cregis 隔离充值、提现与 OTC](business/cregis-funds.md)
 - [线上测试资金](business/online-test-funds.md)
 - [项目钱包及逐卡分配](business/project-wallet.md)
-- [余额查询与人工出入金（代码已发布，执行未启用）](business/platform-advance.md)
+- [余额查询与人工出入金（正式已启用，无需审核）](business/platform-advance.md)
 - [卡片详情规划（DESIGN）](business/card-center-detail-plan-2026-09-18.md)
 - [Slash 白名单环境与复用规则](integrations/slash-allowlist.md)
 

@@ -208,3 +208,8 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 现有 `FUNDS_PRODUCTION_MODE=enabled` 下，显式 `MANUAL_FUNDS_ENABLED=true` 后复用已验收正式钱包。API 启动和readyz只读核对001/006/016/019；ProductionReady健康时允许人工订单写入，并由API内每5秒任务恢复订单。prepare/pilot不启用；不自动迁移、授权或创建订单。原 `manual-funds-worker` 属于旧LEDGER_MODE配置，当前模式不启动该程序。权限、复核及回退见[人工资金流程](../../docs/business/platform-advance.md#2026-09-19正式资金模式人工操作接通本地未部署)。
 
 2026-09-19用户明确采用人工资金单人授权：同一有权运营可创建、批准、确认线下付款；每一步仍检查独立动作权限、MFA与凭证，保留审核和记账状态，不自动付款。
+
+
+### 正式人工资金无需审核（2026-09-19）
+
+正式API使用 `MANUAL_FUNDS_ENABLED=true` 与 `MANUAL_FUNDS_REQUIRE_REVIEW=false`，经ProductionFunds健康校验后每5秒恢复可执行原单。创建要求create及execute授权；线下付款仍单独确认凭证。旧pending_review须显式reconcile。受控 `manual-funds-worker resume` 从stdin读取customerId/orderId/amountMinor/operatorUid/requestId/evidence，限定既有USD平台垫资原单，核对Firebase MFA登记、有效全局运营和相同幂等命令；不会新建订单或批量处理。该命令仅供明确授权运维，使用原请求键恢复，详见[本批证据](../../deploy/2026-09-19-manual-funds-activation.md)。
