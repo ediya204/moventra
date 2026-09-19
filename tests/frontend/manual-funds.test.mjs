@@ -46,3 +46,9 @@ test('authorized operator can approve own request; payment confirmation remains 
 test('client history renders same order without operator actions',async()=>{
  state.reads=[];memory.clear();const t=await mount({admin:false});assert.ok(state.reads[0].path.startsWith('/client-api/'));await act(async()=>{state.reads[0].resolve({...fixture,orders:[{id:orderId,customerId:id,direction:'credit',source:'platform_advance',currency:'USD',amountMinor:'1000000',state:'completed',createdAt:'2026-09-18T00:00:00Z'}],total:1});await flush()});assert.match(content(t.toJSON()),/10000.00 USD/);assert.equal(button(t,'人工入金'),undefined);assert.ok(button(t,'详情'));await act(()=>t.unmount());
 });
+
+test('no-review mode hides approval and retains explicit legacy resume',async()=>{
+ state.reads=[];memory.clear();const t=await mount({orderId});const order={id:orderId,customerId:id,actorId:'staff',direction:'credit',source:'platform_advance',currency:'USD',amountMinor:'100',state:'pending_review',revision:1,walletBeforeMinor:null,walletAfterMinor:null,createdAt:new Date().toISOString()};
+ await act(async()=>{state.reads[0].resolve({order,events:[],mode:'live',enabled:true,approvalRequired:false});await flush()});
+ assert.equal(button(t,'批准'),undefined);assert.ok(button(t,'继续处理原单'));await act(()=>t.unmount());
+});

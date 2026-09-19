@@ -60,6 +60,10 @@ func (s *Service) Process(ctx context.Context, c, id string) error {
 		return nil
 	}
 	// Before/after are from this order's immutable journal leg, not a stale UI balance.
+	var direct bool
+	if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM manual_funds_audit WHERE namespace=$1 AND customer_id=$2 AND order_id=$3 AND action IN ('create','reconcile') AND data->>'approvalRequired'='false')`, s.NS(), c, id).Scan(&direct); e != nil {
+		return e
+	}
 	hold := "manual-hold:" + o.ID
 	next := o.State
 	switch o.State {
@@ -67,6 +71,12 @@ func (s *Service) Process(ctx context.Context, c, id string) error {
 		e = s.move(ctx, o, "reserve", "wallet", "wallet-USD", "escrow", hold)
 		if e == nil {
 			next = "pending_review"
+			if direct {
+				next = "processing"
+				if o.Source == "offline_payout" {
+					next = "awaiting_payment"
+				}
+			}
 		} else {
 			var f *Fault
 			if errors.As(e, &f) && f.Code == "insufficient_balance" {
@@ -81,7 +91,7 @@ func (s *Service) Process(ctx context.Context, c, id string) error {
 			next = o.Resolution
 		}
 	case "processing":
-		if o.ReviewerID == "" {
+		if o.ReviewerID == "" && !direct {
 			return fault("review_required", 409)
 		}
 		if o.Direction == "credit" {

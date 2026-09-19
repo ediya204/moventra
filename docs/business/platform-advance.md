@@ -109,3 +109,7 @@ Go 在本机需 `GOFLAGS=-buildvcs=false` 绕过系统 Git 的 Xcode 许可探�
 用户明确要求“单一授权即可”，人工资金流程改为一名持有read/create/review/execute相应权限的运营即可完成创建、审批及线下付款确认。actor_id和reviewer_id可相同，审计仍记录每个动作；普通admin或只有create权限不因此获得review/execute。后台批准及确认付款按钮同步开放给原申请人。该决定仅适用于人工出入金，不改变开卡或其他渠道审批政策。
 
 创建不自动批准或记账；线下出金批准仍进入awaiting_payment，必须另行提交已核实的付款凭证才进入记账。金额、预占、未知结果恢复和幂等规则不变。旧2026-09-18的禁止自审测试为历史证据，不再代表当前人工资金政策。
+
+### 2026-09-19 revised decision: no review
+
+The user clarified that no review step is wanted and explicitly authorized the existing 1,000 USD platform advance. Production will set `MANUAL_FUNDS_REQUIRE_REVIEW=false`. New credits process after submission; debits reserve first, with offline payouts still requiring actual payment evidence. Creation requires create and execute grants, plus the existing MFA and customer checks. Audit records the policy, without inventing reviewer identities. Existing pending orders stay unchanged until explicitly resumed; only the identified 1,000 USD original order is authorized in this release. This supersedes the earlier same-operator approval step above. Release evidence is maintained in the manual-funds activation record.

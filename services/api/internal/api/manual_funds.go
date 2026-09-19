@@ -189,7 +189,10 @@ func (s *Server) manualAPI(w http.ResponseWriter, r *http.Request) {
 		// Every action also requires read access; knowing an ID never grants a write.
 		e = svc.Authorize(r.Context(), tx, p.ID, c, "read", false)
 		if e == nil && write {
-			e = svc.Authorize(r.Context(), tx, p.ID, c, permission, in.Action == "create" || in.Action == "approve")
+			e = svc.Authorize(r.Context(), tx, p.ID, c, permission, in.Action == "create" || in.Action == "approve" || in.Action == "reconcile")
+			if e == nil && in.Action == "create" && !svc.ReviewRequired() {
+				e = svc.Authorize(r.Context(), tx, p.ID, c, "execute", true)
+			}
 		}
 	} else {
 		var ok bool
@@ -237,7 +240,7 @@ func (s *Server) manualAPI(w http.ResponseWriter, r *http.Request) {
 			if more {
 				events = events[:100]
 			}
-			out = map[string]any{"order": visibleManualOrder(o, admin), "events": events, "eventsHasMore": more, "mode": svc.Mode(), "enabled": svc.Enabled()}
+			out = map[string]any{"order": visibleManualOrder(o, admin), "events": events, "eventsHasMore": more, "mode": svc.Mode(), "enabled": svc.Enabled(), "approvalRequired": svc.ReviewRequired()}
 		}
 	} else {
 		orders, total, err := svc.List(r.Context(), tx, c, page)
@@ -246,7 +249,7 @@ func (s *Server) manualAPI(w http.ResponseWriter, r *http.Request) {
 		for _, o := range orders {
 			visible = append(visible, visibleManualOrder(o, admin))
 		}
-		out = map[string]any{"orders": visible, "total": total, "page": page, "mode": svc.Mode(), "enabled": svc.Enabled()}
+		out = map[string]any{"orders": visible, "total": total, "page": page, "mode": svc.Mode(), "enabled": svc.Enabled(), "approvalRequired": svc.ReviewRequired()}
 	}
 	if e == nil && !write {
 		e = svc.Audit(r.Context(), tx, c, id, p.ID, "read", map[string]any{"page": page, "admin": admin})
@@ -450,7 +453,7 @@ func (s *Server) balancesAPI(w http.ResponseWriter, r *http.Request) {
 			out[i].Coverage = "ledger_disabled"
 		}
 	}
-	result := map[string]any{"rows": out, "total": total, "page": page, "currency": currency, "summary": totals, "mode": svc.Mode(), "enabled": svc.Enabled(), "observedAt": time.Now().UTC(), "source": "ledger_journal", "externalReconciliation": "not_checked"}
+	result := map[string]any{"rows": out, "total": total, "page": page, "currency": currency, "summary": totals, "mode": svc.Mode(), "enabled": svc.Enabled(), "approvalRequired": svc.ReviewRequired(), "observedAt": time.Now().UTC(), "source": "ledger_journal", "externalReconciliation": "not_checked"}
 	if c != "" {
 		permissions := []string{}
 		for _, permission := range []string{"read", "create", "review", "execute"} {

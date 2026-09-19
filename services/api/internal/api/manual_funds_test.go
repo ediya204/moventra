@@ -345,6 +345,56 @@ func testManualFundsLifecycle(t *testing.T, global bool) {
 		}
 	})
 
+	t.Run("no review directly processes new orders and explicitly resumes legacy", func(t *testing.T) {
+		legacy := create("platform_advance", "100", "")
+		t.Setenv("MANUAL_FUNDS_REQUIRE_REVIEW", "false")
+		if err := svc.Process(ctx, personal, legacy.ID); err != nil {
+			t.Fatal(err)
+		}
+		if get(legacy.ID).State != "pending_review" {
+			t.Fatal("legacy order executed without authorization")
+		}
+		legacy = action("staff", legacy, "reconcile")
+		legacy = process(legacy)
+		if legacy.State != "completed" || legacy.ReviewerID != "" {
+			t.Fatal("legacy no-review audit", legacy)
+		}
+		o := create("platform_advance", "100", "")
+		if o.State != "processing" || o.ReviewerID != "" {
+			t.Fatal(o)
+		}
+		o = process(o)
+		o = process(o)
+		if o.State != "completed" || o.ReviewerID != "" {
+			t.Fatal(o)
+		}
+		debit := create("offline_payout", "1", "")
+		debit = process(debit)
+		if debit.State != "awaiting_payment" {
+			t.Fatal(debit)
+		}
+		debit = decode(req("staff", "POST", root+"/orders/"+debit.ID+"/confirm_payment", map[string]any{"revision": debit.Revision, "note": "direct payout evidence", "evidenceRef": "direct-payout-confirmed"}, uuid.NewString()))
+		debit = process(debit)
+		if debit.State != "completed" {
+			t.Fatal(debit)
+		}
+		recovery := create("advance_recovery", "1", o.ID)
+		recovery = process(recovery)
+		if recovery.State != "processing" {
+			t.Fatal(recovery)
+		}
+		recovery = process(recovery)
+		if recovery.State != "completed" {
+			t.Fatal(recovery)
+		}
+		exec(`INSERT INTO manual_funds_grants VALUES($1,'*','create') ON CONFLICT DO NOTHING`, reviewer)
+		exec(`DELETE FROM manual_funds_grants WHERE user_id=$1 AND permission='execute'`, reviewer)
+		w := req("new-user", "POST", root+"/orders", map[string]any{"customerId": personal, "source": "platform_advance", "currency": "USD", "amountMinor": "1", "note": "unauthorized direct credit", "evidenceRef": "must-not-post"}, uuid.NewString())
+		if w.Code != 404 {
+			t.Fatal("create-only obtained execution", w.Code, w.Body)
+		}
+	})
+
 	if os.Getenv("MANUAL_FUNDS_BROWSER") == "true" {
 		browser := httptest.NewServer(handler)
 		defer browser.Close()

@@ -21,6 +21,9 @@ func run() error {
 		return fmt.Errorf("database_configuration_invalid")
 	}
 	defer db.Close()
+	if len(os.Args) == 2 && os.Args[1] == "resume" {
+		return resume(ctx, db)
+	}
 	l, e := ledger.FromEnv(db)
 	if e != nil {
 		return e

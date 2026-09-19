@@ -216,3 +216,5 @@ TRC20小额验收独立于全量正式资金认证：固定客户和原Cregis地
 
 
 2026-09-19 人工资金正式模式增量（本地未部署）：USD人工订单可经独立开关接入现有正式namespace；沿用最终充值证据和账本健康门槛，不创建期初或重放原充值。批准、线下付款确认、记账完成仍为独立状态；API恢复任务复用原幂等reference，不新增银行/链上付款能力。见[启用与回退](../business/platform-advance.md)。
+
+2026-09-19 manual-funding policy supersession: the user explicitly removed the review stage. New credits proceed directly to accounting; debits reserve then proceed, while offline payouts require separate evidence of actual payment. Original pending orders are not automatically swept into execution. The authorized 1,000 USD platform advance must retain its original order and effect reference, with exactly one journal credit; no reviewer identity is fabricated.

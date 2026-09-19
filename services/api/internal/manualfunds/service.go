@@ -43,6 +43,8 @@ func (s *Service) NS() string {
 func (s *Service) Enabled() bool {
 	return !s.ReadOnly && s.Ledger != nil && (!s.Ledger.IsLive() || os.Getenv("MANUAL_FUNDS_ENABLED") == "true")
 }
+func (s *Service) ReviewRequired() bool { return os.Getenv("MANUAL_FUNDS_REQUIRE_REVIEW") != "false" }
+
 func (s *Service) Mode() string {
 	if s.Ledger == nil {
 		return "disabled"
@@ -181,6 +183,9 @@ func (s *Service) Execute(ctx context.Context, tx pgx.Tx, actor, c, id, key stri
 			return empty, fault("invalid_manual_order", 400)
 		}
 		direction, state := "credit", "pending_review"
+		if !s.ReviewRequired() {
+			state = "processing"
+		}
 		switch in.Source {
 		case "platform_advance", "offline_receipt":
 			if in.OriginalID != "" {
@@ -309,6 +314,13 @@ func (s *Service) Execute(ctx context.Context, tx pgx.Tx, actor, c, id, key stri
 			resolution = "failed"
 			payment = in.Evidence
 		case "reconcile":
+			if o.State == "pending_review" && !s.ReviewRequired() {
+				next = "processing"
+				if o.Source == "offline_payout" {
+					next = "awaiting_payment"
+				}
+				break
+			}
 			if o.State != "reserving" && o.State != "processing" && o.State != "releasing" {
 				return empty, fault("order_changed", 409)
 			}
@@ -326,7 +338,7 @@ func (s *Service) Execute(ctx context.Context, tx pgx.Tx, actor, c, id, key stri
 	if e != nil {
 		return empty, e
 	}
-	if e = s.Audit(ctx, tx, c, id, actor, in.Action, map[string]any{"note": in.Note, "evidenceRef": in.Evidence, "revision": o.Revision}); e != nil {
+	if e = s.Audit(ctx, tx, c, id, actor, in.Action, map[string]any{"note": in.Note, "evidenceRef": in.Evidence, "revision": o.Revision, "approvalRequired": s.ReviewRequired()}); e != nil {
 		return empty, e
 	}
 	_, e = tx.Exec(ctx, `INSERT INTO manual_funds_commands(namespace,actor_id,request_id,request_hash,order_id) VALUES($1,$2,$3,$4,$5)`, s.NS(), actor, key, hash, id)
