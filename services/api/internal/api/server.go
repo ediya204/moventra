@@ -69,6 +69,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
+		if err := s.CheckManualFunds(ctx); err != nil {
+			fail(w, 503, "not_ready")
+			return
+		}
 		if err := database.Ready(ctx, s.DB, s.Ledger != nil || s.Deposits != nil); err != nil {
 			fail(w, 503, "not_ready")
 			return

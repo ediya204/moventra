@@ -16,6 +16,7 @@ import (
 	"moventra.local/api/internal/database"
 	"moventra.local/api/internal/depositaddress"
 	"moventra.local/api/internal/ledger"
+	"moventra.local/api/internal/manualfunds"
 	"moventra.local/api/internal/tron"
 )
 
@@ -285,5 +286,91 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 	if e = db.QueryRow(ctx, `SELECT data->>'usdtToUsd' FROM crypto_settings WHERE namespace=$1`, ns).Scan(&price); e != nil || price != "0.98" {
 		t.Fatal(price, e)
 	}
+
+	t.Run("manual funding production activation", func(t *testing.T) {
+		app := &Server{DB: db, Verifier: fakeVerifier{}, ProductionFunds: s}
+		handler = app.Handler()
+		root := "/admin-api/v1/customers/" + personal + "/manual-funds"
+		post := func(token, path string, body any, key string, want int) manualfunds.Order {
+			t.Helper()
+			raw, _ := json.Marshal(body)
+			r := httptest.NewRequest("POST", root+path, strings.NewReader(string(raw)))
+			r.Header.Set("Authorization", "Bearer "+token)
+			r.Header.Set("Content-Type", "application/json")
+			r.Header.Set("Idempotency-Key", key)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+			if w.Code != want {
+				t.Fatalf("manual %s: %d %s", path, w.Code, w.Body)
+			}
+			var result struct{ Data manualfunds.Order }
+			json.Unmarshal(w.Body.Bytes(), &result)
+			return result.Data
+		}
+		exec(`INSERT INTO users(id,firebase_uid,display_name,role) VALUES('00000000-0000-0000-0000-000000000005','new-user','Reviewer','admin')`)
+		exec(`INSERT INTO manual_funds_grants SELECT u,$1,p FROM unnest(ARRAY['00000000-0000-0000-0000-000000000003'::uuid,'00000000-0000-0000-0000-000000000005'::uuid]) u CROSS JOIN unnest(ARRAY['read','create','review','execute']) p ON CONFLICT DO NOTHING`, personal)
+		input := map[string]any{"customerId": personal, "source": "platform_advance", "currency": "USD", "amountMinor": "10001", "note": "synthetic activation", "evidenceRef": "synthetic-production-manual"}
+		key := uuid.NewString()
+		t.Setenv("MANUAL_FUNDS_ENABLED", "true")
+		t.Setenv("FUNDS_PRODUCTION_MODE", "prepare")
+		post("staff", "/orders", input, key, 503)
+		if app.CheckManualFunds(ctx) == nil {
+			t.Fatal("prepare activated manual funding")
+		}
+		t.Setenv("FUNDS_PRODUCTION_MODE", "enabled")
+		if err := app.CheckManualFunds(ctx); err != nil {
+			t.Fatal(err)
+		}
+		var checksum string
+		if err := db.QueryRow(ctx, `SELECT checksum FROM schema_migrations WHERE version=16`).Scan(&checksum); err != nil {
+			t.Fatal(err)
+		}
+		exec(`UPDATE schema_migrations SET checksum='invalid' WHERE version=16`)
+		if app.CheckManualFunds(ctx) == nil {
+			t.Fatal("invalid schema accepted")
+		}
+		exec(`UPDATE schema_migrations SET checksum=$1 WHERE version=16`, checksum)
+		post("staff-no-mfa", "/orders", input, key, 403)
+		order := post("staff", "/orders", input, key, 200)
+		if again := post("staff", "/orders", input, key, 200); again.ID != order.ID {
+			t.Fatal("duplicate order")
+		}
+		review := map[string]any{"revision": order.Revision, "note": "synthetic independent review"}
+		post("staff", "/orders/"+order.ID+"/approve", review, uuid.NewString(), 403)
+		post("new-user", "/orders/"+order.ID+"/approve", review, uuid.NewString(), 200)
+		t.Setenv("MANUAL_FUNDS_ENABLED", "false")
+		if app.drainManualFunds(ctx) == nil {
+			t.Fatal("disabled worker ran")
+		}
+		t.Setenv("MANUAL_FUNDS_ENABLED", "true")
+		if err := app.drainManualFunds(ctx); err != nil {
+			t.Fatal(err)
+		}
+		if err := app.drainManualFunds(ctx); err != nil {
+			t.Fatal(err)
+		}
+		tx, err := db.Begin(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		saved, err := app.manualService().Get(ctx, tx, personal, order.ID)
+		tx.Rollback(ctx)
+		if err != nil || saved.State != "completed" {
+			t.Fatal(saved, err)
+		}
+		var legs int
+		if err = db.QueryRow(ctx, `SELECT count(*) FROM ledger_journal j JOIN ledger_operations o ON o.id=j.operation_id WHERE o.namespace=$1 AND o.effect_key=$2`, ns, "manual:"+order.ID+":credit").Scan(&legs); err != nil || legs != 1 {
+			t.Fatal("duplicate posting", legs, err)
+		}
+		s.Production = &cryptofunds.ProductionRuntime{}
+		if app.manualService().Enabled() || app.drainManualFunds(ctx) == nil {
+			t.Fatal("unhealthy production activated")
+		}
+		app.ProductionFunds = nil
+		app.DepositPilot = s
+		if app.manualService().Enabled() {
+			t.Fatal("pilot activated manual funding")
+		}
+	})
 
 }

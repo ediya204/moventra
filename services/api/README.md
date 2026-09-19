@@ -201,3 +201,8 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 ## 统一资金记录查询（2026-09-19，本地未部署）
 
 新增两端fund-records GET列表/详情，独立SQL读模型按来源授权并写入读取审计，不调用渠道或改变资金。依赖既有001–020，不要求021/022迁移。见[契约及验收](../../docs/business/fund-records.md)。
+
+
+## 人工资金正式模式启用（2026-09-19，本地未部署）
+
+现有 `FUNDS_PRODUCTION_MODE=enabled` 下，显式 `MANUAL_FUNDS_ENABLED=true` 后复用已验收正式钱包。API 启动和readyz只读核对001/006/016/019；ProductionReady健康时允许人工订单写入，并由API内每5秒任务恢复订单。prepare/pilot不启用；不自动迁移、授权或创建订单。原 `manual-funds-worker` 属于旧LEDGER_MODE配置，当前模式不启动该程序。权限、复核及回退见[人工资金流程](../../docs/business/platform-advance.md#2026-09-19正式资金模式人工操作接通本地未部署)。

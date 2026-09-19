@@ -311,7 +311,11 @@ func run() error {
 			return e
 		}
 	}
-	handler := hook.Handler((&api.Server{Messages: messageService, CardMetricsEnabled: hook.MetricsEnabled, CardSecrets: api.CardSecretsFromEnv(), ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}).Handler())
+	apiServer := &api.Server{Messages: messageService, CardMetricsEnabled: hook.MetricsEnabled, CardSecrets: api.CardSecretsFromEnv(), ProductionFunds: production, DepositPilot: pilot, Deposits: deposits, DB: pool, Verifier: api.FirebaseVerifier{Client: auth}, Directory: api.FirebaseUserDirectory{Client: auth}, Ledger: shadowLedger, Issuing: issuingService}
+	if err = apiServer.CheckManualFunds(ctx); err != nil {
+		return err
+	}
+	handler := hook.Handler(apiServer.Handler())
 	if os.Getenv("CREGIS_SOURCE_ENABLED") == "true" {
 		funding, e := cryptofunds.New(shadowLedger)
 		if e != nil {
@@ -327,6 +331,9 @@ func run() error {
 	server := http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	stop, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stopSignals()
+	if production != nil && os.Getenv("MANUAL_FUNDS_ENABLED") == "true" {
+		go apiServer.RunManualFunds(stop)
+	}
 	if messageService != nil && os.Getenv("MESSAGES_WORKER_ENABLED") == "true" {
 		go messageService.Run(stop)
 	}

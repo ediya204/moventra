@@ -8,6 +8,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// ReadyManualFunds never applies migrations or grants financial permissions.
+func ReadyManualFunds(ctx context.Context, db *pgxpool.Pool) error {
+	for version, sql := range map[int]string{1: initial, 6: blnkShadow, 16: manualFunds, 19: globalAdmin} {
+		var got string
+		if err := db.QueryRow(ctx, `SELECT checksum FROM schema_migrations WHERE version=$1`, version).Scan(&got); err != nil {
+			return fmt.Errorf("manual_funds_migration_%d_unavailable", version)
+		}
+		if got != fmt.Sprintf("%x", sha256.Sum256([]byte(sql))) {
+			return fmt.Errorf("manual_funds_migration_%d_conflict", version)
+		}
+	}
+	return nil
+}
+
 // Applies only the manual funding schema migration, never unrelated funds migrations.
 func MigrateManualFunds(ctx context.Context, db *pgxpool.Pool) error {
 	tx, err := db.Begin(ctx)

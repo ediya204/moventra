@@ -219,3 +219,8 @@ API与独立开卡Worker已发布2b4a905；私有Blnk替代实例TLS5443连接�
 资金记录第二批发布核验与精确平台版本见[发布记录](../deploy/2026-09-19-fund-records-release.md)。
 
 资金记录第二批已上线：运行源码b1b27fb，API及两端Worker发布成功，191项回归与隔离PG race通过、线上74份JS/CSS一致；未认证与跨端拒绝检查通过。真实登录后的列表/详情读取未验收；没有生产迁移、执行开关调整或真实资金操作。平台ID见[本批发布记录](../deploy/2026-09-19-fund-records-release.md)。本条更新前述本地未发布状态。
+
+
+## 2026-09-19 人工出入金启用准备（本地未部署）
+
+已接通分能力正式资金模式的人工USD订单：显式MANUAL_FUNDS_ENABLED开关、ProductionReady健康门槛、API内持久订单恢复和只读迁移校验。沿用MFA、独立审核、现有权限和幂等账本；没有新增授权、迁移或订单。本轮隔离PostgreSQL全套race、go vet/build通过；真实Firebase、真实Blnk及专用浏览器夹具未配置，未作真实渠道或登录验收。用户已确认正式后台，本轮发布核验进行中，尚未修改线上开关，详见[流程与回退](business/platform-advance.md#2026-09-19正式资金模式人工操作接通本地未部署)。

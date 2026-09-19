@@ -1,13 +1,17 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"io"
+	"log/slog"
+	"moventra.local/api/internal/database"
 	"moventra.local/api/internal/manualfunds"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -19,10 +23,56 @@ func (s *Server) manualService() *manualfunds.Service {
 	if svc.Ledger == nil {
 		if funding, e := s.fundsReadService(); e == nil {
 			svc.Ledger = funding.Ledger
-			svc.ReadOnly = true
+			svc.ReadOnly = s.ProductionFunds == nil || !funding.Ledger.IsLive() || os.Getenv("FUNDS_PRODUCTION_MODE") != "enabled" || !s.ProductionFunds.ProductionReady()
 		}
 	}
 	return svc
+}
+
+// Explicit activation reuses the verified production wallet, never the pilot.
+// Schema checks are read-only; starting the worker does not create orders.
+func (s *Server) CheckManualFunds(ctx context.Context) error {
+	if os.Getenv("MANUAL_FUNDS_ENABLED") != "true" {
+		return nil
+	}
+	// Preserve the legacy ledger profile and its separately managed worker.
+	if s.Ledger != nil && s.ProductionFunds == nil {
+		return database.ReadyManualFunds(ctx, s.DB)
+	}
+	if s.ProductionFunds == nil || os.Getenv("FUNDS_PRODUCTION_MODE") != "enabled" || s.Ledger != nil {
+		return errors.New("manual_funds_production_profile_required")
+	}
+	return database.ReadyManualFunds(ctx, s.DB)
+}
+
+func (s *Server) drainManualFunds(ctx context.Context) error {
+	if err := s.CheckManualFunds(ctx); err != nil {
+		return err
+	}
+	svc := s.manualService()
+	if !svc.Enabled() {
+		return errors.New("manual_funds_disabled")
+	}
+	_, err := svc.Drain(ctx)
+	return err
+}
+
+func (s *Server) RunManualFunds(ctx context.Context) {
+	tick := time.NewTicker(5 * time.Second)
+	defer tick.Stop()
+	for {
+		work, cancel := context.WithTimeout(ctx, 45*time.Second)
+		err := s.drainManualFunds(work)
+		cancel()
+		if err != nil {
+			slog.Warn("manual funds awaiting recovery")
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+		}
+	}
 }
 func manualFail(w http.ResponseWriter, e error) {
 	var f *manualfunds.Fault

@@ -270,3 +270,8 @@ F-PRODUCTION-ACTIVATION：隔离PG验证超原限额事件恢复、2 USDT入账�
 ## F-FUND-RECORDS-001（2026-09-19）
 
 `TestFundRecords`：在隔离PostgreSQL移除021/022模块结构后查询；逐来源权限/MFA/客户隔离、23笔跨页、UTC边界、OTC双币种、大额精度、手续费/首充拆分、历史专用开卡和统一账本退回、资金卡与账本账户不同UUID、真实充值证据结构、撤权及审计故障关闭。重复查询不得增加journal。前端测试覆盖筛选URL、详情刷新、未知金额、取消旧响应、错误重试和网关跨端/方法拒绝。运行结果见[本批证据](../business/fund-records.md)。
+
+
+## 2026-09-19 人工资金启用回归（本地）
+
+本轮 `bash services/api/scripts/test-postgres.sh` 全套race通过，`go vet ./...`及`go build ./cmd/...`通过。新增生产模式人工申请→独立审核→API恢复→completed的合成夹具，断言同键同单、重复恢复仅一条分录；开关关闭/prepare、错误迁移校验和、缺少MFA、自审、不健康及pilot路径均拒绝。原人工生命周期与全局管理员生命周期同时通过，覆盖出金预占/释放与故障恢复。真实Firebase、真实Blnk和专用浏览器夹具因未配置跳过；不是正式资金、浏览器或生产启用证据。范围见[人工资金流程](../business/platform-advance.md)。
