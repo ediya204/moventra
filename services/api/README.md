@@ -206,3 +206,5 @@ FUNDS_PRODUCTION_MODE=prepare/enabled需FUNDS_PRODUCTION_EVIDENCE指向原最终
 ## 人工资金正式模式启用（2026-09-19，本地未部署）
 
 现有 `FUNDS_PRODUCTION_MODE=enabled` 下，显式 `MANUAL_FUNDS_ENABLED=true` 后复用已验收正式钱包。API 启动和readyz只读核对001/006/016/019；ProductionReady健康时允许人工订单写入，并由API内每5秒任务恢复订单。prepare/pilot不启用；不自动迁移、授权或创建订单。原 `manual-funds-worker` 属于旧LEDGER_MODE配置，当前模式不启动该程序。权限、复核及回退见[人工资金流程](../../docs/business/platform-advance.md#2026-09-19正式资金模式人工操作接通本地未部署)。
+
+2026-09-19用户明确采用人工资金单人授权：同一有权运营可创建、批准、确认线下付款；每一步仍检查独立动作权限、MFA与凭证，保留审核和记账状态，不自动付款。

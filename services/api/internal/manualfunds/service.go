@@ -267,9 +267,6 @@ func (s *Service) Execute(ctx context.Context, tx pgx.Tx, actor, c, id, key stri
 		next, resolution, reviewer, payment := o.State, o.Resolution, o.ReviewerID, o.PaymentEvidence
 		switch in.Action {
 		case "approve", "reject":
-			if o.ActorID == actor {
-				return empty, fault("self_review_forbidden", 403)
-			}
 			if o.State != "pending_review" {
 				return empty, fault("order_changed", 409)
 			}
@@ -299,7 +296,7 @@ func (s *Service) Execute(ctx context.Context, tx pgx.Tx, actor, c, id, key stri
 				resolution = "cancelled"
 			}
 		case "confirm_payment":
-			if o.State != "awaiting_payment" || o.Source != "offline_payout" || o.ActorID == actor || !validText(in.Evidence, 180) {
+			if o.State != "awaiting_payment" || o.Source != "offline_payout" || !validText(in.Evidence, 180) {
 				return empty, fault("payment_evidence_required", 409)
 			}
 			next = "processing"

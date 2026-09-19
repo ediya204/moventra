@@ -166,12 +166,12 @@ func testManualFundsLifecycle(t *testing.T, global bool) {
 			t.Fatal(w.Code, w.Body)
 		}
 	})
-	t.Run("independent approval and ledger application", func(t *testing.T) {
-		w := req("staff", "POST", root+"/orders/"+credit.ID+"/approve", map[string]any{"revision": credit.Revision, "note": "self"}, uuid.NewString())
-		if w.Code != 403 {
-			t.Fatal(w.Code, w.Body)
+	t.Run("single authorized operator approval and ledger application", func(t *testing.T) {
+		credit = action("staff", credit, "approve")
+		if credit.ReviewerID != staff || credit.ActorID != staff {
+			t.Fatal("actor audit missing", credit)
 		}
-		credit = action("new-user", credit, "approve")
+		var w *httptest.ResponseRecorder
 		credit = process(credit)
 		if credit.State != "completed" || credit.Before == nil || *credit.Before != "0" || *credit.After != "1000000" {
 			t.Fatalf("%+v", credit)
@@ -322,6 +322,29 @@ func testManualFundsLifecycle(t *testing.T, global bool) {
 		}
 	})
 	// Explicit local browser harness. No test authentication is compiled into API.
+	t.Run("single operator offline payout still needs explicit payment evidence", func(t *testing.T) {
+		o := create("offline_payout", "1", "")
+		o = process(o)
+		o = action("staff", o, "approve")
+		if o.State != "awaiting_payment" {
+			t.Fatal(o)
+		}
+		o = process(o)
+		if o.State != "awaiting_payment" {
+			t.Fatal("approval paid order")
+		}
+		body := map[string]any{"revision": o.Revision, "note": "synthetic payment"}
+		if w := req("staff", "POST", root+"/orders/"+o.ID+"/confirm_payment", body, uuid.NewString()); w.Code != 409 {
+			t.Fatal(w.Code, w.Body)
+		}
+		body["evidenceRef"] = "synthetic-single-operator-payment"
+		o = decode(req("staff", "POST", root+"/orders/"+o.ID+"/confirm_payment", body, uuid.NewString()))
+		o = process(o)
+		if o.State != "completed" || o.ReviewerID != staff || o.PaymentEvidence != "synthetic-single-operator-payment" {
+			t.Fatal(o)
+		}
+	})
+
 	if os.Getenv("MANUAL_FUNDS_BROWSER") == "true" {
 		browser := httptest.NewServer(handler)
 		defer browser.Close()

@@ -71,7 +71,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -140,7 +140,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -202,7 +202,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -264,7 +264,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -326,7 +326,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -388,7 +388,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -450,7 +450,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -531,7 +531,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -612,7 +612,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -693,7 +693,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -774,7 +774,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -855,7 +855,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"
@@ -936,7 +936,7 @@
             "description": "Unauthenticated"
           },
           "403": {
-            "description": "MFA, role, self-review or service status rejected"
+            "description": "MFA, role, action permission or service status rejected"
           },
           "404": {
             "description": "No resource access"

@@ -334,4 +334,4 @@ CVV为客户专用POST，沿用Firebase Bearer登录，无额外验证；响应�
 新增两端 `GET /{client|admin}-api/v1/fund-records` 与 `/{recordId}`。按来源授权、服务端联合筛选/分页，金额分项与入账状态独立；精确契约见 OpenAPI FundRecord/FundRecordsResponse，数据覆盖与兼容见[统一资金记录](../business/fund-records.md)。不依赖生产未应用的021/022。
 
 
-2026-09-19 人工资金接通增量（本地未部署）：现有manual-funds DTO、状态和路由不变。enabled仅在显式人工开关、enabled生产资金模式及ProductionReady健康时返回true；pilot和prepare保持只读。后台订单由API内持久恢复任务处理，权限、MFA与独立审核不变，见[人工资金流程](../business/platform-advance.md)。
+2026-09-19 人工资金接通增量（本地未部署）：现有manual-funds DTO、状态和路由不变。enabled仅在显式人工开关、enabled生产资金模式及ProductionReady健康时返回true；pilot和prepare保持只读。后台订单由API内持久恢复任务处理，权限、MFA及显式审核保持；按本轮用户决定允许同一运营创建/审核/确认付款，各动作仍须对应权限和凭证，见[人工资金流程](../business/platform-advance.md)。

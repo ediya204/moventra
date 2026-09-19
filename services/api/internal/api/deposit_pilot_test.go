@@ -335,9 +335,11 @@ func TestDepositPilotCapDedupAndRecovery(t *testing.T) {
 		if again := post("staff", "/orders", input, key, 200); again.ID != order.ID {
 			t.Fatal("duplicate order")
 		}
-		review := map[string]any{"revision": order.Revision, "note": "synthetic independent review"}
-		post("staff", "/orders/"+order.ID+"/approve", review, uuid.NewString(), 403)
-		post("new-user", "/orders/"+order.ID+"/approve", review, uuid.NewString(), 200)
+		review := map[string]any{"revision": order.Revision, "note": "synthetic operator confirmation"}
+		exec(`DELETE FROM manual_funds_grants WHERE user_id='00000000-0000-0000-0000-000000000003' AND permission='review'`)
+		post("staff", "/orders/"+order.ID+"/approve", review, uuid.NewString(), 404)
+		exec(`INSERT INTO manual_funds_grants VALUES('00000000-0000-0000-0000-000000000003',$1,'review')`, personal)
+		post("staff", "/orders/"+order.ID+"/approve", review, uuid.NewString(), 200)
 		t.Setenv("MANUAL_FUNDS_ENABLED", "false")
 		if app.drainManualFunds(ctx) == nil {
 			t.Fatal("disabled worker ran")

@@ -81,7 +81,7 @@ func (s *Service) Process(ctx context.Context, c, id string) error {
 			next = o.Resolution
 		}
 	case "processing":
-		if o.ReviewerID == "" || o.ReviewerID == o.ActorID {
+		if o.ReviewerID == "" {
 			return fault("review_required", 409)
 		}
 		if o.Direction == "credit" {
