@@ -10,7 +10,7 @@
 
 基线main `aa1b894`；只包含本批试运行范围、CLI、前后端类型/展示、隔离测试及文档。资金上限同时在报价、提交、Worker复核，固定订单、客户范围和不可变授权消除重复名额；失败仍占名额，到期后保留原单恢复。客户资格及供应商开启是一次性配置，不增加逐单审批状态。
 
-本轮210项前端回归、两端typecheck/build、隔离PostgreSQL Go race、Go vet/build通过。浏览器使用真实Go HTTP、隔离库、进程内Tick和有状态Blnk/Slash模拟：20+10=30、两声明、成功、刷新同单、第二单拒绝、后台同单及1000→970余额通过。独立真实Blnk、真实Firebase和真实Slash生命周期未在本轮验收；源码重启恢复用Go专项覆盖，不能称该浏览器轮使用独立Worker进程。
+本轮210项前端回归、两端typecheck/build、隔离PostgreSQL Go race、Go vet/build通过。浏览器使用真实Go HTTP、隔离库、进程内Tick和有状态Blnk/Slash模拟：20+10=30、两声明、成功、刷新同单、第二单拒绝、后台同单及1000→970余额通过。手动浏览器核验完成后，夹具未及时关闭触发Go默认10分钟超时，因此该长驻harness进程退出码非零，不计为自动化全绿；页面行为记录与独立全套Go race结果分开。隔离库及本批预览服务已清理。独立真实Blnk、真实Firebase和真实Slash生命周期未在本轮验收；源码重启恢复用Go专项覆盖，不能称该浏览器轮使用独立Worker进程。
 
 实体绑定补充后再次执行全套隔离PostgreSQL Go race、Go vet/build，全部通过；日志保留本机`/tmp/moventra-pilot-go-release.log`。源码提交及部署结果见后续记录。
 
@@ -22,7 +22,22 @@
 
 ## 部署结果
 
-待执行。此处未更新前不能据本文声称生产已开放。真实订单、真实扣款和真实发卡均尚未由代理执行。
+源码`04d874fbcce0c73f52f1c9e4106a8f0992aeea64`已推送GitHub main。两端Render已部署同一版本：
+
+| 组件 | 本轮版本 / 验证 |
+| --- | --- |
+| API | `dep-dan185mk1f9s73f2edlg`，live；healthz/readyz均200 |
+| issuing-worker | `dep-dan186rm8hqs739lu70g`，live；新实例队列pending0/requiresVerification0 |
+| Cloudflare客户端 | `046ffbec-99b5-4b2b-a223-c03f9bf58536` |
+| Cloudflare后台 | `5ae8becf-b31c-4daf-89b9-74d205da5152` |
+
+客户端`index-CSsaCNwD.js`和后台`index-D3isDuyS.js`线上内容与本地构建逐字节一致；普通curl访问正式客户端200、后台旧login重定向admin/login。Python探测收到HTTP错误后改用curl核验；没有将未认证HTML/静态文件可达等同客户业务验收。
+
+两服务逐项新增`ISSUING_PILOT_CONFIG`、`ISSUING_SLASH_KEY_PILOT`并将模式改为pilot，读取比对其余环境变量完全不变。命名密钥复用既有服务端凭据，未修改渠道密钥权限；完整live验收文件仍未配置。原环境只保存在本机私有备份，不入仓库。授权配置固定申请截止`2026-09-20T04:48:05Z`（香港时间9月20日12:48:05）；接受后的同单恢复不受该期限中断。
+
+资格配置任务`job-dan1983m8hqs739m22u0`已成功：受信CLI事务补齐已核对entity、激活供应商、开启指定客户资格并写入不可变授权。前后`pilot-status`显示目标BIN的blockedReason由supplier_paused变为空，其他7个BIN均pilot_scope_required；客户订单仍0、余额仍100009美分。新前端先上线而资格未配置期间，用户截图仍显示“暂未开放”，该原因已消除；需刷新已有页面重新查询。
+
+本批已开放指定单卡申请，完整live仍未认证。本人认证浏览器和真实渠道写流程仍待用户自行提交验收；代理没有提交真实订单、扣款或发卡。以上零订单/余额是配置任务完成时点的证据，不覆盖用户随后自行操作。申请入口为`https://www.moventra.me/portal/cards/new`，BIN 43612080。
 
 ## 回退与交接
 
