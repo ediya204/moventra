@@ -50,3 +50,15 @@ API 部署 `dep-damvva3m8hqs739hnkj0` 于03:21:44 UTC live；开卡 Worker 部�
 消息异常先关闭 API 消息/Worker 开关，并通过同一有审计的运维入口关闭 OTC 捕获；关闭主动发送不会撤销已经入队的任务。统一开卡保持 prepare，必要时恢复原资金来源配置并部署；保留021/022、订单、审计和账本，不反向删除结构或覆盖余额。备份恢复只能在明确恢复时间点与新增数据影响后另行执行，不能覆盖运行中的主库。
 
 下一阶段需要指定真实客户/产品及渠道验收，核对扣款、零限额发卡、卡分户、启用、未知结果恢复、退款与对账证据，才可启用 issuing live。运营站内信还需确定具体运营与客户授权范围，再开放发送。
+
+## 后续真实开卡启用检查（2026-09-19 11:34 香港时间）
+
+用户随后明确要求开启真实开卡扣款/发卡。本次读取生产环境确认API与Worker仍为`prepare`、`funds_wallet`；两者未配置`ISSUING_CERTIFICATION_FILE`，Worker尚无发卡专用密钥变量。代码在live启动时要求真实验收清单，直接修改模式会失败；本次没有填造验收声明或删除检查。
+
+只读任务`job-dan05iek1f9s73eun9j0`确认：供应商1个、paused；8个产品active，开卡费均1000美分、最低首充2000美分；开卡客户资格0条、订单0。生产环境以现有凭据和与Go客户端相同的请求头调用Slash：账户身份匹配，8个来源产品均active、BIN一致，产品分页完整。最初Python默认请求收到Cloudflare纯文本403；相同环境/凭据改为实际应用请求头后读取成功，不能据此要求重新配置白名单，也不能宣称已验证写权限。
+
+官方[创建卡](https://docs.slash.com/api-reference/card-post)、[产品列表](https://docs.slash.com/api-reference/card-product-get)与[限额替换](https://docs.slash.com/api-reference/card-spending-constraint-put)本轮复核：接口仍提供产品/虚拟账户关联及以美分表示的collective限制；公开Schema不替代零限额、限额启用、未知结果恢复与对账实测。待用户指定验收客户、BIN/产品及最高总扣款金额后，才进入受控真实验收。当前没有真实扣款、发卡、供应商激活、客户资格新增或live部署。
+
+项目虚拟账户任务`job-dan05uugekts73f77efg`确认来源ID及accountId均与本地项目钱包匹配。诊断脚本按[官方响应结构](https://docs.slash.com/api-reference/virtual-account-get-by-id)读取`virtualAccount`封装后通过；初始直接读取顶层字段所得false不是生产归属不匹配，没有修改项目钱包映射。
+
+共享工作区此时另有界面与人工出入金任务修改，已协调人工资金任务只更新各自目标开关；本批不提交或部署这些并行代码。

@@ -1,3 +1,4 @@
+import FinanceWorkspace from './FinanceWorkspace';
 import {DashboardLayout} from '../components/DashboardLayout';
 import {Navigate,useLocation} from 'react-router-dom';
 import {useAuth} from '../../../../packages/shared/src/auth/AuthContext';
@@ -7,5 +8,5 @@ export default function OperationsPage({report=false}:{report?:boolean}){
  const {ready,authenticated,user,session}=useAuth();const location=useLocation();
  if(!ready)return <PageSkeleton/>;
  if(!authenticated||session?.operator!==true||!session.mfaVerified)return <Navigate to={user?'/session?security=1':'/admin/login'} state={{from:location.pathname}} replace/>;
- return <DashboardLayout production><FundsOverview key={report?'report':'overview'} report={report}/></DashboardLayout>;
+ return <DashboardLayout production>{report?<FinanceWorkspace className="finance-report"><FundsOverview report/></FinanceWorkspace>:<FundsOverview/>}</DashboardLayout>;
 }

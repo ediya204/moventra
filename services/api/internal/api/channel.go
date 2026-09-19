@@ -311,6 +311,18 @@ func (s *Server) channelRead(w http.ResponseWriter, r *http.Request) {
 		fail(w, 404, "not_found")
 		return
 	}
+	if client && kind == "card" {
+		if r.Method == "POST" && strings.HasSuffix(r.URL.Path, "/remark") {
+			s.saveCardRemark(w, r, tx, p, customer, connection, id, revision, walletScoped)
+			return
+		}
+		if r.Method == "GET" {
+			if err := attachCardRemarks(r.Context(), tx, customer, connection, data); err != nil {
+				fail(w, 503, "temporarily_unavailable")
+				return
+			}
+		}
+	}
 	if client && kind == "card" && id != "" && r.Method == "GET" && len(data) == 1 {
 		var row map[string]any
 		if json.Unmarshal(data[0], &row) != nil {

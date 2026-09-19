@@ -1,7 +1,6 @@
 import FundRecords from '../../../../packages/shared/src/finance/FundRecords';
 import MessageCenter, {MessageBell} from '../../../../packages/shared/src/messages/MessageCenter';
 import FundsNavigation from '../../../../packages/shared/src/finance/FundsNavigation';
-import SectionNavigation from '../../../../packages/shared/src/components/SectionNavigation';
 import ManualFunds from '../../../../packages/shared/src/finance/ManualFunds';
 import CardIssuing from "../issuing/CardIssuing";
 import CustomerFunds from '../../../../packages/shared/src/finance/CustomerFunds';
@@ -109,6 +108,7 @@ export default function ClientHome() {
   }, [customer?.id, session, user, reload, pathname]);
   if (!ready || !session || sessionError || !user) return <SessionPage />;
   if (pathname.startsWith("/portal/test-funds")) return <Navigate to="/portal/funds" replace />;
+  if (pathname === "/portal/settings") return <Navigate to="/portal/security" replace />;
   if (pathname === "/portal/overview") return <Navigate to="/portal" replace />;
   if (!/^\/portal\/fund-records(?:\/[^/]+)?$/.test(pathname) && !/^\/portal\/messages\/[0-9a-f-]{36}$/.test(pathname) && !/^\/portal\/funds\/manual(?:\/orders\/[0-9a-f-]{36})?$/.test(pathname) && !/^\/portal\/(?:card-orders(?:\/[0-9a-f-]{36})?|issued-cards\/[0-9a-f-]{36})$/.test(pathname) && !/^\/portal\/test-funds(?:\/(?:history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/crypto(?:\/(?:deposit|fiat|withdraw|exchange|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/funds(?:\/(?:deposit|fiat|fiat-deposit|exchange|withdraw|history|orders\/[0-9a-f-]{36}))?$/.test(pathname) && !/^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && !links.some(([path]) => path === pathname || path === "/portal/cards" && pathname === "/portal/cards/new"))
     return <Navigate to="/portal" replace />;
@@ -121,12 +121,6 @@ export default function ClientHome() {
   const fallbackTitle = pathname.startsWith("/portal/card-orders/") ? "开卡订单详情" : pathname === "/portal/card-orders" ? "开卡订单" : pathname.startsWith("/portal/issued-cards/") ? "新开卡片详情" : pathname === "/portal/cards/new" ? "申请新卡" : pathname.startsWith("/portal/cards/") ? "卡片详情" : pathname.startsWith("/portal/card-transactions/") ? "卡片交易详情" : links.find(([path]) => path === pathname || path !== "/portal" && pathname.startsWith(path + "/"))?.[1] || "工作台";
   const { title: page, description, section } = workspacePage(pathname, fallbackTitle);
   const refreshPage = ["/portal", "/portal/accounts"].includes(pathname);
-  const settingsPage = ["/portal/settings", "/portal/accounts", "/portal/security"].includes(pathname);
-  const settingsNav = <SectionNavigation label="账户设置分区" active={pathname} items={[
-    {value:"/portal/settings",label:"个人设置",to:"/portal/settings"},
-    {value:"/portal/accounts",label:"我的账户",to:"/portal/accounts"},
-    {value:"/portal/security",label:"账户与安全",to:"/portal/security"},
-  ]}/>;
   const nav = (
     <Stack component="nav" aria-label="客户端主导航" sx={{ height: "100%", p: 2.5, overflowY: "auto" }} spacing={2.5}>
       <Box sx={{ py: 2 }}>
@@ -144,7 +138,7 @@ export default function ClientHome() {
           <ListItemButton
             key={path}
             component={Link}
-            to={path}
+            to={path === "/portal/settings" ? "/portal/security" : path}
             selected={section === path}
             aria-current={section === path ? "page" : undefined}
             onClick={() => setMobile(false)}
@@ -349,7 +343,6 @@ export default function ClientHome() {
           {security ? (
             <Stack spacing={3}>
               <Box><Typography variant="h4" component="h1">账户与安全</Typography><Typography color="text.secondary" sx={{mt:.75}}>{description}</Typography></Box>
-              {settingsNav}
               <SessionPage embedded />
             </Stack>
           ) : (
@@ -377,7 +370,6 @@ export default function ClientHome() {
                   刷新数据
                 </Button>}
               </Stack>
-              {settingsPage && settingsNav}
               {customer && <OnboardingPanel key={`onboarding:${customer.id}`} customerId={customer.id} onState={setOnboarding} compact refreshKey={reload}/> }
               {error && <Alert severity="error">{error}</Alert>}
               {!customer && (
@@ -399,13 +391,6 @@ export default function ClientHome() {
               )}
               {pathname === "/portal/accounts" && accounts}
               {pathname === "/portal/accounts" && transactions}
-              {pathname === "/portal/settings" && <Paper variant="outlined" sx={{p:{xs:2,md:3}}}>
-                <Stack spacing={2}><Box><Typography variant="h6">个人账户</Typography><Typography variant="body2" color="text.secondary" sx={{mt:.5,overflowWrap:'anywhere'}}>{user.email}</Typography></Box>
-                <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',sm:'1fr 1fr'},gap:2}}>
-                  {[["我的账户","查询已关联的业务账户与账户记录","/portal/accounts","solar:wallet-linear"],["账户与安全","管理邮箱验证、登录和验证器","/portal/security","solar:shield-check-linear"]].map(([title,hint,to,icon])=><Box key={to} sx={{p:2,border:1,borderColor:'divider',borderRadius:1.5}}><Stack direction="row" alignItems="center" gap={1}><Icon icon={icon} width={22}/><Button component={Link} to={to}>{title}</Button></Stack><Typography variant="body2" color="text.secondary" sx={{mt:1}}>{hint}</Typography></Box>)}
-                </Box>
-                <Typography variant="body2" color="text.secondary">服务状态：{!customer?'尚未关联个人账户':!admission?'正在读取…':enabled?'账户已开通':admission.serviceStatus==='suspended'?'服务已暂停，请联系支持':'开户处理中，请查看上方提示'}</Typography></Stack>
-              </Paper>}
               {customer && /^\/portal\/fund-records(?:\/|$)/.test(pathname) && <FundRecords key={customer.id} recordId={pathname.split('/')[3]}/>}
               {customer && (pathname === "/portal/transactions" || pathname === "/portal/cards" || /^\/portal\/(cards|card-transactions)\/[A-Za-z0-9_-]+$/.test(pathname) && pathname !== "/portal/cards/new") && <CardSnapshots key={`cards:${customer.id}`} customerId={customer.id}/> }
               {pathname.startsWith('/portal/crypto')&&customer&&<CustomerFunds key={customer.id} customerId={customer.id} basePath="/portal/crypto" orderId={pathname.split('/orders/')[1]}/>}

@@ -57,3 +57,23 @@ test('OpenAPI funding routes are reachable through both method allowlists',()=>{
  assert.equal(cryptoRoute('GET',`/admin-api/v1/crypto-sources/cregis-waas/events/${id}?page=1`),false);
  assert.equal(cryptoRoute('POST',path+'/cards/orders'),true);
 });
+
+test('admin settings separate configuration from orders and preserve return filters without writes',async()=>{
+ state.reads=[];state.writes=[];memory.clear();let tree;
+ await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:['/finance/otc?tab=settings&customer='+id+'&status=completed&page=2']},React.createElement(Funds,{customerId:id,basePath:'/finance/otc',admin:true,kind:'otc',permissions:['read','configure']})));await flush()});
+ try {
+  await act(async()=>{state.reads[0].resolve(fixture);await flush()});
+  assert.match(content(tree.toJSON()),/费用与双向成交价/);
+  assert.doesNotMatch(content(tree.toJSON()),/资金订单（/);
+  const link=button(tree,'订单与余额').props.to,q=new URL('http://fixture.invalid'+link).searchParams;
+  assert.equal(q.get('tab'),null);assert.equal(q.get('customer'),id);assert.equal(q.get('status'),'completed');assert.equal(q.get('page'),'2');
+  await act(()=>button(tree,'费率与成交价').props.onClick());
+  assert.match(content(tree.toJSON()),/资金订单（/);assert.doesNotMatch(content(tree.toJSON()),/费用与双向成交价/);assert.equal(state.writes.length,0);
+ } finally {await act(()=>tree.unmount())}
+});
+
+test('read-only admin cannot open settings through a query parameter',async()=>{
+ state.reads=[];state.writes=[];memory.clear();let tree;
+ await act(async()=>{tree=Renderer.create(React.createElement(MemoryRouter,{initialEntries:['/finance/otc?tab=settings']},React.createElement(Funds,{customerId:id,basePath:'/finance/otc',admin:true,permissions:['read']})));await flush()});
+ try {await act(async()=>{state.reads[0].resolve(fixture);await flush()});assert.doesNotMatch(content(tree.toJSON()),/费用与双向成交价/);assert.match(content(tree.toJSON()),/资金订单（/);assert.equal(state.writes.length,0)}finally{await act(()=>tree.unmount())}
+});

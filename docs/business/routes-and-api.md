@@ -1,5 +1,7 @@
 # 页面、API 与浏览器可达范围
 
+卡片备注增量（2026-09-19，本地未部署）：`/portal/cards` 增加独立备注列；`POST /client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/remark` 仅写客户内部备注，同源、本人主体、逐卡授权与 revision 校验。卡列表/详情 GET 增加 remark/remarkRevision/remarkEditable。见[FLOW-CARD-REMARK-001](customer-card-binding.md#flow-card-remark-001卡片备注2026-09-19本地未部署)。
+
 核对日期：2026-09-18。基线为本地 main `89ca9c3` 及现有工作区；静态核对路由、transport、网关与 Go handler，未在线调用业务接口。当前能力及发布证据见[状态摘要](../current-state.md)。历史详细契约保留在[9 月 7 日快照](../releases/2026-09-07-routes-snapshot.md)，不得按其旧路由表认定新接口不可用。
 
 ## 应用与入口
@@ -116,4 +118,10 @@
 
 ## 统一资金记录入口（2026-09-19，本地）
 
-客户端 `/portal/fund-records[/:recordId]`、后台 `/finance/fund-records[/:recordId]`，分别在交易导航下方。查询 API 为 `/{client|admin}-api/v1/fund-records[/{recordId}]`，保留旧历史路由。权限、数据源与验证见[统一资金记录](fund-records.md)。
+客户端 `/portal/fund-records[/:recordId]`、后台 `/finance/fund-records[/:recordId]`，分别在交易导航下方；本地增量使用 `?record=:recordId` 打开右侧详情抽屉，旧路径兼容，保留筛选/分页。查询 API 为 `/{client|admin}-api/v1/fund-records[/{recordId}]`，保留旧历史路由。权限、数据源与验证见[统一资金记录](fund-records.md)。
+
+2026-09-19（本地未部署）：`/portal/cards/new` 使用紧凑目录与渐进结算；`q`、`page`、`product` 参数及原接口链不变。见[申请页流程](client-card-issuing.md#flow-issuing-ui-002申请页精简2026-09-19本地未部署)。
+
+2026-09-19（本地未部署）：设置导航直接打开 `/portal/security`；移除个人设置/我的账户标签，旧 `/portal/settings` 重定向；`/portal/accounts` 仅保留历史深链兼容。见[安全设置流程](two-role-login.md#flow-auth-security-001账户安全设置2026-09-19本地未部署)。
+
+2026-09-19 消费记录详情（本地未部署）：抽屉增加商户描述、MCC及商户名称/位置，复用既有投影并明确缺失值。18项专项及客户端类型/构建、边界检查通过，真实浏览器/渠道未复验。见[商户详情流程](customer-card-binding.md#flow-tx-merchant-001消费详情商户信息2026-09-19本地未部署)。

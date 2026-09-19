@@ -1,0 +1,50 @@
+.balance-detail { --balance-border: #e5eaf0; --balance-muted: #637187; }
+.balance-detail .balance-back { padding: 0; min-width: 0; margin-bottom: 10px; font-size: 12px; color: var(--balance-muted); }
+.balance-identity { display: flex; align-items: center; gap: 16px; padding: 4px 0 2px; }
+.balance-avatar { width: 44px; height: 44px; display: grid; place-items: center; flex-shrink: 0; background: #e9eff9; color: #2757a0; border-radius: 50%; font-size: 20px; font-weight: 600; }
+.balance-detail .balance-summary { overflow: hidden; border-color: var(--balance-border); border-radius: 10px; box-shadow: none; background: #fdfefe; }
+.balance-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.balance-metrics .balance-metric { padding: 24px; min-width: 0; }
+.balance-metrics .balance-metric + .balance-metric { border-left: 1px solid var(--balance-border); }
+.balance-metrics .balance-metric:last-child { background: #f3f6fa; }
+.balance-detail .balance-amount { font-size: clamp(20px, 1.7vw, 28px); letter-spacing: -.5px; }
+.balance-scope { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 8px 20px; color: var(--balance-muted); font-size: 12px; padding: 12px 24px; border-top: 1px solid var(--balance-border); }
+.balance-records { border: 1px solid var(--balance-border); border-radius: 10px; background: #fdfefe; overflow: hidden; }
+.balance-records > .MuiTabs-root { padding: 0 20px; }
+.balance-record-content { padding: 0 20px 16px; }
+.balance-record-content .MuiTableContainer-root { box-shadow: none; border: 1px solid var(--balance-border); border-radius: 6px; }
+.balance-record-content .MuiTableCell-head { background: #f5f7fa; color: #637187; font-size: 12px; white-space: nowrap; }
+.balance-record-content .MuiTableCell-body { height: 64px; border-bottom: 1px solid #edf0f4; font-size: 13px; }
+.balance-record-content .MuiTableRow-root:last-child .MuiTableCell-body { border-bottom: 0; }
+.balance-record-content .MuiTableCell-root:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.balance-record-content .MuiTableCell-root:last-child { text-align: right; }
+.balance-record-content .MuiTypography-h6 { font-size: 16px; }
+.balance-record-content .MuiTableBody-root .MuiTableRow-root:hover { background: #f8fafd; }
+.balance-record-content > .MuiStack-root > .MuiStack-root:last-of-type > .MuiTypography-root { font-size: 12px; color: var(--balance-muted); }
+.balance-scope summary:focus-visible { outline: 2px solid #1674c8; outline-offset: 4px; border-radius: 2px; }
+@media (max-width: 900px) {
+ .balance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .balance-metrics .balance-metric { padding: 18px; }
+ .balance-metrics .balance-metric:nth-child(3) { border-left: 0; }
+ .balance-metrics .balance-metric:nth-child(n+3) { border-top: 1px solid var(--balance-border); }
+}
+@media (max-width: 600px) {
+ .balance-identity { flex-wrap: wrap; gap: 12px; }
+ .balance-identity > .MuiButton-root { margin-left: 56px; }
+ .balance-metrics .balance-metric { padding: 16px 12px; }
+ .balance-detail .balance-amount { font-size: 20px; }
+ .balance-scope { padding: 12px; }
+ .balance-records > .MuiTabs-root { padding: 0 8px; }
+ .balance-record-content { padding: 0 12px 12px; }
+}
+.balance-detail .manual-order-status { display: inline-flex; white-space: nowrap; padding: 4px 9px; border-radius: 5px; background: #eef1f5; color: #526176; font-size: 12px; font-weight: 600; }
+.balance-detail .manual-order-status[data-state="pending_review"], .balance-detail .manual-order-status[data-state="awaiting_payment"] { background: #fff2d8; color: #8b580c; }
+.balance-detail .manual-order-status[data-state="completed"] { background: #e7f4ed; color: #246446; }
+.balance-detail .manual-order-status[data-state="failed"], .balance-detail .manual-order-status[data-state="rejected"] { background: #fbeceb; color: #a03935; }
+.balance-detail .manual-order-status[data-state="processing"], .balance-detail .manual-order-status[data-state="reserving"], .balance-detail .manual-order-status[data-state="releasing"] { background: #e9f1fc; color: #2d5b98; }
+@media (max-width: 600px) {
+ .balance-identity > :nth-child(2) { flex-basis: calc(100% - 56px); }
+}
+@media (max-width: 600px) {
+ .balance-record-content > .MuiStack-root > .MuiStack-root:first-child > .MuiTypography-h6 { flex-basis: 100%; }
+}

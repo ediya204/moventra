@@ -113,3 +113,22 @@ Go 在本机需 `GOFLAGS=-buildvcs=false` 绕过系统 Git 的 Xcode 许可探�
 ### 2026-09-19 revised decision: no review
 
 The user clarified that no review step is wanted and explicitly authorized the existing 1,000 USD platform advance. Production now uses `MANUAL_FUNDS_REQUIRE_REVIEW=false`. New credits process after submission; debits reserve first, with offline payouts still requiring actual payment evidence. Creation requires create and execute grants, plus the existing MFA and customer checks. Audit records the policy, without inventing reviewer identities. Existing pending orders stay unchanged until explicitly resumed; only the identified 1,000 USD original order is authorized in this release. This supersedes the earlier same-operator approval step above. Release evidence is maintained in the manual-funds activation record.
+
+## FLOW-BALANCE-UI-001：用户资金详情排版（2026-09-19，本地未部署）
+
+| 项目 | 本轮范围 |
+| --- | --- |
+| 目标与基线 | main `0677a8c` 加既有工作区增量；仅重排后台资金详情，保留其他任务修改 |
+| 页面关系 | 余额查询 → `/finance/balances/:customerId` → 人工订单、资金流水、关联卡片；原 URL 参数和返回查询上下文保留 |
+| 身份与数据依据 | 既有 customerId、orderId 和账本查询；未知金额仍为破折号，零值仍显示零，币种独立 |
+| 接口链 | BalanceContent → manualRequest → 同域人工资金白名单 → 既有 Go balances/manual-funds handler → 授权与账本/订单查询；没有接口修改 |
+| 设计 | 紧凑客户栏，右上币种与刷新，四列资金摘要；完整口径可展开，更新时间常显；下划线标签、金额右对齐及中文语义色状态；手机摘要两列、记录横向滚动 |
+| 状态与操作 | 原申请、审核、付款确认、记账状态与权限保持；只给状态文字增加样式，不更改判断；订单详情期间其他标签禁用，返回记录后可切换 |
+| 跨端与权限 | 余额10秒、订单5秒既有轮询，原单提交后刷新余额；后台MFA/主体授权与客户只读边界不变；客户端状态仅增加无样式span，样式限定后台详情 |
+| 异常恢复 | 原错误重试、加载、空状态和未知提交的幂等恢复保留；展开口径不触发接口或写操作 |
+| 验收环境 | `node tests/frontend/balances-preview.mjs`，127.0.0.1:8906；仅合成数据，所有写请求和真实API被拒绝 |
+| 待定决策 | 无新增金融政策；本轮不提交、不部署，不连接生产数据库或真实渠道 |
+
+验证结果在本节末记录；本轮视觉验收不替代原完整人工资金生命周期验收。
+
+本轮验证：`pnpm typecheck`、两端生产构建、`pnpm check:boundaries`、`node --test tests/frontend/manual-funds.test.mjs tests/frontend/finance-money-display.test.mjs`（8项）、`pnpm docs:check`及`git diff --check`通过。浏览器合成数据核对桌面、390px无页面横向溢出、三标签及空状态、订单深链和返回；手机客户行与工具栏换行已修正。E01–E03仅上述读取导航范围获得证据；E04–E09的完整生命周期、真实身份与渠道未重新验收。没有生产部署、迁移或真实资金操作；并行任务对人工审批政策的修改由该任务独立维护，本轮只增加状态样式。

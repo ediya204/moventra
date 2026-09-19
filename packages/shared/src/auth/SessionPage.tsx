@@ -1,10 +1,9 @@
 import { loginPath } from './site';
 import { isAdminSite, siteTitle } from './site';
 import { useEffect, useRef, useState } from 'react';
-import { multiFactor, sendEmailVerification, TotpMultiFactorGenerator, type TotpSecret } from 'firebase/auth';
-import { QRCodeSVG } from 'qrcode.react';
-import { Alert, Box, Button, Chip, CircularProgress, Container, Link, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import AccountSecurity from './AccountSecurity';
+import { Alert, Box, Button, CircularProgress, Container, Link, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { needsRegistration } from './sessionState';
 import CompleteRegistration from './CompleteRegistration';
@@ -17,14 +16,10 @@ function exactAmount(row: Row): string {
   return (row.direction === 'debit' ? '−' : '+') + (scale ? `${value.slice(0, -scale)}.${(row.currency === 'USDT' ? value.slice(-scale).slice(0, 2).padEnd(2, '0') : value.slice(-scale))}` : value) + ` ${row.currency}`;
 }
 export default function SessionPage({ embedded = false }: { embedded?: boolean } = {}) {
-  const { user, ready, session, sessionError, refreshSession, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user, ready, session, sessionError, signOut } = useAuth();
   const location = useLocation();
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
-  const [secret, setSecret] = useState<TotpSecret | null>(null);
-  const [code, setCode] = useState('');
   const [scope, setScope] = useState('');
   const [rows, setRows] = useState<Row[] | null>(null);
   const generation = useRef(0);
@@ -42,30 +37,11 @@ export default function SessionPage({ embedded = false }: { embedded?: boolean }
   ];
   return <Container maxWidth={embedded?false:"md"} disableGutters={embedded} sx={{ py: embedded?0:5 }}><Stack spacing={3}>
     {!embedded&&<Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h4" component="h1">{isAdminSite && (!user.emailVerified || !session?.mfaVerified) ? '完成后台安全验证' : siteTitle}</Typography><Button onClick={signOut}>退出登录</Button></Stack>}
-    <Paper variant="outlined" sx={{p:{xs:2,md:3},maxWidth:840}}><Stack spacing={2}>
-      <Typography variant="h6">登录身份</Typography><Typography sx={{overflowWrap:"anywhere"}}>{user.email}</Typography>
-      <Stack direction="row" gap={1} flexWrap="wrap"><Chip label={user.emailVerified ? '邮箱已验证' : '邮箱待验证'} /><Chip label={session?.mfaVerified ? '本次登录已完成双重验证' : '本次登录未完成双重验证'} /></Stack>
-      {sessionError != null && <Alert severity="warning">{authMessage(sessionError)}</Alert>}
-      {session?.requiresMfa && <Alert severity="warning">运营访问需要双重验证。请先设置验证器，再退出并重新登录。</Alert>}
-      {error && <Alert severity="error">{error}</Alert>}{notice && <Alert severity="info">{notice}</Alert>}
-      {!user.emailVerified && <Button disabled={busy} onClick={() => void run(async () => { await sendEmailVerification(user, { url: window.location.origin + loginPath }); setNotice('验证邮件已发送，请检查收件箱。'); })}>发送邮箱验证邮件</Button>}
-      <Button disabled={busy} onClick={() => void run(refreshSession)}>刷新身份和权限</Button>
-    </Stack></Paper>
-    {user.emailVerified && session && <Paper variant="outlined" sx={{p:{xs:2,md:3},maxWidth:840}}><Stack spacing={2}>
-      <Typography variant="h6">验证器双重验证</Typography>
-      <Typography variant="body2" color="text.secondary">使用 Google Authenticator 等验证器保护登录。请自行保管验证器密钥，不要发送给他人。</Typography>
-      {multiFactor(user).enrolledFactors.length > 0 ? <Typography>已绑定验证器。需要更新时请联系账户管理员；此页面不提供绕过验证器的重置入口。</Typography> : !secret ? <Button disabled={busy} onClick={() => void run(async () => { setSecret(await TotpMultiFactorGenerator.generateSecret(await multiFactor(user).getSession())); })}>设置验证器</Button> : <>
-        <Box sx={{ bgcolor: 'white', p:2, width:'fit-content' }}><QRCodeSVG value={secret.generateQrCodeUrl(user.email || user.uid, 'Moventra')} size={190} /></Box>
-        <Typography variant="body2" sx={{wordBreak:'break-all'}}>手动设置密钥：{secret.secretKey}</Typography>
-        <TextField label="验证器当前的六位验证码" value={code} onChange={e => setCode(e.target.value.replace(/\D/g,'').slice(0,6))} autoComplete="one-time-code" inputProps={{inputMode:'numeric',maxLength:6}} />
-        <Button variant="contained" disabled={busy || code.length !== 6} onClick={() => void run(async () => {
-          await multiFactor(user).enroll(TotpMultiFactorGenerator.assertionForEnrollment(secret, code), 'Moventra 验证器');
-          setSecret(null); setCode(''); signOut(); navigate(loginPath, { replace:true, state:{ notice:'验证器已绑定。请等待验证码刷新后，重新登录并完成双重验证。' } });
-        })}>确认绑定并重新登录</Button><Button onClick={() => { setSecret(null); setCode(''); }}>取消设置</Button>
-      </>}
-    </Stack></Paper>}
+    {sessionError != null && <Alert severity="warning">{authMessage(sessionError)}</Alert>}
+    {session?.requiresMfa && <Alert severity="warning">运营访问需要双重验证。请先设置验证器，再重新登录。</Alert>}
+    <AccountSecurity key={user.uid} user={user} />
     {session && !embedded && <Paper variant="outlined" sx={{p:{xs:2,md:3},maxWidth:840}}><Stack spacing={2}>
-      <Typography variant="h6">已授权的数据范围</Typography>
+      <Typography variant="h6">已授权的数据范围</Typography>{error && <Alert severity="error">{error}</Alert>}
       {!options.length ? <Alert severity="info">当前没有可访问的客户数据。身份登录不会自动开通业务或授予运营权限。</Alert> : <>
         <TextField select label={isAdminSite ? "客户与资源" : "个人账户业务"} value={scope} onChange={e => { generation.current++; setScope(e.target.value); setRows(null); setError(''); }}>{options.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}</TextField>
         <Button disabled={busy || !scope} onClick={() => void run(async () => {

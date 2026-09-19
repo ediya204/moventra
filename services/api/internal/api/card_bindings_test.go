@@ -87,6 +87,31 @@ func TestCustomerCardSnapshot(t *testing.T) {
 		return w
 	}
 	base := "/client-api/v1/customers/" + personal + "/card-projections"
+	// Customer remarks are separate metadata and require the same card ownership.
+	remarkPath := base + "/binding-test/cards/card-00/remark"
+	saveRemark := func(path, token, body string, code int) {
+		t.Helper()
+		req := httptest.NewRequest("POST", path, strings.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+token)
+		out := httptest.NewRecorder()
+		h.ServeHTTP(out, req)
+		if out.Code != code {
+			t.Fatalf("remark %s: %d %s", path, out.Code, out.Body.String())
+		}
+	}
+	saveRemark(remarkPath, "alice", `{"remark":"广告订阅","revision":0}`, 200)
+	saveRemark(remarkPath, "alice", `{"remark":"覆盖旧版本","revision":0}`, 409)
+	saveRemark(remarkPath, "bob", `{"remark":"越权","revision":1}`, 404)
+	saveRemark(strings.Replace(remarkPath, "card-00", "unbound", 1), "alice", `{"remark":"越权","revision":0}`, 404)
+	saveRemark(strings.Replace(remarkPath, "binding-test", "other-source", 1), "alice", `{"remark":"越权","revision":0}`, 404)
+	saveRemark(remarkPath, "alice", `{"remark":"`+strings.Repeat("字", 201)+`","revision":1}`, 400)
+	saveRemark(remarkPath, "alice", `{"remark":"有效","revision":1,"owner":"bob"}`, 400)
+	persisted := request(base+"/binding-test/cards/card-00", "alice")
+	if persisted.Code != 200 || !strings.Contains(persisted.Body.String(), `"remark":"广告订阅"`) {
+		t.Fatal("remark did not persist", persisted.Body.String())
+	}
+	saveRemark(remarkPath, "alice", `{"remark":"","revision":1}`, 200)
+	saveRemark(remarkPath, "alice", `{"remark":"新备注","revision":2}`, 200)
 	for _, tc := range []struct {
 		path, token string
 		code        int

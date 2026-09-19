@@ -144,6 +144,7 @@
 - [跨币种卡消费字段差异与实施顺序](frontend/cross-currency-field-gap.md) — `docs/frontend/cross-currency-field-gap.md`
 - [数字货币资金工作台（本地隔离实现）](frontend/crypto-finance.md) — `docs/frontend/crypto-finance.md`
 - [本地 Demo 快照](frontend/demo-snapshot.md) — `docs/frontend/demo-snapshot.md`
+- [资金与财务工作台](frontend/finance-workspace.md) — `docs/frontend/finance-workspace.md`
 - [Firebase 登录与 Go 授权](frontend/firebase-setup.md) — `docs/frontend/firebase-setup.md`
 - [商户 Logo 展示规范](frontend/merchant-logos.md) — `docs/frontend/merchant-logos.md`
 - [客户端消息中心](frontend/message-center.md) — `docs/frontend/message-center.md`

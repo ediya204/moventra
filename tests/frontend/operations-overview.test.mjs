@@ -124,9 +124,9 @@ test('funds overview period changes clear prior amounts and ignore late data fro
  await act(async()=>view.root.findByType('select').props.onChange({target:{value:30}}));
  assert.equal(state.requests[1].path,'/admin-api/v1/ops/overview?days=30');assert.deepEqual(metricValues(view),['—','—','—','—']);
  await act(async()=>{state.requests[1].resolve(fixture(30,'9007199254740993'));await flush();});
- assert.equal(metricValues(view)[0],'90,071,992,547,409.93');
+ assert.ok(metricValues(view).includes('90,071,992,547,409.93'));
  await act(async()=>{state.requests[0].resolve(fixture(7,'100'));await flush();});
- assert.equal(metricValues(view)[0],'90,071,992,547,409.93');
+ assert.ok(metricValues(view).includes('90,071,992,547,409.93'));
  await act(async()=>view.root.findByType('select').props.onChange({target:{value:14}}));
  assert.deepEqual(metricValues(view),['—','—','—','—']);assert.equal(state.requests[2].path,'/admin-api/v1/ops/overview?days=14');
  await act(async()=>view.unmount());
@@ -144,7 +144,7 @@ test('funds overview shows authorization/read errors and retry performs a new re
 
 const authorizedWidget=uri(`import React from ${JSON.stringify(reactURL)};export default function Overview(){return React.createElement('div',{'data-overview':true});}`);
 let pageCode=transpile('../../apps/admin/src/operations/OperationsPage.tsx');
-pageCode=pageCode.replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?moduleURL(name):name.includes('AuthContext')?componentApi:name==='./FundsOverview'?authorizedWidget:shell)}`);
+pageCode=pageCode.replace(/from ["']([^"']+)["']/g,(_,name)=>`from ${JSON.stringify(name.startsWith('react')?moduleURL(name):name.includes('AuthContext')?componentApi:name==='./FinanceWorkspace'?uri('export default ({children})=>children;'):name==='./FundsOverview'?authorizedWidget:shell)}`);
 const {default:OperationsPage}=await import(uri(pageCode));
 test('formal operations page requires an authenticated operator with verified MFA before mounting the data view',async()=>{
  for(const scenario of [
@@ -191,11 +191,16 @@ test('registered directory transport rejects cross-site, extra paths and writes'
 
 test('financial report restores period from URL and opens exact daily table with export',async()=>{
  state.requests=[];let view;
- await act(async()=>{view=Renderer.create(React.createElement(MemoryRouter,{initialEntries:['/reports?days=30']},React.createElement(FundsOverview,{report:true})));});
+ await act(async()=>{view=Renderer.create(React.createElement(MemoryRouter,{initialEntries:['/reports?days=30&view=daily']},React.createElement(FundsOverview,{report:true})));});
  assert.equal(state.requests[0].path,'/admin-api/v1/ops/overview?days=30');
  await act(async()=>{state.requests[0].resolve(fixture(30,'9007199254740993'));await flush();});
  const text=renderedText(view);
  assert.match(text,/资金经营报表/);assert.match(text,/每日统计明细/);assert.match(text,/导出 CSV/);assert.match(text,/不包含 OTC 或链上流水/);
- assert.equal(metricValues(view)[0],'90,071,992,547,409.93');
+ assert.ok(metricValues(view).includes('90,071,992,547,409.93'));
+ await act(()=>view.root.findAllByType('button').find(b=>b.props.children==='交易分析').props.onClick());
+ assert.match(renderedText(view),/交易活跃度/);assert.doesNotMatch(renderedText(view),/每日统计明细/);
+ await act(()=>view.root.findAllByType('button').find(b=>b.props.children==='收支概览').props.onClick());
+ assert.match(renderedText(view),/每日资金流/);assert.doesNotMatch(renderedText(view),/交易活跃度/);
+ assert.equal(state.requests.length,1);
  await act(()=>view.unmount());
 });

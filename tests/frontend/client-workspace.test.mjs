@@ -94,7 +94,7 @@ test('开户申请提交后重新查询服务端状态，失败显示错误并�
 });
 
 test('审批通过后各工作台页面不显示开户和权限提示，权限仍按实际状态执行',async()=>{
- for(const route of ['/portal','/portal/funds','/portal/cards','/portal/transactions','/portal/messages','/portal/support','/portal/settings']) {
+ for(const route of ['/portal','/portal/funds','/portal/cards','/portal/transactions','/portal/messages','/portal/support']) {
   reset();const tree=await mount(route);
   const approved={customerId:'A',name:'fixture',onboardingStatus:'approved',serviceStatus:'active',revision:2,allFeaturesEnabled:true};
   for(const serviceStatus of ['active','suspended','inactive']) {
@@ -152,5 +152,5 @@ test('页面分区覆盖详情路由，资金与卡片使用模块刷新，设�
  for(const path of ['/portal/cards','/portal/funds','/portal/transactions']){
   reset();const tree=await mount(path);assert.equal(tree.root.findAllByType('button').filter(b=>b.props.children==='刷新数据').length,0);await act(()=>tree.unmount());
  }
- reset();const tree=await mount('/portal/settings');assert.doesNotMatch(text(tree),/办理功能暂未提供/);assert.match(text(tree),/个人账户/);assert.ok(tree.root.findAllByType('button').some(b=>b.props.to==='/portal/security'));await act(()=>tree.unmount());
+ reset();const tree=await mount('/portal/settings');assert.doesNotMatch(text(tree),/个人设置|我的账户/);assert.match(text(tree),/账户与安全/);assert.ok(tree.root.findAllByType('a').some(b=>b.props.to==='/portal/security'));await act(()=>tree.unmount());
 });

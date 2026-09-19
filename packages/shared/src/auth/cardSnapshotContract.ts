@@ -49,3 +49,5 @@ export function cardQuotaDisplay(metrics?:CardMetrics){
  if(supported&&valid(total)&&valid(used)&&valid(remaining)&&BigInt(total)>0n&&BigInt(used)+BigInt(remaining)===BigInt(total))percent=Number(BigInt(used)*10000n/BigInt(total))/100;
  return {remaining:metrics?amount(remaining):'待同步',used:metrics?amount(used):'待同步',total:metrics?amount(total):'待同步',percent};
 }
+
+export function isCardRemarkPath(path:string):boolean { return /^\/client-api\/v1\/customers\/[0-9a-f-]{36}\/card-projections\/[A-Za-z0-9_-]+\/cards\/[A-Za-z0-9_-]+\/remark$/.test(path); }

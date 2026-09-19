@@ -1,5 +1,5 @@
 import { isFundsPath, type FundsCommand } from './fundsContract';
-import { isCardSnapshotPath, isCardSyncPath, isCardActionPath } from './cardSnapshotContract';
+import { isCardRemarkPath, isCardSnapshotPath, isCardSyncPath, isCardActionPath } from './cardSnapshotContract';
 import { isAdminSite } from './site';
 import { isLedgerReadPath } from './ledgerContract';
 import { getFirebaseAuth } from '../firebase';
@@ -97,9 +97,9 @@ export function isUserDirectoryPath(path:string):boolean {
  const params=new URLSearchParams(query);
  return [...params.keys()].every(key=>['email','userId','limit','offset'].includes(key)&&params.getAll(key).length===1);
 }
-async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand | {refresh:true} | CardActionInput, envelope = false, requestId?:string): Promise<T> {
+async function liveRequest<T>(path: string, body?: { name: string } | {action:string;revision:number;reason:string} | FundsCommand | {refresh:true} | CardActionInput | {remark:string;revision:number}, envelope = false, requestId?:string): Promise<T> {
   const onboarding = /^\/(client|admin)-api\/v1\/customers\/[0-9a-f-]{36}\/onboarding$/.test(path);
-  if (body !== undefined ? path !== '/api/v1/register' && !isCardSyncPath(path) && !isCardActionPath(path) && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
+  if (body !== undefined ? path !== '/api/v1/register' && !isCardRemarkPath(path) && !isCardSyncPath(path) && !isCardActionPath(path) && !onboarding && !isFundsPath(path,true) : !isFundsPath(path,false) && !isTestWalletPath(path) && !isCardSnapshotPath(path) && !isLedgerReadPath(path) && !onboarding && !/^\/(api|client-api|admin-api)\/v1\/me$/.test(path) && !isChannelReadPath(path) && !/^\/admin-api\/v1\/ops\/overview\?days=(7|14|30)$/.test(path) && !isCustomerReadPath(path) && !isUserDirectoryPath(path)) throw new SessionError('invalid_path');
   if (isAdminSite ? path.startsWith('/client-api/') || path === '/api/v1/register' : path.startsWith('/admin-api/')) throw new SessionError('invalid_path');
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new SessionError('unauthenticated', 401);
@@ -133,3 +133,5 @@ export const liveCardSync = (path:string) => liveRequest<{syncState:string}>(pat
 
 export type CardActionInput={action:"activate"|"pause"|"close";expectedStatus:string;confirmClose:boolean};
 export const liveCardAction=(path:string,body:CardActionInput,key:string)=>liveRequest<{id:string;state:string}>(path,body,false,key);
+
+export const liveCardRemark = (path:string,body:{remark:string;revision:number}) => liveRequest<{remark:string;remarkRevision:number;remarkEditable:boolean}>(path,body);

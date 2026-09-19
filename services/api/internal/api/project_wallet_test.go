@@ -122,6 +122,22 @@ func TestProjectWalletAssignments(t *testing.T) {
 		h.ServeHTTP(w, r)
 		return w
 	}
+	for _, tc := range []struct {
+		uid, customer, card string
+		code                int
+	}{{"alice", personal, "old-card", 200}, {"bob", personal, "old-card", 404}, {"alice", personal, "outside-card", 404}} {
+		req := httptest.NewRequest("POST", "/client-api/v1/customers/"+tc.customer+"/card-projections/wallet-source/cards/"+tc.card+"/remark", strings.NewReader(`{"remark":"正式归属备注","revision":0}`))
+		req.Header.Set("Authorization", "Bearer "+tc.uid)
+		out := httptest.NewRecorder()
+		h.ServeHTTP(out, req)
+		if out.Code != tc.code {
+			t.Fatalf("wallet remark %d %s", out.Code, out.Body.String())
+		}
+	}
+	gotRemark := request("alice", personal, "/wallet-source/cards/old-card")
+	if !strings.Contains(gotRemark.Body.String(), `"remark":"正式归属备注"`) {
+		t.Fatal(gotRemark.Body.String())
+	}
 	rows := func(uid, customer, resource string) map[string]any {
 		t.Helper()
 		w := request(uid, customer, "/wallet-source/"+resource)

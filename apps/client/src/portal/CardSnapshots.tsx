@@ -1,3 +1,4 @@
+import { merchantBrand } from '../../../../packages/shared/src/components/merchantBrand';
 import TransactionFilters from './TransactionFilters';
 import {transactionFilterError,transactionQuery,collectTransactions,transactionsCsv} from './transactionQuery';
 import {transactionChipSx,transactionTableSx,transactionTableRowSx} from '../../../../packages/shared/src/components/transactionVisuals';
@@ -7,12 +8,12 @@ import CardControls from '../../../../packages/shared/src/components/CardControl
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Alert, Box, Button, CircularProgress, Chip, Drawer, IconButton, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
-import { authMessage, liveGet, liveCardSync } from '../../../../packages/shared/src/auth/liveApi';
+import { authMessage, liveGet, liveCardSync, liveCardRemark } from '../../../../packages/shared/src/auth/liveApi';
 import { MerchantCell, MerchantLogo, LogoAttribution } from '../../../../packages/shared/src/components/MerchantLogo';
 import { snapshotAmount, cardMetricDisplay, type CardSyncInfo } from '../../../../packages/shared/src/auth/cardSnapshotContract';
 
 type Connection={id:string;label:string;revision:string;sourceAt:string;importedAt:string};
-type Row=CardSyncInfo & {id:string;name?:string;cardName?:string;last4?:string;cardLast4?:string;cardStatus?:string;cardId?:string;merchant?:string;status?:string;detailedStatus?:string;amountCents?:string;originalCurrency?:{code?:string;amountCents?:string};date?:string;authorizedAt?:string;createdAtUTC?:string;fundingCardId?:string|null;cvvAvailable?:boolean;detailsAvailable?:boolean;network?:string;expiryMonth?:string;expiryYear?:string};
+type Row=CardSyncInfo & {remark?:string;remarkRevision?:number;remarkEditable?:boolean;id:string;name?:string;cardName?:string;last4?:string;cardLast4?:string;cardStatus?:string;cardId?:string;merchant?:string;categoryCode?:string;merchantData?:{description?:string;categoryCode?:string;location?:{city?:string;state?:string;zip?:string;country?:string}}|null;status?:string;detailedStatus?:string;amountCents?:string;originalCurrency?:{code?:string;amountCents?:string};date?:string;authorizedAt?:string;createdAtUTC?:string;fundingCardId?:string|null;cvvAvailable?:boolean;detailsAvailable?:boolean;network?:string;expiryMonth?:string;expiryYear?:string};
 type Result={rows:Row[];total:number;page:number;revision:string;sourceAt:string;importedAt:string;coverageReason:string};
 const detailLabels:Record<string,string>={pending:'待处理',pending_approval:'待批准',in_review:'审核中',canceled:'已取消',failed:'失败',settled:'已结算',declined:'已拒绝',refund:'退款',reversed:'已撤销',returned:'退回',dispute:'争议'};
 const cardStatusLabels:Record<string,string>={active:'正常',paused:'已暂停',inactive:'未启用',closed:'已注销'};
@@ -23,6 +24,24 @@ function CardMetric({row,kind}:{row:CardSyncInfo;kind:'available'|'spending'}) {
 }
 const time=(value?:string)=>value?value.replace('T',' ').replace('Z',' UTC'):'未知';
 const cardCreatedDate=(value?:string)=>{const date=value?.match(/^(\d{4})-(\d{2})-(\d{2})(?:T| |$)/);return date?`${date[1]}/${date[2]}/${date[3]}`:'未知';};
+function CardRemark({row,path,onSaved}:{row:Row;path:string;onSaved:(value:{remark:string;remarkRevision:number;remarkEditable:boolean})=>void}) {
+ const [editing,setEditing]=useState(false),[draft,setDraft]=useState(''),[revision,setRevision]=useState(0),[saving,setSaving]=useState(false),[error,setError]=useState('');
+ const guard=useRef(false);
+ const count=Array.from(draft).length;
+ const begin=()=>{setDraft(row.remark||'');setRevision(row.remarkRevision||0);setError('');setEditing(true)};
+ const save=async()=>{
+  if(guard.current||count>200)return;guard.current=true;setSaving(true);setError('');
+  try {const value=await liveCardRemark(path,{remark:draft,revision});onSaved(value);setEditing(false)}
+  catch(e){setError((e as {code?:string}).code==='remark_conflict'?'备注已被更新，请取消后重新编辑。':'保存失败，内容已保留，请重试。')}
+  finally{guard.current=false;setSaving(false)}
+ };
+ if(!row.remarkEditable)return <Typography variant="body2" color="text.secondary">{row.remark||'暂不可编辑'}</Typography>;
+ if(!editing)return <Button size="small" onClick={begin} aria-label={`编辑尾号 ${row.last4||row.cardLast4||row.id} 的备注`} sx={{justifyContent:'flex-start',textAlign:'left',fontWeight:400,px:0,minWidth:0,overflowWrap:'anywhere',color:row.remark?'text.primary':'text.secondary'}}>{row.remark||'添加备注'}<Box component="span" aria-hidden="true" sx={{ml:0.75,display:'inline-flex'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m15 5 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15l-1 5Z"/></svg></Box></Button>;
+ return <Stack spacing={0.5}>
+  <TextField autoFocus size="small" label="卡片备注" value={draft} disabled={saving} error={!!error||count>200} helperText={error||`${count}/200 · Enter 保存，Esc 取消`} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.nativeEvent.isComposing)return;if(e.key==='Enter'){e.preventDefault();void save()}if(e.key==='Escape'&&!saving)setEditing(false)}} inputProps={{'aria-label':`尾号 ${row.last4||row.cardLast4||row.id} 的卡片备注`}}/>
+  <Stack direction="row" spacing={1}><Button size="small" disabled={saving||count>200} onClick={save}>{saving?'保存中…':'保存'}</Button><Button size="small" disabled={saving} onClick={()=>setEditing(false)}>取消</Button></Stack>
+ </Stack>;
+}
 export default function CardSnapshots({customerId}:{customerId:string}) {
  const navigate=useNavigate(); const {pathname}=useLocation(); const [params,setParams]=useSearchParams();
  const [reload,setReload]=useState(0),[failure,setFailure]=useState('');
@@ -102,16 +121,18 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
  const cardRows=[...(result?.rows||[])];
  if(sort==='name')cardRows.sort((a,b)=>cardName(a).localeCompare(cardName(b),'zh-CN')||a.id.localeCompare(b.id));
  if(sort==='newest')cardRows.sort((a,b)=>(Date.parse(b.createdAtUTC||'')||0)-(Date.parse(a.createdAtUTC||'')||0)||a.id.localeCompare(b.id));
+ const remarkEditor=(row:Row)=><CardRemark key={`${customerId}:${connection}:${row.id}`} row={row} path={`${base}/${connection}/cards/${row.id}/remark`} onSaved={value=>setResult(current=>current?{...current,rows:current.rows.map(item=>item.id===row.id?{...item,...value}:item)}:current)}/>;
  const cardList=<>
   <Stack direction={{xs:'column',sm:'row'}} justifyContent="space-between" gap={1}>
    <Typography variant="body2" role="status">找到 {result?.total} 张卡片 · 本页 {cardRows.length} 张</Typography>
   </Stack>
   <TableContainer sx={{display:{xs:'none',md:'block'}}}>
    <Table aria-label="我的卡片列表" sx={{tableLayout:'fixed'}}>
-    <colgroup>{[23,9,12,13,16,17,10].map((width,index)=><col key={index} style={{width:`${width}%`}}/>)}</colgroup>
-    <TableHead><TableRow>{['卡片','后四位','状态','可消费额度','近 30 天消费','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead>
+    <colgroup>{[18,19,8,10,12,13,12,8].map((width,index)=><col key={index} style={{width:`${width}%`}}/>)}</colgroup>
+    <TableHead><TableRow>{['卡片','备注','后四位','状态','可消费额度','近 30 天消费','创建时间','操作'].map(x=><TableCell key={x}>{x}</TableCell>)}</TableRow></TableHead>
     <TableBody>{cardRows.map(row=><TableRow key={row.id} hover>
      <TableCell><Typography component={Link} to={link(`/portal/cards/${row.id}`)} fontWeight={600} color="text.primary" sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography></TableCell>
+     <TableCell>{remarkEditor(row)}</TableCell>
      <TableCell>{row.cardLast4||row.last4?<Typography component={Link} to={link(`/portal/cards/${row.id}`)} variant="body2" color="primary.main" aria-label={`查看尾号 ${row.cardLast4||row.last4} 的卡片详情`} sx={{display:'inline-block',py:0.5,textDecoration:'underline',textUnderlineOffset:'3px',fontVariantNumeric:'tabular-nums'}}>{row.cardLast4||row.last4}</Typography>:<Typography variant="body2" color="text.secondary">尾号未知</Typography>}</TableCell>
      <TableCell><ChannelCardStatus status={row.cardStatus}/></TableCell>
      <TableCell><CardMetric row={row} kind="available"/></TableCell>
@@ -124,6 +145,7 @@ export default function CardSnapshots({customerId}:{customerId:string}) {
   <Stack spacing={1.5} sx={{display:{xs:'flex',md:'none'}}}>
    {cardRows.map(row=><Paper variant="outlined" key={row.id} sx={{p:2}}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}><Box sx={{minWidth:0}}><Typography fontWeight={600} sx={{overflowWrap:'anywhere'}}>{cardName(row)}</Typography>{row.cardLast4||row.last4?<Typography component={Link} to={link(`/portal/cards/${row.id}`)} variant="body2" color="primary.main" aria-label={`查看尾号 ${row.cardLast4||row.last4} 的卡片详情`} sx={{display:'inline-block',py:0.5,textDecoration:'underline',textUnderlineOffset:'3px',fontVariantNumeric:'tabular-nums'}}>{row.cardLast4||row.last4}</Typography>:<Typography variant="body2" color="text.secondary">尾号未知</Typography>}</Box><ChannelCardStatus status={row.cardStatus}/></Stack>
+    <Box sx={{mt:1}}><Typography variant="caption" color="text.secondary">备注</Typography>{remarkEditor(row)}</Box>
     <Box sx={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:2,py:2}}>
      <Box><Typography variant="caption" color="text.secondary" display="block">可消费额度</Typography><CardMetric row={row} kind="available"/></Box>
      <Box><Typography variant="caption" color="text.secondary" display="block">近 30 天消费</Typography><CardMetric row={row} kind="spending"/></Box>
@@ -179,6 +201,11 @@ function TransactionSelection({base,connection,id,onClose,cardLink}:{base:string
 
 function SnapshotTransactionDrawer({row,loading,error,onRetry,onClose,cardLink}:{row?:Row;loading:boolean;error:string;onRetry:()=>void;onClose:()=>void;cardLink:(row:Row)=>string}){
  const amount=snapshotAmount(row?.amountCents);
+ const description=(row?.merchantData===undefined?row?.merchant:row.merchantData?.description)?.trim();
+ const categoryCode=(row?.merchantData===undefined?row?.categoryCode:row.merchantData?.categoryCode)?.trim();
+ const location=row?.merchantData?.location;
+ const locationText=[location?.city?.trim(),[location?.state?.trim(),location?.zip?.trim()].filter(Boolean).join(' '),location?.country?.trim()].filter(Boolean).join(', ');
+ const merchantName=merchantBrand(description)||description||'商户未提供';
  const field=(label:string,value:React.ReactNode)=><Box sx={{display:'grid',gridTemplateColumns:'minmax(100px, .8fr) minmax(0, 1.4fr)',gap:2,py:2,borderBottom:1,borderColor:'divider'}}><Typography component="dt" variant="body2" color="text.secondary">{label}</Typography><Box component="dd" sx={{m:0,textAlign:'right',overflowWrap:'anywhere',fontSize:14}}>{value}</Box></Box>;
  return <Drawer anchor="right" open onClose={onClose} PaperProps={{role:'dialog','aria-modal':true,'aria-labelledby':'snapshot-transaction-title',sx:{width:{xs:'100%',sm:470},maxWidth:'100vw'}}}>
   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{px:2.5,py:2,borderBottom:1,borderColor:'divider',flexShrink:0}}><Typography id="snapshot-transaction-title" variant="subtitle1" fontWeight={700}>卡交易详情</Typography><IconButton aria-label="关闭交易详情" onClick={onClose}><span aria-hidden="true">×</span></IconButton></Stack>
@@ -191,6 +218,9 @@ function SnapshotTransactionDrawer({row,loading,error,onRetry,onClose,cardLink}:
      {field('授权时间',time(row.authorizedAt))}
      {field('来源时间',time(row.date))}
      {field('详细状态',<SnapshotStatus row={row} showSource={false}/>)}
+     {field('商户描述',description||'未提供')}
+     {field('商户类别代码（MCC）',categoryCode||'未提供')}
+     {field('商户信息',<Box><Typography variant="body2" title={merchantBrand(description)?'品牌名称参考（按商户描述匹配）':undefined}>{merchantName}</Typography><Typography variant="body2" color="text.secondary" sx={{mt:0.5}}>{locationText||'商户位置未提供'}</Typography></Box>)}
      {field('原币金额',snapshotAmount(row.originalCurrency?.amountCents,row.originalCurrency?.code||'币种未知'))}
     </Box><Box sx={{py:2}}><LogoAttribution/></Box></Box>
    </>}

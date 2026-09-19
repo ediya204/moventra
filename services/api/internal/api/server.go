@@ -53,6 +53,7 @@ func fail(w http.ResponseWriter, status int, code string) {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/remark", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/cvv/reveal", s.authenticate(http.HandlerFunc(s.channelRead)))
 	mux.Handle("POST /client-api/v1/customers/{customerID}/card-projections/{connection}/{resource}/{id}/details/reveal", s.authenticate(http.HandlerFunc(s.channelRead)))
 	s.messageRoutes(mux)

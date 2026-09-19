@@ -16,9 +16,9 @@ const transpile=p=>ts.transpileModule(readFileSync(new URL(p,import.meta.url),'u
 const contract=uri(transpile('../../packages/shared/src/auth/cryptoContract.ts'));
 const cards=uri(transpile('../../packages/shared/src/auth/cardSnapshotContract.ts'));
 const statusView=uri(transpile('../../packages/shared/src/components/ChannelCardStatus.tsx').replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:resolve(n))));
-async function moduleFor(p){return (await import(uri(transpile(p).replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n.endsWith('/ChannelCardStatus')?statusView:n.endsWith('/finance/CustomerFunds')?uri('export const CurrencyLogo=()=>null;'):n==='@mui/material'?shell:n==='react-router-dom'?router:n.endsWith('/cryptoApi')||n.endsWith('/liveApi')?api:n.endsWith('/cryptoContract')?contract:n.endsWith('/cardSnapshotContract')?cards:resolve(n))))));}
+async function moduleFor(p){return (await import(uri(transpile(p).replace(/from ["']([^"']+)["']/g,(_,n)=>'from '+JSON.stringify(n.endsWith('/MerchantLogo')?uri('export const MerchantLogo=()=>null,LogoAttribution=()=>null;'):n.endsWith('/ChannelCardStatus')?statusView:n.endsWith('/finance/CustomerFunds')?uri('export const CurrencyLogo=()=>null;'):n==='@mui/material'?shell:n==='react-router-dom'?router:n.endsWith('/cryptoApi')||n.endsWith('/liveApi')?api:n.endsWith('/cryptoContract')?contract:n.endsWith('/cardSnapshotContract')?cards:resolve(n))))));}
 const component=async p=>(await moduleFor(p)).default;
-const {cardChartData,dailySpending}=await moduleFor('../../apps/client/src/portal/CardOverview.tsx');
+const {merchantSpending,dailySpending}=await moduleFor('../../apps/client/src/portal/CardOverview.tsx');
 const Wallet=await component('../../apps/client/src/portal/ProductionWallet.tsx');
 const Cards=await component('../../apps/client/src/portal/CardOverview.tsx');
 const VersionNotice=await component('../../apps/client/src/VersionNotice.tsx');
@@ -98,16 +98,15 @@ test('首页卡指标区分已确认零消费、额度缺失与未完成同步',
  }finally{await act(()=>tree.unmount())}
 });
 
-test('首页图表不混合币种、区间或失败分组；未知不算零，大数比例精确',()=>{
- const metrics={currency:'USD',scale:2,coverage:'complete',spendingMinor:'90071992547409930',from:'2026-08-20T00:00:00Z',to:'2026-09-19T00:00:00Z'};
- const card=(id,changes={},cardStatus='active')=>({id,cardStatus,metrics:{...metrics,...changes}});
- const groups=[{connection:{id:'one'},rows:[card('large'),card('half',{spendingMinor:'45035996273704965'}),card('zero',{spendingMinor:'0'},'paused'),card('unknown',{coverage:'incomplete',spendingMinor:null},'mystery'),card('other',{currency:'EUR'})],total:30},{connection:{id:'failed'},rows:[card('hidden')],total:1,error:'down'},{connection:{id:'two'},rows:[card('date',{from:'2026-08-19T00:00:00Z'}),card('bad',{spendingMinor:'-1'})],total:2}];
- const chart=cardChartData(groups);
- assert.equal(chart.count,7);assert.equal(chart.excluded,2);assert.equal(chart.series.length,3);
- assert.deepEqual(chart.series[0].items.map(i=>i.width),[100,50,0]);
- assert.equal(chart.statuses.find(s=>s.key==='unknown').count,1);
- assert.equal(cardChartData([{connection:{id:'zero'},rows:[card('zero',{spendingMinor:'0'})]}]).series[0].items[0].width,0);
- assert.equal(cardChartData([{connection:{id:'limit'},rows:Array.from({length:8},(_,i)=>card(String(i)))}]).count,5);
+test('商户消费按精确描述合并、金额降序取五名，缺失名称明确展示',()=>{
+ const rows=['A','B','A','C','D','E','F',null].map((merchant,i)=>({id:String(i),merchant,cardId:'c',status:'posted',detailedStatus:'settled',amountCents:i===0?'-90071992547409930':'-100',date:'2026-09-01T12:00:00Z'}));
+ const card={id:'c',metrics:{coverage:'complete',currency:'USD',scale:2,from:'2026-09-01T00:00:00Z',to:'2026-10-01T00:00:00Z',spendingMinor:'90071992547410630'}};
+ const result=merchantSpending(rows,card);
+ assert.equal(result.length,5);assert.deepEqual(result[0],{name:'A',amount:90071992547410030n});
+ assert.throws(()=>merchantSpending(rows.slice(1),card));
+ const missing=[{...rows[1],merchant:null}];
+ assert.deepEqual(merchantSpending(missing,{...card,metrics:{...card.metrics,spendingMinor:'100'}}),[{name:'商户未提供',amount:100n}]);
+ assert.deepEqual(merchantSpending([],{...card,metrics:{...card.metrics,spendingMinor:'0'}}),[]);
 });
 
 test('每日消费按UTC和精确分计算，完整明细核对后才补零',()=>{
@@ -130,6 +129,6 @@ test('每日趋势分页未齐不绘图，全部读取核对后才显示',async(
  await answer(2,{rows:rows.slice(0,20),total:21,revision:'v1'});
  assert.match(text(tree),/正在读取每日消费/);assert.match(state.requests[3].path,/page=1/);
  await answer(3,{rows:rows.slice(20),total:21,revision:'v1'});
- assert.doesNotMatch(text(tree),/正在读取每日消费/);assert.match(text(tree),/刻度上限 USD 21.00/);
+ assert.doesNotMatch(text(tree),/正在读取每日消费/);assert.match(text(tree),/刻度上限 USD 21.00/);assert.match(text(tree),/消费前五商户及金额（30 天）/);assert.match(text(tree),/商户未提供/);assert.doesNotMatch(text(tree),/卡片分布与对比|状态分布|近 30 天消费对比/);
  }finally{await act(()=>tree.unmount())}
 });

@@ -8,5 +8,5 @@ export default function FundsFeeSettings({settings,onChange,onValidityChange,dis
  const [text,setText]=useState<Record<string,string>>(values),[errors,setErrors]=useState<Record<string,boolean>>({});
  useEffect(()=>{setText(values());setErrors({});onValidityChange?.(true)},[settings.revision]);
  function change(k:typeof fields[number][0],v:string,currency:string){setText(old=>({...old,[k]:v}));try{const minor=!v.trim()?null:/^0(?:\.0+)?$/.test(v)?'0':cryptoUnits(v,currency);const next={...errors,[k]:false};setErrors(next);onValidityChange?.(!Object.values(next).some(Boolean));onChange(k==='TRC20'||k==='ERC20'?{...settings,networkFees:{...settings.networkFees,[k]:minor}}:{...settings,[k]:minor})}catch{setErrors(old=>({...old,[k]:true}));onValidityChange?.(false)}}
- return <Stack spacing={2}><Typography>网络及卡片费用（空白表示未配置，0 表示免费）</Typography>{fields.map(([k,label,c])=><TextField key={k} label={label} disabled={disabled} value={text[k]} error={!!errors[k]} helperText={errors[k]?'金额格式不正确':undefined} onChange={e=>change(k,e.target.value,c)}/>)}</Stack>
+ return <Stack spacing={2} className="finance-fees"><Typography>网络及卡片费用（空白表示未配置，0 表示免费）</Typography>{fields.map(([k,label,c])=><TextField key={k} label={label} disabled={disabled} value={text[k]} error={!!errors[k]} helperText={errors[k]?'金额格式不正确':undefined} onChange={e=>change(k,e.target.value,c)}/>)}</Stack>
 }

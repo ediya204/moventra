@@ -1,5 +1,7 @@
 # Moventra Go API
 
+卡片备注增量（2026-09-19，本地未部署）：新增精确客户卡片 `/remark` POST 接口、乐观版本与事务审计；备注独立于渠道字段。定向命令 `go run ./cmd/api migrate-card-remarks` 仅应用023并核验001/002/007/011；没有023时查询降级为不可编辑，不影响原卡查询。未执行生产迁移。见[接口及验收](../../docs/business/customer-card-binding.md#flow-card-remark-001卡片备注2026-09-19本地未部署)。
+
 > 2026-09-18：客户端开卡应用与八个BIN目录已发布，全量真实金融执行仍关闭；指定客户TRC20限额充值进展见[验收发布](../../deploy/2026-09-18-deposit-pilot.md)。当前能力及验证范围见[当前状态](../../docs/current-state.md)和[本次发布记录](../../deploy/2026-09-18-client-issuing-release.md)。下方带日期的历史段落保留当时实施状态。
 
 更新日期：2026-09-07。独立 Go 模块 `moventra.local/api`，面向客户端与运营后台，部署于 Render。本服务提供身份授权、客户与渠道投影查询、开户、线上测试资金、BIN 目录和普通 Slash 通知来源观察。通知消费及受控来源核验包含 Slash 只读 GET；不开放真实资金执行。完整范围见 [业务与路由](../../docs/business/routes-and-api.md)。

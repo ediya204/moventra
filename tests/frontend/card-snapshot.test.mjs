@@ -38,14 +38,14 @@ const require=createRequire(import.meta.url);
 const uri=value=>'data:text/javascript;base64,'+Buffer.from(value).toString('base64');
 const fixture=globalThis.__cardSnapshotUI={requests:[]};
 const mui=uri(`import React from ${JSON.stringify(pathToFileURL(require.resolve('react')).href)};const Pass=({component='div',children,...props})=>React.createElement(component,props,children);export const ButtonBase=Pass,Tab=Pass,Tabs=Pass,Divider=Pass,Popover=Pass,Link=Pass,Alert=Pass,Box=Pass,CircularProgress=Pass,Chip=({label,...props})=>React.createElement('span',props,label),Drawer=Pass,IconButton=Pass,MenuItem=Pass,Paper=Pass,Stack=Pass,Table=Pass,TableBody=Pass,TableCell=Pass,TableContainer=Pass,TableHead=Pass,TableRow=Pass,TextField=Pass,Typography=Pass;export const Button=({children,...props})=>React.createElement('button',props,children);`);
-const api=uri(`export const liveCardSync=path=>Promise.resolve({syncState:'pending'});export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,resolve,reject}));`);
+const api=uri(`export const liveCardRemark=(path,body)=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,body,resolve,reject}));export const liveCardSync=path=>Promise.resolve({syncState:'pending'});export const authMessage=()=> '读取失败';export const liveGet=path=>new Promise((resolve,reject)=>globalThis.__cardSnapshotUI.requests.push({path,resolve,reject}));`);
 const logo=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/MerchantLogo.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace('import.meta.env.VITE_LOGO_DEV_PUBLISHABLE_KEY','undefined').replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./merchantBrand'?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:pathToFileURL(require.resolve(name)).href));
 const cardStatusUI=ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/ChannelCardStatus.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:pathToFileURL(require.resolve(name)).href));
 const detailCode=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardDetailWorkspace.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/RemoteCardCvv')?uri('export const RemoteCardCvv=()=>null'):name.endsWith('/CardControls')||name.endsWith('/CustomerFunds')?uri('export default ()=>null'):name.endsWith('/cryptoApi')?uri('export const cryptoRequest=()=>new Promise(()=>{});export const cryptoError=()=>"资金读取失败";'):name.endsWith('/cryptoContract')?uri('export const cryptoMoney=(v,c)=>v+" "+c;'):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
 const visuals=uri(ts.transpileModule(readFileSync(new URL('../../packages/shared/src/components/transactionVisuals.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText);
 const queryCode=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/transactionQuery.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace(/from ["']([^"']+)["']/g,()=> 'from '+JSON.stringify(uri(outputText)));
 const filterCode=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/TransactionFilters.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./transactionQuery'?uri(queryCode):pathToFileURL(require.resolve(name)).href));
-const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./transactionQuery'?uri(queryCode):name==='./TransactionFilters'?uri(filterCode):name.endsWith('/transactionVisuals')?visuals:name.endsWith('/CardDetailWorkspace')?uri(detailCode):name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/CardControls')?uri('export default ()=>null'):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
+const component=ts.transpileModule(readFileSync(new URL('../../apps/client/src/portal/CardSnapshots.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace(/from ["']([^"']+)["']/g,(_,name)=>'from '+JSON.stringify(name==='@mui/material'?mui:name==='./transactionQuery'?uri(queryCode):name==='./TransactionFilters'?uri(filterCode):name.endsWith('/merchantBrand')?new URL('../../packages/shared/src/components/merchantBrand.ts',import.meta.url).href:name.endsWith('/transactionVisuals')?visuals:name.endsWith('/CardDetailWorkspace')?uri(detailCode):name.endsWith('/ChannelCardStatus')?uri(cardStatusUI):name.endsWith('/CardControls')?uri('export default ()=>null'):name.endsWith('/MerchantLogo')?uri(logo):name.endsWith('/liveApi')?api:name.endsWith('/cardSnapshotContract')?uri(outputText):pathToFileURL(require.resolve(name)).href));
 const CardSnapshots=(await import(uri(component))).default;
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const content=node=>typeof node==='string'?node:Array.isArray(node)?node.map(content).join(''):node?.children?content(node.children):'';
@@ -244,5 +244,56 @@ test('overview card detail returns home, while untrusted return destinations sta
  if(destination==='/portal'){assert.equal(back.props.to,'/portal');assert.equal(back.props.children,'返回工作台')}
  else assert.ok(back.props.to.startsWith('/portal/cards?'));
  }finally{await act(()=>view.unmount())}
+ }
+});
+
+test('card remarks edit inline, retain failed draft and apply only confirmed save',async()=>{
+ const view=await mount('/portal/cards');
+ try {
+  await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+  await act(async()=>{fixture.requests[1].resolve(page([{id:'c1',cardName:'Card one',last4:'1234',remark:'原备注',remarkRevision:1,remarkEditable:true}]));await flush()});
+  await act(()=>view.root.findAllByType('button').find(b=>b.props['aria-label']==='编辑尾号 1234 的备注').props.onClick());
+  const field=()=>view.root.findAll(n=>n.props.label==='卡片备注'&&n.props.onChange)[0];
+  await act(()=>field().props.onChange({target:{value:'广告订阅'}}));
+  const save=()=>view.root.findAllByType('button').find(b=>b.props.children==='保存');
+  await act(async()=>{save().props.onClick();await flush()});
+  const write=fixture.requests.at(-1);assert.equal(write.path,base+'/slash/cards/c1/remark');assert.deepEqual(write.body,{remark:'广告订阅',revision:1});
+  await act(async()=>{write.reject(new Error('offline'));await flush()});assert.equal(field().props.value,'广告订阅');assert.match(field().props.helperText,/保存失败/);
+  await act(async()=>{save().props.onClick();await flush()});
+  await act(async()=>{fixture.requests.at(-1).resolve({remark:'广告订阅',remarkRevision:2,remarkEditable:true});await flush()});
+  assert.match(content(view.toJSON()),/广告订阅/);
+  await act(()=>view.root.findAllByType('button').find(b=>b.props['aria-label']==='编辑尾号 1234 的备注').props.onClick());
+  await act(()=>field().props.onChange({target:{value:'取消的编辑'}}));
+  await act(()=>view.root.findAllByType('button').find(b=>b.props.children==='取消').props.onClick());
+  assert.doesNotMatch(content(view.toJSON()),/取消的编辑/);
+ } finally {await act(()=>view.unmount())}
+});
+test('remark gateway limits writes to exact client card path and same origin',async()=>{
+ const path=base+'/slash/cards/c1/remark',env={SITE_KIND:'client',API_ORIGIN:'https://api.example.invalid'};
+ const upstream=async()=>Response.json({data:{remark:'test',remarkRevision:1}});
+ const req=(url,method='POST',origin='https://moventra.test')=>new Request('https://moventra.test'+url,{method,headers:{Authorization:'Bearer test',Origin:origin,'Content-Type':'application/json'},...(method==='POST'?{body:JSON.stringify({remark:'test',revision:0})}:{})});
+ assert.equal((await handle(req(path),env,upstream)).status,200);
+ assert.equal((await handle(req(path,'GET'),env,upstream)).status,405);
+ assert.equal((await handle(req(path+'?x=1'),env,upstream)).status,405);
+ assert.equal((await handle(req(path,'POST','https://evil.test'),env,upstream)).status,403);
+ assert.equal((await handle(req(path),{...env,SITE_KIND:'admin'},upstream)).status,404);
+});
+
+
+test('transaction merchant details preserve source values, legacy fallback and missing fields',async()=>{
+ for(const [extra,expected,absent] of [
+  [{merchant:'FACEBK *ORDER',merchantData:{description:'FACEBK *SOURCE',categoryCode:'0731',location:{city:'650-543-7818',state:'Ca',zip:'94025',country:'Us'}}},['FACEBK *SOURCE','0731','Facebook','650-543-7818, Ca 94025, Us'],[]],
+  [{merchant:'Legacy merchant',categoryCode:'7311'},['Legacy merchant','7311','商户位置未提供'],[]],
+  [{merchant:'Legacy merchant',categoryCode:'7311',merchantData:{}},['商户未提供','商户位置未提供'],['7311']],
+  [{merchantData:{description:'  ',categoryCode:' ',location:{state:' CA ',country:' US '}}},['商户未提供','CA, US'],[]],
+ ]){
+  const view=await mount('/portal/card-transactions/t1?connection=slash');
+  try{
+   await act(async()=>{fixture.requests[0].resolve(connections);await flush()});
+   await act(async()=>{fixture.requests[1].resolve(page([{id:'t1',cardId:'c1',...extra}]));await flush()});
+   const text=content(view.toJSON());
+   for(const value of ['商户描述','商户类别代码（MCC）','商户信息',...expected])assert.ok(text.includes(value),value);
+   for(const value of absent)assert.ok(!text.includes(value),value);
+  }finally{await act(()=>view.unmount())}
  }
 });

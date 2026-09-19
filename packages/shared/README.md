@@ -44,3 +44,5 @@ ChannelCardStatus为双端卡片原始状态提供统一浅色标签与语义图
 ## 统一资金记录组件（2026-09-19）
 
 `finance/FundRecords.tsx`由两端复用，独立GET transport与契约，按URL恢复筛选/分页/详情；金额格式沿用既有精确展示。见[资金记录](../../docs/business/fund-records.md)。
+
+2026-09-19（本地未部署）：`auth/AccountSecurity` 为共享安全设置，密码/邮箱/验证器使用 Firebase SDK，保留 Go 授权。见[安全设置流程](../../docs/business/two-role-login.md#flow-auth-security-001账户安全设置2026-09-19本地未部署)。

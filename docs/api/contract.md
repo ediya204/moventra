@@ -1,5 +1,7 @@
 # 交易与资金 API 契约草案
 
+卡片备注契约增量（2026-09-19，本地未部署）：`POST /client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/remark`，请求 `{remark:string,revision:number}`（最长200字符，首次 revision=0，空串清除）；返回 `data:{remark:string,remarkRevision:number,remarkEditable:boolean}`。卡片 GET 同步返回该三字段。身份与卡片归属复用既有查询；400输入无效、404未授权、409 remark_conflict/card_remarks_unavailable。字段未知或查询参数拒绝。见[流程及迁移边界](../business/customer-card-binding.md#flow-card-remark-001卡片备注2026-09-19本地未部署)。
+
 当前能力见[状态摘要](../current-state.md)。下方 DESIGN 模型及 F/R 场景不是已实现或全部通过的能力；本地隔离业务源码已恢复至 [services/local-workspace](../../services/local-workspace/README.md)，私有数据与凭据未迁入。后续日期的实施补充保留其独立证据，不代表本次重跑测试。
 
 更新日期：2026-09-07。状态：DESIGN；下列 financial 路由未实现。本文件不修改现有 OpenAPI，也不授权自动切换前端。

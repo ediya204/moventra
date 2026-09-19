@@ -20,7 +20,7 @@ test('fund records GET contract and gateway agree and deny cross-role/write/unli
  for(const [path,method] of [['/admin-api/v1/fund-records','GET'],[base,'POST'],[base+'?q=a&q=b','GET'],[base+'/invalid','GET']]){const r=await handle(new Request('https://client.invalid'+path,{method,headers}),{SITE_KIND:'client'},()=>assert.fail('unexpected upstream'));assert.equal(r.status,404)}
 });
 const fixture=globalThis.__fundRecordFixture={requests:[]};
-const shell=uri(`import React from ${JSON.stringify(resolve('react'))};const Pass=({children,...props})=>React.createElement('div',props,children);export const Stack=Pass,Box=Pass,Paper=Pass,TableContainer=Pass;export const Typography=Pass,Alert=({children,action,...p})=>React.createElement('div',p,children,action),LinearProgress=Pass;export const Button=({children,...p})=>React.createElement('button',p,children),Chip=({label})=>React.createElement('span',null,label);export const Table=({children,...p})=>React.createElement('table',p,children),TableHead=({children})=>React.createElement('thead',null,children),TableBody=({children})=>React.createElement('tbody',null,children),TableRow=({children,...p})=>React.createElement('tr',p,children),TableCell=({children})=>React.createElement('td',null,children);export const TextField=({children,...p})=>React.createElement('input',p),MenuItem=Pass;`);
+const shell=uri(`import React from ${JSON.stringify(resolve('react'))};const Pass=({children,...props})=>React.createElement('div',props,children);export const Drawer=({open,children,...p})=>open?React.createElement('aside',p,children):null;export const Stack=Pass,Box=Pass,Paper=Pass,TableContainer=Pass;export const Typography=Pass,Alert=({children,action,...p})=>React.createElement('div',p,children,action),LinearProgress=Pass;export const Button=({children,...p})=>React.createElement('button',p,children),Chip=({label})=>React.createElement('span',null,label);export const Table=({children,...p})=>React.createElement('table',p,children),TableHead=({children})=>React.createElement('thead',null,children),TableBody=({children})=>React.createElement('tbody',null,children),TableRow=({children,...p})=>React.createElement('tr',p,children),TableCell=({children})=>React.createElement('td',null,children);export const TextField=({children,...p})=>React.createElement('input',p),MenuItem=Pass;`);
 const api=uri(`export const fundRecordsGet=(path,signal)=>new Promise((resolve,reject)=>globalThis.__fundRecordFixture.requests.push({path,signal,resolve,reject}));`);
 const errors=uri(`export class SessionError extends Error {constructor(code,status){super(code);this.code=code;this.status=status}}`);
 const code=source('../../packages/shared/src/finance/FundRecords.tsx').replace(/from ['"]([^'"]+)['"]/g,(_,n)=>'from '+JSON.stringify(n==='@mui/material'?shell:n.endsWith('/fundRecordsApi')?api:n.endsWith('/fundRecordsContract')?contract:n.endsWith('/cryptoContract')?money:n.endsWith('/liveApi')?errors:resolve(n)));
@@ -33,12 +33,31 @@ async function mount(path,props={}){fixture.requests=[];let t;await act(async()=
 async function finish(value=result,i=0){await act(async()=>{fixture.requests[i].resolve(value);await flush()})}
 test('filters submit to server, reset page and preserve query in details; OTC amounts stay separate',async()=>{
  const t=await mount('/portal/fund-records?page=2&kind=otc');assert.equal(fixture.requests[0].path,base+'?page=2&kind=otc');await finish();assert.match(text(t.toJSON()),/支付 1.23 USDT/);assert.match(text(t.toJSON()),/收到 1.23 USD/);
- assert.equal(button(t,'详情').props.to,'/portal/fund-records/'+id+'?page=2&kind=otc');
+ assert.equal(button(t,'详情').props.to,'/portal/fund-records?page=2&kind=otc&record='+id);
  await act(async()=>{t.root.findAllByType('input').find(x=>x.props.label==='业务类型').props.onChange({target:{value:'opening_fee'}})});
  await act(async()=>{t.root.findAllByType('div').find(x=>x.props.component==='form').props.onSubmit({preventDefault(){}});await flush()});assert.equal(fixture.requests[1].path,base+'?kind=opening_fee');await act(()=>t.unmount());
 });
-test('deep link fetches its own authorized detail and retains list return filters',async()=>{
- const t=await mount('/portal/fund-records/'+id+'?kind=otc&page=1',{recordId:id});assert.equal(fixture.requests[0].path,base+'/'+id);await finish({...result,record:row,evidence:[]});assert.match(text(t.toJSON()),/待入账/);assert.equal(button(t,'返回资金记录').props.to,'/portal/fund-records?kind=otc&page=1');assert.match(text(t.toJSON()),/没有可展示的资金处理明细/);await act(()=>t.unmount());
+test('legacy deep link opens a drawer over the filtered list',async()=>{
+ const t=await mount('/portal/fund-records/'+id+'?kind=otc&page=1',{recordId:id});
+ assert.equal(fixture.requests[0].path,base+'?kind=otc&page=1');assert.equal(fixture.requests[1].path,base+'/'+id);
+ await finish();await finish({...result,record:row,evidence:[]},1);
+ assert.equal(t.root.findAllByType('aside').length,1);assert.match(text(t.toJSON()),/待入账/);assert.match(text(t.toJSON()),/没有可展示的资金处理明细/);
+ await act(()=>t.unmount());
+});
+test('list stays mounted while drawer opens, query deep links restore details and closing cancels requests',async()=>{
+ const t=await mount('/portal/fund-records?kind=otc&page=1');await finish();
+ await act(async()=>{t.root.findAllByType('tr').find(n=>n.props.onClick).props.onClick();await flush()});
+ assert.equal(fixture.requests.length,2);assert.equal(fixture.requests[1].path,base+'/'+id);
+ assert.equal(t.root.findAllByType('table').length,1);assert.equal(t.root.findAllByType('aside').length,1);
+ await act(async()=>{button(t,'关闭').props.onClick();await flush()});
+ assert.equal(t.root.findAllByType('aside').length,0);assert.equal(fixture.requests[1].signal.aborted,true);assert.equal(fixture.requests.length,2);
+ assert.match(text(t.toJSON()),/第 2 页/);await finish({...result,record:row},1);assert.equal(t.root.findAllByType('aside').length,0);await act(()=>t.unmount());
+ const u=await mount('/portal/fund-records?kind=otc&page=1&record='+id);
+ assert.equal(fixture.requests[0].path,base+'?kind=otc&page=1');assert.equal(fixture.requests[1].path,base+'/'+id);
+ await act(async()=>{fixture.requests[1].reject(new Error('offline'));await flush()});
+ assert.match(text(u.toJSON()),/读取资金记录失败/);
+ await act(async()=>{button(u,'重试').props.onClick();await flush()});assert.equal(fixture.requests[2].path,base+'/'+id);
+ await finish({...result,record:row,evidence:[]},2);assert.match(text(u.toJSON()),/待入账/);await act(()=>u.unmount());
 });
 test('errors cannot masquerade as empty; retry and stale response protection work',async()=>{
  const t=await mount('/portal/fund-records');await act(async()=>{fixture.requests[0].reject(new Error('offline'));await flush()});assert.match(text(t.toJSON()),/读取资金记录失败/);assert.doesNotMatch(text(t.toJSON()),/暂无资金记录/);

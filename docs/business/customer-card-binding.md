@@ -170,3 +170,35 @@ GET /client-api/v1/customers/{customerID}/card-projections/{connection}/{cards|t
 ### 2026-09-19 卡片列表精简发布增量
 
 沿用 FLOW-CARD-CENTER-UX-01：移除客户端卡片/交易共用查询区的数据来源选择器和卡片列表来源筛选说明；原 URL 连接上下文、默认连接与服务端授权保持不变，没有新增跨连接汇总。卡名与后四位拆为两列，尾号去掉圆点，数字链接至同一卡片详情并保留返回上下文；手机端同步。操作文案统一为“详情”。本批不更改金额、数据同步、详情功能或金融权限。发布结果见[发布记录](../../deploy/2026-09-19-card-list-refinement-release.md)。
+
+
+## FLOW-CARD-REMARK-001：卡片备注（2026-09-19，本地未部署）
+
+基线 main `0677a8c` 加本批未提交增量。用户要求显示、点击修改卡片备注，并确认在列表使用独立备注列；备注属于客户内部元数据，不覆盖渠道卡名，不触发渠道请求或资金操作。
+
+流程：卡片中心 →卡片列表独立「备注」列（`/portal/cards`）→ 查询已授权卡片 → 点击备注 → 输入最多200个字符 → 保存 → 回显服务端确认值。Enter 保存、Esc/取消退出，空值保存清除；请求失败保留草稿，版本冲突提示取消后重编。连接、搜索与分页保存在 URL。备注列位于卡名旁边；手机布局使用独立备注区域。
+
+接口链：客户端 `liveCardRemark` → 同源网关精确 POST 白名单 → Firebase 与 active/customer 验证 → 个人主体所有权 → 原有固定快照或正式钱包卡片归属校验 → 内部备注与审计同事务落库。入口为 `POST /client-api/v1/customers/{customerID}/card-projections/{connection}/cards/{id}/remark`，请求 `{remark:string,revision:number}`，成功返回 `data:{remark,remarkRevision,remarkEditable}`。读取沿用卡片列表/详情接口，增加这三个字段。连接与客户共同隔离相同卡 ID，未授权资源返回404；无效长度/额外字段400，陈旧 revision 返回409 `remark_conflict`，不覆盖别页更新。更新期间锁定归属记录防止撤销竞争，审计不记录备注正文。
+
+新增迁移023 `customer_card_remarks`，可通过 `go run ./cmd/api migrate-card-remarks` 定向应用（校验001/002/007/011前置及checksum）。未迁移时卡片读取继续工作，备注标记不可编辑；写入返回409 `card_remarks_unavailable`。不自动启动迁移，生产执行须独立授权。
+
+验证：17项卡片前端/网关专项、205项全量前端回归、两端类型检查与构建通过；隔离 PostgreSQL 卡绑定/正式钱包路径 race 测试及 Go vet/build 通过，覆盖保存/清空/持久读取、陈旧版本、非法参数与越权。备注交互的浏览器已核验点击编辑、保存与刷新保留。8897布局预览只写当前浏览器 sessionStorage 的合成备注；服务端持久化由隔离数据库测试验证。设计和本地实现完成；真实渠道不适用，本批未迁移生产、未部署。
+
+
+## FLOW-TX-MERCHANT-001：消费详情商户信息（2026-09-19，本地未部署）
+
+| 项目 | 本批范围与依据 |
+| --- | --- |
+| 目标及范围 | 客户消费记录抽屉增加商户描述、MCC及商户名称/位置；只读展示 |
+| 基线 | main bf05e56 加共享工作区；保留同期卡片备注等增量；启动 pnpm dev:client |
+| 页面关系 | /portal/transactions?transaction=:id&connection=:connection → 右侧详情 → 所属卡片；兼容 /portal/card-transactions/:id 深链及卡片内交易入口，关闭保留原列表上下文 |
+| 业务身份 | 客户主体、连接、交易ID及cardId沿用现有归属，不扩大查询范围 |
+| 数据依据 | 既有投影 merchantData.description/categoryCode/location；仅旧记录没有merchantData时回退merchant/categoryCode。显式空对象/null不伪造字段；位置按城市、州及邮编、国家组合，缺失显示未提供 |
+| 接口链 | CardSnapshots → liveGet → 同域GET白名单 → Go channelRead → 已授权交易投影；客户DTO已有所需字段，无API或迁移变更 |
+| 状态及操作 | 加载、失败重试、无数据、关闭和关联卡片沿用；金额与交易状态不变 |
+| 跨端变化 | 仅客户端展示；与后台读取相同商户来源字段，无写操作或刷新联动 |
+| 权限 | 继承个人主体/卡片/连接隔离，不新增字段权限；内部品牌别名仅展示参考，title注明名称匹配，不替换原始描述 |
+| 验收 | E01/E03/E06：18项card-snapshot组件/网关测试通过，含商户完整/部分/空值、旧记录兼容、深链、重试、关闭及原权限路径；客户端类型检查/构建、边界检查通过。真实浏览器视觉及真实渠道未执行 |
+| 待定决策 | 无；截图文字仅作布局参考，不写入真实数据 |
+
+设计与本地实现完成；自动化证据为本次 `NODE_OPTIONS=--experimental-strip-types node --test tests/frontend/card-snapshot.test.mjs`、客户端typecheck/build及check:boundaries。未部署、未调用真实渠道、未执行资金写入。

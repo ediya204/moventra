@@ -53,6 +53,9 @@ func run() error {
 	if len(os.Args) == 2 && os.Args[1] == "migrate-messages" {
 		return database.MigrateMessages(ctx, pool)
 	}
+	if len(os.Args) == 2 && os.Args[1] == "migrate-card-remarks" {
+		return database.MigrateCardRemarks(ctx, pool)
+	}
 	if len(os.Args) == 2 && os.Args[1] == "migrate-card-metrics" {
 		return database.MigrateCardMetrics(ctx, pool)
 	}

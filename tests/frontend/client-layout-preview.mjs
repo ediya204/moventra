@@ -14,7 +14,7 @@ const transactions=[{id:'tx-1',cardId:'card-0',cardName:'Marketing team',cardLas
 export class SessionError extends Error{};export class IssuingError extends Error{};
 export const authMessage=e=>e.message,cryptoError=authMessage,manualError=authMessage;
 const blocked=()=>Promise.reject(new Error('隔离预览不执行任何写操作'));
-export const liveCardSync=blocked,liveCardAction=blocked,updateOnboarding=blocked,registerUser=blocked;
+export const liveCardSync=blocked,liveCardAction=blocked,liveCardRemark=blocked,updateOnboarding=blocked,registerUser=blocked;
 export async function liveGet(path,body){
  if(body!==undefined){
   if(path.endsWith('/otc/quotes')){
@@ -63,7 +63,7 @@ export async function liveGet(path,body){
 }
 export const cryptoRequest=liveGet,manualRequest=liveGet,issuingRequest=liveGet;
 `;
-const auth=`const customer={id:'10000000-0000-0000-0000-000000000001',name:'预览账户',kind:'personal'};const user={uid:'layout-fixture',email:'preview@example.invalid',emailVerified:true};const session={id:'layout-fixture',customers:[customer],mfaVerified:true};export const useAuth=()=>({ready:true,user,session,signOut:()=>{},refreshSession:async()=>{}});`;
+const auth=`const customer={id:'10000000-0000-0000-0000-000000000001',name:'预览账户',kind:'personal'};const user={uid:'layout-fixture',email:'preview@example.invalid',emailVerified:true,providerData:[{providerId:'password'}]};const session={id:'layout-fixture',customers:[customer],mfaVerified:true};export const useAuth=()=>({ready:true,user,session,signOut:()=>{},refreshSession:async()=>{}});`;
 const entry=`import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{ThemeProvider,CssBaseline}from'@mui/material';import theme from '/packages/shared/src/theme.ts';import ClientHome from '/apps/client/src/portal/ClientHome.tsx';import '@fontsource/public-sans/400.css';import '@fontsource/public-sans/600.css';import '@fontsource/public-sans/700.css';import '/packages/shared/src/styles.css';createRoot(document.getElementById('root')).render(<ThemeProvider theme={theme}><CssBaseline/><BrowserRouter><ClientHome/></BrowserRouter></ThemeProvider>);`;
 const server=await createServer({root,publicDir:resolve('packages/assets/public'),configFile:false,esbuild:{jsx:'automatic'},server:{host:'127.0.0.1',port:Number(process.env.MOVENTRA_PREVIEW_PORT||8865),strictPort:true},plugins:[{name:'isolated-client-layout',enforce:'pre',resolveId(id){
  if(id==='/layout-preview.tsx')return '\0layout-preview';
@@ -77,7 +77,7 @@ const server=await createServer({root,publicDir:resolve('packages/assets/public'
  if(id==='\0layout-api')return fixture;
  if(id==='\0layout-auth')return auth;
  if(id==='\0layout-registration')return 'export default ()=>null;';
- if(id==='\0layout-firebase-auth')return 'export const multiFactor=()=>({enrolledFactors:[{uid:"fixture"}]}),sendEmailVerification=()=>Promise.reject(new Error("Preview only")),TotpMultiFactorGenerator={};';
+ if(id==='\0layout-firebase-auth')return 'const blocked=()=>Promise.reject(new Error("隔离预览不修改认证资料"));export const multiFactor=()=>({enrolledFactors:[{uid:"fixture",displayName:"我的手机",factorId:"totp"}],getSession:blocked}),sendEmailVerification=blocked,sendPasswordResetEmail=blocked,updatePassword=blocked,verifyBeforeUpdateEmail=blocked,TotpMultiFactorGenerator={FACTOR_ID:"totp"};';
  if(id==='\0layout-firebase')return 'const user={getIdToken:async()=>"isolated-fixture"};export const getFirebaseAuth=()=>({currentUser:user});';
  },configureServer(s){s.middlewares.use((req,res,next)=>{
  if(req.method==='POST'&&/^\/client-api\/v1\/customers\/10000000-0000-0000-0000-000000000001\/card-projections\/fixture\/cards\/card-[0-9]+\/details\/reveal$/.test(req.url||'')){
